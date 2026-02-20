@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cognitive Load Router</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 280px; padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f0f1e; color: #e0e0f0;
+    }
+    h1 { font-size: 13px; font-weight: 600; opacity: .6; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+    .score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .score-circle {
+      width: 52px; height: 52px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; border: 3px solid #4a4af0;
+      flex-shrink: 0;
+    }
+    .score-meta { flex: 1; }
+    .context-label { font-size: 14px; font-weight: 600; }
+    .confidence { font-size: 11px; opacity: .5; margin-top: 2px; }
+    .bar-container { background: #1e1e3a; border-radius: 6px; height: 8px; overflow: hidden; margin: 4px 0 2px; }
+    .bar { height: 100%; border-radius: 6px; transition: width .4s; }
+    .bar-label { font-size: 10px; opacity: .45; display: flex; justify-content: space-between; }
+    .actions { margin-top: 14px; display: flex; gap: 8px; }
+    button {
+      flex: 1; padding: 8px; border: none; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      background: #4a4af0; color: #fff; transition: opacity .2s;
+    }
+    button:hover { opacity: .85; }
+    button.secondary { background: #2a2a4a; }
+    .status { font-size: 11px; opacity: .4; text-align: center; margin-top: 10px; }
+    #error { color: #f05a4a; font-size: 11px; text-align: center; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Cognitive Load Router</h1>
+
+  <div class="score-row">
+    <div class="score-circle" id="scoreCircle">—</div>
+    <div class="score-meta">
+      <div class="context-label" id="contextLabel">Loading…</div>
+      <div class="confidence" id="confidenceLabel"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="bar-label"><span>Intrinsic</span><span id="intVal">—</span></div>
+    <div class="bar-container"><div class="bar" id="intBar" style="width:0;background:#f0a04a"></div></div>
+
+    <div class="bar-label" style="margin-top:6px"><span>Extraneous</span><span id="extVal">—</span></div>
+    <div class="bar-container"><div class="bar" id="extBar" style="width:0;background:#f05a4a"></div></div>
+
+    <div class="bar-label" style="margin-top:6px"><span>Germane</span><span id="gerVal">—</span></div>
+    <div class="bar-container"><div class="bar" id="gerBar" style="width:0;background:#4af0a0"></div></div>
+  </div>
+
+  <div class="actions">
+    <button id="focusBtn">Start Focus</button>
+    <button class="secondary" id="dashBtn">Dashboard</button>
+  </div>
+
+  <div class="status" id="statusLine">Connecting to engine…</div>
+  <div id="error"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

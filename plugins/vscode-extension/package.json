@@ -1,0 +1,43 @@
+{
+  "name": "cognitive-load-router",
+  "displayName": "Cognitive Load Router",
+  "description": "IDE telemetry plugin for the Cognitive Load Router",
+  "version": "0.1.0",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "clr.toggleTelemetry",
+        "title": "CLR: Toggle Telemetry"
+      }
+    ],
+    "configuration": {
+      "title": "Cognitive Load Router",
+      "properties": {
+        "clr.engineUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8765",
+          "description": "URL of the local CLR engine API"
+        },
+        "clr.telemetryEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send IDE telemetry to the CLR engine"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}
