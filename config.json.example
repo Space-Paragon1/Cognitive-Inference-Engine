@@ -1,0 +1,9 @@
+{
+  "api_host": "127.0.0.1",
+  "api_port": 8765,
+  "inference_interval_ms": 2000,
+  "load_history_window_s": 300,
+  "high_load_threshold": 0.75,
+  "fatigue_threshold": 0.85,
+  "low_load_threshold": 0.35
+}
