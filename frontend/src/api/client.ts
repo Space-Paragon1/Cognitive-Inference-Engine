@@ -1,7 +1,9 @@
 import type {
   CognitiveState,
+  DailyStats,
   FocusState,
   PomodoroState,
+  SessionSummary,
   Task,
   TaskQueue,
   TimelineEntry,
@@ -62,6 +64,27 @@ export const getLoadHistory = (windowS = 300) =>
   get<{ scores: number[]; window_seconds: number; count: number }>(
     `/timeline/load-history?window_s=${windowS}`
   );
+
+export const getSessions = (params?: {
+  since?: number;
+  until?: number;
+  gap_minutes?: number;
+}) => {
+  const q = new URLSearchParams();
+  if (params?.since) q.set("since", String(params.since));
+  if (params?.until) q.set("until", String(params.until));
+  if (params?.gap_minutes) q.set("gap_minutes", String(params.gap_minutes));
+  const qs = q.toString() ? `?${q.toString()}` : "";
+  return get<SessionSummary[]>(`/timeline/sessions${qs}`);
+};
+
+export const getDailyStats = (params?: { since?: number; until?: number }) => {
+  const q = new URLSearchParams();
+  if (params?.since) q.set("since", String(params.since));
+  if (params?.until) q.set("until", String(params.until));
+  const qs = q.toString() ? `?${q.toString()}` : "";
+  return get<DailyStats[]>(`/timeline/stats/daily${qs}`);
+};
 
 // ── Actions ────────────────────────────────────────────────────────────────
 
