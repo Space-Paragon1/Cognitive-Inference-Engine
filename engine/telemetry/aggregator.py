@@ -12,7 +12,8 @@ from typing import Callable, Optional
 
 from ..config import config
 from ..inference.context_classifier import CognitiveContext, ContextClassifier
-from ..inference.load_estimator import LoadEstimate, LoadEstimator
+from ..inference.load_estimator import LoadEstimate
+from ..inference.ml_estimator import MLLoadEstimator
 from ..inference.signal_processor import SignalFeatures, SignalProcessor, TelemetryEvent
 from .timeline import CognitiveTimeline, TimelineEntry
 
@@ -30,7 +31,7 @@ class TelemetryAggregator:
     def __init__(self, timeline: CognitiveTimeline):
         self._timeline = timeline
         self._processor = SignalProcessor(window_seconds=config.load_history_window_s)
-        self._estimator = LoadEstimator()
+        self._estimator = MLLoadEstimator()   # auto-falls back to v1 if no model file
         self._classifier = ContextClassifier()
         self._latest_estimate: Optional[LoadEstimate] = None
         self._latest_context: CognitiveContext = CognitiveContext.UNKNOWN
@@ -99,6 +100,7 @@ class TelemetryAggregator:
             "context": self._latest_context.value,
             "confidence": self._latest_estimate.confidence if self._latest_estimate else 0.0,
             "timestamp": time.time(),
+            "estimator": "ml" if self._estimator.using_ml_model else "v1",
         }
 
     def register_listener(self, fn: Callable) -> None:

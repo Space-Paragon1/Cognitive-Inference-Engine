@@ -1,5 +1,5 @@
 """
-/telemetry — ingest events from browser extension, IDE extension, desktop agent.
+/telemetry — ingest events from browser extension, IDE extension, desktop agent, and LMS connector.
 """
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ from ...api.schemas import TelemetryEventIn
 from ...telemetry.sources.browser import parse_browser_event
 from ...telemetry.sources.desktop import parse_desktop_event
 from ...telemetry.sources.ide import parse_ide_event
+from ...telemetry.sources.lms import parse_lms_event
 
 router = APIRouter(prefix="/telemetry", tags=["telemetry"])
 
@@ -26,24 +27,30 @@ def _to_payload(event: TelemetryEventIn) -> dict:
     return payload
 
 
+def _parse_event(source: str, payload: dict):
+    """Route payload to the correct source parser. Returns None for unknown types."""
+    if source == "browser":
+        return parse_browser_event(payload)
+    if source == "ide":
+        return parse_ide_event(payload)
+    if source == "desktop":
+        return parse_desktop_event(payload)
+    if source == "lms":
+        return parse_lms_event(payload)
+    return None
+
+
 @router.post("/event", status_code=status.HTTP_202_ACCEPTED)
 async def ingest_event(
     event: TelemetryEventIn,
     aggregator=Depends(_get_aggregator),
 ):
     """Accept a single telemetry event from any plugin source."""
-    payload = _to_payload(event)
-
-    parsed = None
-    if event.source == "browser":
-        parsed = parse_browser_event(payload)
-    elif event.source == "ide":
-        parsed = parse_ide_event(payload)
-    elif event.source == "desktop":
-        parsed = parse_desktop_event(payload)
-    else:
+    _KNOWN_SOURCES = {"browser", "ide", "desktop", "lms"}
+    if event.source not in _KNOWN_SOURCES:
         raise HTTPException(status_code=400, detail=f"Unknown source: {event.source!r}")
 
+    parsed = _parse_event(event.source, _to_payload(event))
     if parsed is None:
         raise HTTPException(status_code=422, detail=f"Unrecognised event type: {event.type!r}")
 
@@ -59,14 +66,7 @@ async def ingest_batch(
     """Accept a batch of events (used by plugins that buffer locally)."""
     accepted = 0
     for event in events:
-        payload = _to_payload(event)
-        parsed = None
-        if event.source == "browser":
-            parsed = parse_browser_event(payload)
-        elif event.source == "ide":
-            parsed = parse_ide_event(payload)
-        elif event.source == "desktop":
-            parsed = parse_desktop_event(payload)
+        parsed = _parse_event(event.source, _to_payload(event))
         if parsed:
             await aggregator.push_event_async(parsed)
             accepted += 1
