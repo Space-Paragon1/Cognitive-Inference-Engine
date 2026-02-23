@@ -106,6 +106,31 @@ class TimelineQueryParams(BaseModel):
     limit: int = Field(default=200, le=1000)
 
 
+# ── Session Analytics ──────────────────────────────────────────────────────
+
+class SessionSummaryOut(BaseModel):
+    session_index: int
+    start_ts: float
+    end_ts: float
+    duration_minutes: float
+    tick_count: int
+    avg_load_score: float
+    peak_load_score: float
+    context_distribution: Dict[str, float]
+    dominant_context: str
+
+
+class DailyStatsOut(BaseModel):
+    date: str
+    tick_count: int
+    session_count: int
+    avg_load_score: float
+    peak_load_score: float
+    total_session_minutes: float
+    focus_minutes: float
+    context_distribution: Dict[str, float]
+
+
 # ── Pomodoro ───────────────────────────────────────────────────────────────
 
 class PomodoroStateOut(BaseModel):
