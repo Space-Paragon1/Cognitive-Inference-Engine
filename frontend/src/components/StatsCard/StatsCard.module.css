@@ -1,0 +1,150 @@
+.heading {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+  margin-top: 0;
+}
+
+/* ── Mini stat ──────────────────────────────────────────────────────────── */
+
+.miniStat {
+  margin-bottom: 10px;
+  flex: 1;
+}
+
+.miniStatLabel {
+  font-size: 10px;
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.miniStatValue {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.miniStatSub {
+  font-size: 10px;
+  opacity: 0.4;
+  margin-top: 1px;
+}
+
+/* ── Stats row ──────────────────────────────────────────────────────────── */
+
+.statsRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+/* ── Context bar ────────────────────────────────────────────────────────── */
+
+.ctxBarWrap {
+  margin-bottom: 10px;
+}
+
+.ctxBarTrack {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.ctxLegend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ctxLegendItem {
+  font-size: 10px;
+}
+
+/* ── Session row ────────────────────────────────────────────────────────── */
+
+.sessionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid #12122a;
+  font-size: 11px;
+}
+
+.sessionDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sessionRange {
+  flex: 1;
+  opacity: 0.6;
+}
+
+.sessionDuration {
+  font-weight: 600;
+}
+
+.sessionLoad {
+  opacity: 0.45;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ── Section label ──────────────────────────────────────────────────────── */
+
+.sectionLabel {
+  font-size: 10px;
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 5px;
+}
+
+/* ── Week chart ─────────────────────────────────────────────────────────── */
+
+.weekChartWrap {
+  margin-bottom: 12px;
+}
+
+/* ── Session list ───────────────────────────────────────────────────────── */
+
+.sessionList {
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+/* ── Tooltip ────────────────────────────────────────────────────────────── */
+
+.tooltip {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+.tooltipLabel {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.tooltipValue {
+  opacity: 0.7;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+
+.empty {
+  opacity: 0.3;
+  font-size: 12px;
+  margin-bottom: 14px;
+}

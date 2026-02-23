@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { getDailyStats, getSessions } from "../../api/client";
 import type { DailyStats, SessionSummary } from "../../types";
+import css from "./StatsCard.module.css";
 
 const CTX_COLOR: Record<string, string> = {
   deep_focus: "#4af0a0",
@@ -12,6 +23,7 @@ const CTX_COLOR: Record<string, string> = {
 };
 
 function fmtMin(min: number): string {
+  if (min < 1) return "< 1 min";
   if (min < 60) return `${Math.round(min)} min`;
   const h = Math.floor(min / 60);
   const m = Math.round(min % 60);
@@ -24,20 +36,25 @@ function fmtTime(ts: number): string {
   });
 }
 
+function shortDay(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00Z");
+  return d.toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" });
+}
+
+function loadColor(score: number): string {
+  return score > 0.7 ? "#f05a4a" : score > 0.45 ? "#f0c040" : "#4af0a0";
+}
+
 // ── Sub-components ──────────────────────────────────────────────────────────
 
 function MiniStat({ label, value, sub, color }: {
   label: string; value: string; sub?: string; color?: string;
 }) {
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 10, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 18, fontWeight: 700, color: color ?? "#fff", lineHeight: 1.2 }}>
-        {value}
-      </div>
-      {sub && <div style={{ fontSize: 10, opacity: 0.45, marginTop: 1 }}>{sub}</div>}
+    <div className={css.miniStat}>
+      <div className={css.miniStatLabel}>{label}</div>
+      <div className={css.miniStatValue} style={{ color: color ?? "#fff" }}>{value}</div>
+      {sub && <div className={css.miniStatSub}>{sub}</div>}
     </div>
   );
 }
@@ -45,24 +62,53 @@ function MiniStat({ label, value, sub, color }: {
 function SessionRow({ session }: { session: SessionSummary }) {
   const color = CTX_COLOR[session.dominant_context] ?? "#aaa";
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 8,
-      padding: "5px 0", borderBottom: "1px solid #12122a",
-      fontSize: 11,
-    }}>
-      <div style={{
-        width: 6, height: 6, borderRadius: "50%",
-        background: color, flexShrink: 0,
-      }} />
-      <div style={{ flex: 1, opacity: 0.7 }}>
-        {fmtTime(session.start_ts)} → {fmtTime(session.end_ts)}
+    <div className={css.sessionRow}>
+      <div className={css.sessionDot} style={{ background: color }} />
+      <div className={css.sessionRange}>
+        {fmtTime(session.start_ts)} – {fmtTime(session.end_ts)}
       </div>
-      <div style={{ color, fontWeight: 600 }}>
+      <div className={css.sessionDuration} style={{ color }}>
         {fmtMin(session.duration_minutes)}
       </div>
-      <div style={{ opacity: 0.5, minWidth: 32, textAlign: "right" }}>
+      <div className={css.sessionLoad}>
         {Math.round(session.avg_load_score * 100)}%
       </div>
+    </div>
+  );
+}
+
+function ContextBar({ dist }: { dist: Record<string, number> }) {
+  const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+  return (
+    <div className={css.ctxBarWrap}>
+      <div className={css.ctxBarTrack}>
+        {sorted.map(([ctx, frac]) => (
+          <div
+            key={ctx}
+            title={`${ctx.replace(/_/g, " ")}: ${Math.round(frac * 100)}%`}
+            style={{ width: `${frac * 100}%`, background: CTX_COLOR[ctx] ?? "#444" }}
+          />
+        ))}
+      </div>
+      <div className={css.ctxLegend}>
+        {sorted.filter(([, f]) => f > 0.04).map(([ctx, frac]) => (
+          <span key={ctx} className={css.ctxLegendItem} style={{ color: CTX_COLOR[ctx] ?? "#aaa" }}>
+            ■ {ctx.replace(/_/g, " ")} {Math.round(frac * 100)}%
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WeekTooltip({ active, payload, label }: {
+  active?: boolean; payload?: Array<{ value: number }>; label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className={css.tooltip}>
+      <div className={css.tooltipLabel}>{label}</div>
+      <div className={css.tooltipValue}>Avg load: {payload[0].value}%</div>
     </div>
   );
 }
@@ -71,93 +117,87 @@ function SessionRow({ session }: { session: SessionSummary }) {
 
 export function StatsCard() {
   const [today, setToday] = useState<DailyStats | null>(null);
+  const [weekStats, setWeekStats] = useState<DailyStats[]>([]);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
 
   useEffect(() => {
-    // Fetch today's stats: since midnight UTC
     const midnightUtc = new Date();
     midnightUtc.setUTCHours(0, 0, 0, 0);
-    const since = midnightUtc.getTime() / 1000;
+    const todaySince = midnightUtc.getTime() / 1000;
+    const weekSince = todaySince - 6 * 86_400;
 
-    getDailyStats({ since }).then((data) => {
-      if (data.length > 0) setToday(data[data.length - 1]);
-    }).catch(() => {});
-
-    getSessions({ since }).then(setSessions).catch(() => {});
-
-    // Refresh every 30 s
-    const id = setInterval(() => {
-      getDailyStats({ since }).then((data) => {
+    function refresh() {
+      getDailyStats({ since: weekSince }).then((data) => {
+        setWeekStats(data);
         if (data.length > 0) setToday(data[data.length - 1]);
       }).catch(() => {});
-      getSessions({ since }).then(setSessions).catch(() => {});
-    }, 30_000);
+      getSessions({ since: todaySince }).then(setSessions).catch(() => {});
+    }
+
+    refresh();
+    const id = setInterval(refresh, 30_000);
     return () => clearInterval(id);
   }, []);
 
+  const barData = weekStats.map((d) => ({
+    day: shortDay(d.date),
+    load: Math.round(d.avg_load_score * 100),
+  }));
+
   return (
     <div>
-      <h3 style={{
-        fontSize: 13, fontWeight: 600, opacity: 0.5,
-        textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14,
-      }}>
-        Today's Stats
-      </h3>
+      <h3 className={css.heading}>Today's Stats</h3>
 
       {today ? (
         <>
-          <MiniStat
-            label="Focus time"
-            value={fmtMin(today.focus_minutes)}
-            sub={`of ${fmtMin(today.total_session_minutes)} total`}
-            color="#4af0a0"
-          />
-          <MiniStat
-            label="Sessions"
-            value={String(today.session_count)}
-            sub={`${today.tick_count} inference ticks`}
-          />
-          <MiniStat
-            label="Avg load"
-            value={`${Math.round(today.avg_load_score * 100)}%`}
-            sub={`peak ${Math.round(today.peak_load_score * 100)}%`}
-            color={today.avg_load_score > 0.7 ? "#f05a4a" : today.avg_load_score > 0.45 ? "#f0c040" : "#4af0a0"}
-          />
-
-          {/* Context distribution mini-bar */}
-          {Object.keys(today.context_distribution).length > 0 && (
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>
-                Context split
-              </div>
-              <div style={{ height: 8, borderRadius: 4, overflow: "hidden", display: "flex" }}>
-                {Object.entries(today.context_distribution)
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([ctx, frac]) => (
-                    <div
-                      key={ctx}
-                      title={`${ctx.replace("_", " ")}: ${Math.round(frac * 100)}%`}
-                      style={{
-                        width: `${frac * 100}%`,
-                        background: CTX_COLOR[ctx] ?? "#444",
-                      }}
-                    />
-                  ))}
-              </div>
-            </div>
-          )}
+          <div className={css.statsRow}>
+            <MiniStat
+              label="Focus"
+              value={fmtMin(today.focus_minutes)}
+              sub={`of ${fmtMin(today.total_session_minutes)}`}
+              color="#4af0a0"
+            />
+            <MiniStat
+              label="Avg load"
+              value={`${Math.round(today.avg_load_score * 100)}%`}
+              sub={`peak ${Math.round(today.peak_load_score * 100)}%`}
+              color={loadColor(today.avg_load_score)}
+            />
+            <MiniStat
+              label="Sessions"
+              value={String(today.session_count)}
+              sub={`${today.tick_count} ticks`}
+            />
+          </div>
+          <ContextBar dist={today.context_distribution} />
         </>
       ) : (
-        <div style={{ opacity: 0.3, fontSize: 12, marginBottom: 14 }}>No data yet today</div>
+        <p className={css.empty}>No data yet today</p>
       )}
 
-      {/* Session list */}
+      {barData.length > 1 && (
+        <div className={css.weekChartWrap}>
+          <div className={css.sectionLabel}>7-day avg load</div>
+          <ResponsiveContainer width="100%" height={80}>
+            <BarChart data={barData} margin={{ top: 0, right: 0, left: -28, bottom: 0 }} barSize={14}>
+              <CartesianGrid vertical={false} stroke="#1e1e3a" />
+              <XAxis dataKey="day" tick={{ fill: "#555", fontSize: 9 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 100]} tick={{ fill: "#555", fontSize: 9 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<WeekTooltip />} cursor={{ fill: "#1e1e3a" }} />
+              <Bar dataKey="load" radius={[3, 3, 0, 0]}>
+                {barData.map((entry, i) => (
+                  <Cell key={i} fill={loadColor(entry.load / 100)} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {sessions.length > 0 && (
         <div>
-          <div style={{ fontSize: 10, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
-            Sessions today
-          </div>
-          <div style={{ maxHeight: 160, overflowY: "auto" }}>
+          <div className={css.sectionLabel}>Sessions today</div>
+          <div className={css.sessionList}>
             {[...sessions].reverse().map((s) => (
               <SessionRow key={s.session_index} session={s} />
             ))}

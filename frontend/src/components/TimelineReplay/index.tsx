@@ -9,8 +9,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { getTimeline } from "../../api/client";
-import type { TimelineEntry } from "../../types";
+import { getTimeline, getSessions } from "../../api/client";
+import type { SessionSummary, TimelineEntry } from "../../types";
 
 // ── Context colour map ──────────────────────────────────────────────────────
 
@@ -26,22 +26,28 @@ const CTX_COLOR: Record<string, string> = {
 // ── Time window presets ─────────────────────────────────────────────────────
 
 const WINDOWS = [
-  { label: "1 h", seconds: 3600 },
-  { label: "6 h", seconds: 6 * 3600 },
+  { label: "1 h",  seconds: 3600 },
+  { label: "6 h",  seconds: 6 * 3600 },
   { label: "24 h", seconds: 24 * 3600 },
-  { label: "7 d", seconds: 7 * 24 * 3600 },
+  { label: "7 d",  seconds: 7 * 24 * 3600 },
 ];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmtTime(ts: number): string {
-  const d = new Date(ts * 1000);
-  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return new Date(ts * 1000).toLocaleTimeString(undefined, {
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
 }
 
 function fmtDate(ts: number): string {
   const d = new Date(ts * 1000);
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " + fmtTime(ts);
+}
+
+function fmtMin(min: number): string {
+  if (min < 60) return `${Math.round(min)}m`;
+  return `${Math.floor(min / 60)}h ${Math.round(min % 60)}m`;
 }
 
 function computeStats(entries: TimelineEntry[]) {
@@ -54,6 +60,10 @@ function computeStats(entries: TimelineEntry[]) {
     ctxDist[e.context] = (ctxDist[e.context] ?? 0) + 1;
   }
   return { avg, peak, ctxDist, total: entries.length };
+}
+
+function loadColor(score: number) {
+  return score > 0.7 ? "#f05a4a" : score > 0.45 ? "#f0c040" : "#4af0a0";
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────
@@ -76,9 +86,8 @@ function ContextBar({ ctxDist, total }: { ctxDist: Record<string, number>; total
     <div>
       <div style={{ height: 10, borderRadius: 5, overflow: "hidden", display: "flex", marginBottom: 6 }}>
         {sorted.map(([ctx, count]) => (
-          <div
-            key={ctx}
-            title={`${ctx.replace("_", " ")}: ${Math.round((count / total) * 100)}%`}
+          <div key={ctx}
+            title={`${ctx.replace(/_/g, " ")}: ${Math.round((count / total) * 100)}%`}
             style={{ width: `${(count / total) * 100}%`, background: CTX_COLOR[ctx] ?? "#444" }}
           />
         ))}
@@ -94,22 +103,71 @@ function ContextBar({ ctxDist, total }: { ctxDist: Record<string, number>; total
   );
 }
 
+// ── Session pill ─────────────────────────────────────────────────────────────
+
+function SessionPill({
+  session, active, onClick,
+}: { session: SessionSummary; active: boolean; onClick: () => void }) {
+  const color = CTX_COLOR[session.dominant_context] ?? "#666";
+  return (
+    <button
+      onClick={onClick}
+      title={`${fmtTime(session.start_ts)} → ${fmtTime(session.end_ts)} · ${fmtMin(session.duration_minutes)}`}
+      style={{
+        display: "flex", alignItems: "center", gap: 5,
+        padding: "3px 9px", borderRadius: 8, border: "none", cursor: "pointer",
+        background: active ? color + "22" : "#1a1a2e",
+        outline: active ? `1px solid ${color}55` : "1px solid #1e1e3a",
+        fontSize: 11, fontWeight: 600, color: active ? color : "#888",
+      }}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, display: "inline-block" }} />
+      {fmtTime(session.start_ts).slice(0, 5)}
+      <span style={{ opacity: 0.5, fontWeight: 400 }}>{fmtMin(session.duration_minutes)}</span>
+    </button>
+  );
+}
+
 // ── Main component ──────────────────────────────────────────────────────────
 
 export function TimelineReplay() {
-  const [windowIdx, setWindowIdx] = useState(0); // index into WINDOWS
+  const [windowIdx, setWindowIdx] = useState(0);
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [activeSession, setActiveSession] = useState<SessionSummary | null>(null);
   const [loading, setLoading] = useState(false);
-  const [playhead, setPlayhead] = useState(0); // index into entries
+  const [playhead, setPlayhead] = useState(0);
   const fetchRef = useRef(0);
 
-  // Fetch entries when window changes
+  // Fetch sessions whenever the window changes
+  useEffect(() => {
+    const windowS = WINDOWS[windowIdx].seconds;
+    const since = Date.now() / 1000 - windowS;
+    getSessions({ since }).then((s) => {
+      setSessions(s);
+      setActiveSession(null);   // clear session selection on window change
+    }).catch(() => {});
+  }, [windowIdx]);
+
+  // Fetch entries — either for the active session or the full window
   useEffect(() => {
     const id = ++fetchRef.current;
     setLoading(true);
-    const windowS = WINDOWS[windowIdx].seconds;
-    const since = Date.now() / 1000 - windowS;
-    getTimeline({ since, limit: 1000, source: "engine" })
+
+    let since: number;
+    let until: number | undefined;
+
+    if (activeSession) {
+      // Pad 60 s either side so we see the session in context
+      since = activeSession.start_ts - 60;
+      until = activeSession.end_ts + 60;
+    } else {
+      const windowS = WINDOWS[windowIdx].seconds;
+      since = Date.now() / 1000 - windowS;
+      until = undefined;
+    }
+
+    getTimeline({ since, until, limit: 1000, source: "engine" })
       .then((data) => {
         if (fetchRef.current !== id) return;
         setEntries(data);
@@ -117,59 +175,83 @@ export function TimelineReplay() {
       })
       .catch(() => {})
       .finally(() => { if (fetchRef.current === id) setLoading(false); });
-  }, [windowIdx]);
+  }, [windowIdx, activeSession]);
 
   const stats = computeStats(entries);
   const chartData = entries.map((e, i) => ({
-    i,
-    ts: e.timestamp,
+    i, ts: e.timestamp,
     load: Math.round(e.load_score * 100),
     context: e.context,
   }));
 
   const currentEntry = entries[playhead] ?? null;
+  const playheadTs = currentEntry ? chartData[playhead]?.ts : null;
 
   const handleScrub = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPlayhead(Number(e.target.value));
   }, []);
 
-  const playheadTs = currentEntry ? chartData[playhead]?.ts : null;
+  const handleSessionClick = (s: SessionSummary) => {
+    setActiveSession((prev) => prev?.session_index === s.session_index ? null : s);
+  };
 
   return (
     <div>
       {/* Header row */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <h3 style={{ fontSize: 13, fontWeight: 600, opacity: 0.5, textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <h3 style={{
+          fontSize: 13, fontWeight: 600, opacity: 0.5,
+          textTransform: "uppercase", letterSpacing: "0.08em", margin: 0,
+        }}>
           Timeline Replay
         </h3>
         <div style={{ display: "flex", gap: 6 }}>
           {WINDOWS.map((w, i) => (
-            <button
-              key={w.label}
-              onClick={() => setWindowIdx(i)}
+            <button key={w.label} onClick={() => { setWindowIdx(i); setActiveSession(null); }}
               style={{
                 fontSize: 11, fontWeight: 600, padding: "3px 10px",
                 borderRadius: 8, border: "none", cursor: "pointer",
-                background: i === windowIdx ? "#4a4af0" : "#1e1e3a",
-                color: i === windowIdx ? "#fff" : "#aaa",
-              }}
-            >
+                background: i === windowIdx && !activeSession ? "#4a4af0" : "#1e1e3a",
+                color: i === windowIdx && !activeSession ? "#fff" : "#aaa",
+              }}>
               {w.label}
             </button>
           ))}
         </div>
       </div>
 
+      {/* Session pills */}
+      {sessions.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+            Sessions — click to zoom
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {sessions.map((s) => (
+              <SessionPill
+                key={s.session_index}
+                session={s}
+                active={activeSession?.session_index === s.session_index}
+                onClick={() => handleSessionClick(s)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Stats row */}
-      {stats ? (
+      {stats && (
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
           <StatChip label="Avg Load" value={`${Math.round(stats.avg * 100)}%`}
-            color={stats.avg > 0.7 ? "#f05a4a" : stats.avg > 0.45 ? "#f0c040" : "#4af0a0"} />
+            color={loadColor(stats.avg)} />
           <StatChip label="Peak Load" value={`${Math.round(stats.peak * 100)}%`}
-            color={stats.peak > 0.7 ? "#f05a4a" : "#f0c040"} />
+            color={loadColor(stats.peak)} />
           <StatChip label="Events" value={String(stats.total)} />
+          {activeSession && (
+            <StatChip label="Duration" value={fmtMin(activeSession.duration_minutes)} color="#4ab0f0" />
+          )}
         </div>
-      ) : null}
+      )}
 
       {/* Area chart */}
       {loading ? (
@@ -186,10 +268,7 @@ export function TimelineReplay() {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e1e3a" />
-            <XAxis
-              dataKey="i" hide
-              tickFormatter={(i: number) => chartData[i] ? fmtTime(chartData[i].ts) : ""}
-            />
+            <XAxis dataKey="i" hide />
             <YAxis domain={[0, 100]} tick={{ fill: "#666", fontSize: 10 }} />
             <Tooltip
               contentStyle={{ background: "#1a1a2e", border: "1px solid #2a2a4a", fontSize: 12 }}
@@ -197,18 +276,10 @@ export function TimelineReplay() {
               labelFormatter={(i: number) => chartData[i] ? fmtTime(chartData[i].ts) : ""}
             />
             {playheadTs !== null && (
-              <ReferenceLine
-                x={playhead}
-                stroke="#f0c040"
-                strokeWidth={1.5}
-                strokeDasharray="4 2"
-              />
+              <ReferenceLine x={playhead} stroke="#f0c040" strokeWidth={1.5} strokeDasharray="4 2" />
             )}
-            <Area
-              type="monotone" dataKey="load"
-              stroke="#4a4af0" fill="url(#replayGrad)"
-              strokeWidth={2} dot={false}
-            />
+            <Area type="monotone" dataKey="load"
+              stroke="#4a4af0" fill="url(#replayGrad)" strokeWidth={2} dot={false} />
           </AreaChart>
         </ResponsiveContainer>
       ) : (
@@ -220,22 +291,16 @@ export function TimelineReplay() {
       {/* Scrubber */}
       {entries.length > 1 && (
         <div style={{ marginTop: 8 }}>
-          <input
-            type="range"
-            min={0}
-            max={entries.length - 1}
-            value={playhead}
+          <input type="range" min={0} max={entries.length - 1} value={playhead}
             onChange={handleScrub}
-            style={{ width: "100%", accentColor: "#f0c040", cursor: "pointer" }}
-          />
+            style={{ width: "100%", accentColor: "#f0c040", cursor: "pointer" }} />
         </div>
       )}
 
       {/* Playhead info box */}
       {currentEntry && (
         <div style={{
-          marginTop: 12,
-          background: "#1a1a2e",
+          marginTop: 12, background: "#1a1a2e",
           border: `1px solid ${CTX_COLOR[currentEntry.context] ?? "#2a2a4a"}44`,
           borderRadius: 10, padding: "10px 14px",
           display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap",
@@ -246,7 +311,7 @@ export function TimelineReplay() {
           </div>
           <div>
             <div style={{ fontSize: 10, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em" }}>Load</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: currentEntry.load_score > 0.7 ? "#f05a4a" : "#4af0a0" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: loadColor(currentEntry.load_score) }}>
               {Math.round(currentEntry.load_score * 100)}%
             </div>
           </div>
@@ -265,7 +330,7 @@ export function TimelineReplay() {
         </div>
       )}
 
-      {/* Context distribution bar */}
+      {/* Context distribution */}
       {stats && Object.keys(stats.ctxDist).length > 0 && (
         <div style={{ marginTop: 14 }}>
           <div style={{ fontSize: 11, opacity: 0.4, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -275,16 +340,13 @@ export function TimelineReplay() {
         </div>
       )}
 
-      {/* Recent event log */}
+      {/* Event log */}
       {entries.length > 0 && (
         <div style={{ marginTop: 16 }}>
           <div style={{ fontSize: 11, opacity: 0.4, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
             Event log (most recent first)
           </div>
-          <div style={{
-            maxHeight: 180, overflowY: "auto", borderRadius: 8,
-            border: "1px solid #1e1e3a", fontSize: 11,
-          }}>
+          <div style={{ maxHeight: 180, overflowY: "auto", borderRadius: 8, border: "1px solid #1e1e3a", fontSize: 11 }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#1a1a2e", position: "sticky", top: 0 }}>
@@ -297,20 +359,14 @@ export function TimelineReplay() {
                 {[...entries].reverse().slice(0, 100).map((e, idx) => {
                   const origIdx = entries.length - 1 - idx;
                   return (
-                    <tr
-                      key={e.id ?? idx}
-                      onClick={() => setPlayhead(origIdx)}
+                    <tr key={e.id ?? idx} onClick={() => setPlayhead(origIdx)}
                       style={{
                         cursor: "pointer",
                         background: origIdx === playhead ? "#1e1e3a" : "transparent",
                         borderBottom: "1px solid #12122a",
-                      }}
-                    >
-                      <td style={{ padding: "4px 10px", opacity: 0.6, fontFamily: "monospace" }}>{fmtTime(e.timestamp)}</td>
-                      <td style={{
-                        padding: "4px 10px", fontWeight: 600,
-                        color: e.load_score > 0.7 ? "#f05a4a" : e.load_score > 0.45 ? "#f0c040" : "#4af0a0",
                       }}>
+                      <td style={{ padding: "4px 10px", opacity: 0.6, fontFamily: "monospace" }}>{fmtTime(e.timestamp)}</td>
+                      <td style={{ padding: "4px 10px", fontWeight: 600, color: loadColor(e.load_score) }}>
                         {Math.round(e.load_score * 100)}%
                       </td>
                       <td style={{ padding: "4px 10px", color: CTX_COLOR[e.context] ?? "#aaa" }}>
