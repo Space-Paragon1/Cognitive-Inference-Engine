@@ -24,13 +24,16 @@ class TestSignalProcessor:
         for _ in range(5):
             proc.push(_evt("tab_switch"))
         f = proc.extract_features()
-        assert f.tab_switch_rate == 5.0  # raw count / window_min
+        # rate_window_min floors at 1.0 when elapsed < 1 min (fresh session)
+        # → rate = 5 / 1.0 = 5.0 events/min
+        assert f.tab_switch_rate == 5.0
 
     def test_compile_error_rate_counted(self):
         proc = SignalProcessor(window_seconds=300)
         for _ in range(3):
             proc.push(_evt("compile_error"))
         f = proc.extract_features()
+        # Fresh session → rate_window_min = 1.0 → rate = 3 / 1.0 = 3.0
         assert f.compile_error_rate == 3.0
 
     def test_typing_burst_score_zero_without_keystrokes(self):
