@@ -12,7 +12,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..actions.focus_mode import FocusModeController
@@ -108,8 +108,13 @@ def create_app() -> FastAPI:
     app.include_router(timeline.router)
 
     @app.get("/health")
-    def health():
-        return {"status": "ok", "version": "0.1.0"}
+    def health(request: Request):
+        agg = getattr(request.app.state, "aggregator", None)
+        if agg is None:
+            estimator_mode = "unknown"
+        else:
+            estimator_mode = "ml" if agg._estimator.using_ml_model else "v1"
+        return {"status": "ok", "version": "0.2.0", "estimator": estimator_mode}
 
     return app
 

@@ -2,6 +2,7 @@ import { CognitiveTimeline } from "./components/CognitiveTimeline";
 import { ControlPanel } from "./components/ControlPanel";
 import { LoadGauge } from "./components/LoadGauge";
 import { TaskQueue } from "./components/TaskQueue";
+import { TimelineReplay } from "./components/TimelineReplay";
 import { useCognitiveState } from "./hooks/useCognitiveState";
 import { useTimeline } from "./hooks/useTimeline";
 
@@ -82,6 +83,9 @@ export default function App() {
         </div>
         <div style={styles.card}>
           <CognitiveTimeline scores={scores} entries={entries} />
+        </div>
+        <div style={styles.card}>
+          <TimelineReplay />
         </div>
         <div style={styles.card}>
           <TaskQueue />
