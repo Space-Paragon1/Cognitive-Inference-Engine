@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { CognitiveTimeline } from "./components/CognitiveTimeline";
 import { ControlPanel } from "./components/ControlPanel";
 import { LoadGauge } from "./components/LoadGauge";
@@ -5,7 +6,20 @@ import { StatsCard } from "./components/StatsCard";
 import { TaskQueue } from "./components/TaskQueue";
 import { TimelineReplay } from "./components/TimelineReplay";
 import { useCognitiveState } from "./hooks/useCognitiveState";
+import { useNotifications } from "./hooks/useNotifications";
 import { useTimeline } from "./hooks/useTimeline";
+
+// ── Context transition messages ──────────────────────────────────────────────
+
+const CTX_MESSAGES: Record<string, [string, string]> = {
+  stuck:        ["You seem stuck", "Try breaking the problem into smaller steps."],
+  fatigue:      ["Signs of fatigue detected", "A short break might help you recover."],
+  recovering:   ["You're recovering", "Cognitive load is dropping — nice work."],
+  deep_focus:   ["Deep focus activated", "You're in the zone. Keep it up!"],
+  shallow_work: ["Shifting to shallow work", "Good time for emails or lighter tasks."],
+};
+
+// ── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = {
   root: {
@@ -24,7 +38,22 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
   } as React.CSSProperties,
+  headerRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  } as React.CSSProperties,
   title: { fontSize: 20, fontWeight: 700 } as React.CSSProperties,
+  subtitle: { fontSize: 12, opacity: 0.4, marginTop: 2 } as React.CSSProperties,
+  bellBase: {
+    fontSize: 16,
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: "4px 6px",
+    borderRadius: 8,
+    transition: "opacity 0.2s",
+  } as React.CSSProperties,
   badge: {
     fontSize: 11, padding: "3px 10px", borderRadius: 12,
     fontWeight: 600,
@@ -47,27 +76,93 @@ const styles = {
   } as React.CSSProperties,
 } as const;
 
+// ── App ──────────────────────────────────────────────────────────────────────
+
 export default function App() {
   const { state, connected } = useCognitiveState();
   const { entries, scores } = useTimeline(300);
+  const { enabled, supported, permission, request, disable, notify } = useNotifications();
+
+  // Track previous context to detect transitions
+  const prevContextRef = useRef<string>("unknown");
+  // Track consecutive high-load ticks for spike detection
+  const highLoadCountRef = useRef(0);
+
+  // Context transition notifications
+  useEffect(() => {
+    const prev = prevContextRef.current;
+    const curr = state.context;
+    prevContextRef.current = curr;
+    if (prev === curr || curr === "unknown" || prev === "unknown") return;
+    const msg = CTX_MESSAGES[curr];
+    if (msg) notify(curr, msg[0], msg[1]);
+  }, [state.context, notify]);
+
+  // Load spike notifications (3 consecutive ticks above 85%)
+  useEffect(() => {
+    if (state.load_score > 0.85) {
+      highLoadCountRef.current += 1;
+      if (highLoadCountRef.current === 3) {
+        notify(
+          "load_spike",
+          "Cognitive overload warning",
+          `Load is at ${Math.round(state.load_score * 100)}% — consider stepping back.`
+        );
+      }
+    } else {
+      highLoadCountRef.current = 0;
+    }
+  }, [state.load_score, notify]);
+
+  const handleBellClick = async () => {
+    if (enabled) {
+      disable();
+    } else {
+      if (permission === "denied") return; // browser blocked — nothing we can do
+      await request();
+    }
+  };
+
+  const bellTitle = permission === "denied"
+    ? "Notifications blocked by browser"
+    : enabled ? "Notifications on — click to disable" : "Enable notifications";
+
+  const bellStyle: React.CSSProperties = {
+    ...styles.bellBase,
+    opacity: permission === "denied" ? 0.3 : enabled ? 1 : 0.45,
+    outline: enabled ? "1px solid #4a4af044" : "none",
+    color: enabled ? "#4a4af0" : "#aaa",
+  };
+
+  const badgeStyle: React.CSSProperties = {
+    ...styles.badge,
+    background: connected ? "#4af0a033" : "#f05a4a33",
+    color: connected ? "#4af0a0" : "#f05a4a",
+  };
 
   return (
     <div style={styles.root}>
       {/* Header */}
       <header style={styles.header}>
         <div>
-          <div style={styles.title}>🧠 Cognitive Load Router</div>
-          <div style={{ fontSize: 12, opacity: 0.4, marginTop: 2 }}>
+          <div style={styles.title}>Cognitive Load Router</div>
+          <div style={styles.subtitle}>
             Local-first student productivity intelligence
           </div>
         </div>
-        <span style={{
-          ...styles.badge,
-          background: connected ? "#4af0a033" : "#f05a4a33",
-          color: connected ? "#4af0a0" : "#f05a4a",
-        }}>
-          {connected ? "● Engine Connected" : "○ Engine Offline"}
-        </span>
+
+        <div style={styles.headerRight}>
+          {/* Notification bell */}
+          {supported && (
+            <button type="button" onClick={handleBellClick} title={bellTitle} style={bellStyle}>
+              {enabled ? "\uD83D\uDD14" : "\uD83D\uDD15"}
+            </button>
+          )}
+
+          <span style={badgeStyle}>
+            {connected ? "● Engine Connected" : "○ Engine Offline"}
+          </span>
+        </div>
       </header>
 
       {/* Sidebar */}
@@ -83,7 +178,7 @@ export default function App() {
       {/* Main content */}
       <main style={styles.main}>
         <div style={styles.card}>
-          <ControlPanel />
+          <ControlPanel notify={notify} />
         </div>
         <div style={styles.card}>
           <CognitiveTimeline scores={scores} entries={entries} />
