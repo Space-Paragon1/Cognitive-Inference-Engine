@@ -144,6 +144,76 @@ class TestActionsEndpoints:
         assert "remaining_seconds" in r.json()
 
 
+class TestLMSTelemetry:
+    async def test_lms_assignment_view_accepted(self, client):
+        r = await client.post("/telemetry/event", json={
+            "source": "lms",
+            "type": "ASSIGNMENT_VIEW",
+            "data": {"lms": "canvas", "course": "CS 101", "title": "Week 3 Quiz"},
+        })
+        assert r.status_code == 202
+
+    async def test_lms_quiz_fail_accepted(self, client):
+        r = await client.post("/telemetry/event", json={
+            "source": "lms",
+            "type": "QUIZ_FAIL",
+            "data": {"lms": "canvas", "course": "CS 101"},
+        })
+        assert r.status_code == 202
+
+    async def test_lms_submission_late_accepted(self, client):
+        r = await client.post("/telemetry/event", json={
+            "source": "lms",
+            "type": "SUBMISSION_LATE",
+            "data": {"lms": "blackboard", "course": "MATH 201"},
+        })
+        assert r.status_code == 202
+
+    async def test_lms_scroll_accepted(self, client):
+        r = await client.post("/telemetry/event", json={
+            "source": "lms",
+            "type": "LMS_SCROLL",
+            "data": {"lms": "moodle", "course": "ENG 110", "deltaY": 800},
+        })
+        assert r.status_code == 202
+
+    async def test_lms_idle_accepted(self, client):
+        r = await client.post("/telemetry/event", json={
+            "source": "lms",
+            "type": "LMS_IDLE",
+            "data": {"lms": "canvas", "course": "CS 101"},
+        })
+        assert r.status_code == 202
+
+    async def test_lms_unknown_event_returns_422(self, client):
+        r = await client.post("/telemetry/event", json={
+            "source": "lms",
+            "type": "TOTALLY_UNKNOWN",
+            "data": {},
+        })
+        assert r.status_code == 422
+
+    async def test_lms_batch_ingest(self, client):
+        r = await client.post("/telemetry/batch", json=[
+            {"source": "lms", "type": "QUIZ_START", "data": {"lms": "canvas", "course": "CS 101"}},
+            {"source": "lms", "type": "LMS_SCROLL", "data": {"lms": "canvas", "course": "CS 101", "deltaY": 500}},
+            {"source": "lms", "type": "COURSE_NAVIGATE", "data": {"lms": "canvas", "course": "CS 101"}},
+        ])
+        assert r.status_code == 202
+        body = r.json()
+        assert body["accepted"] == 3
+        assert body["total"] == 3
+
+    async def test_lms_mixed_batch(self, client):
+        """Mix of LMS + browser events in one batch."""
+        r = await client.post("/telemetry/batch", json=[
+            {"source": "lms", "type": "ASSIGNMENT_VIEW", "data": {"lms": "canvas", "course": "CS 101"}},
+            {"source": "browser", "type": "TAB_SWITCH", "data": {"fromUrl": "https://canvas.edu", "toUrl": "https://stackoverflow.com"}},
+        ])
+        assert r.status_code == 202
+        assert r.json()["accepted"] == 2
+
+
 class TestTimelineEndpoint:
     async def test_timeline_query_returns_list(self, client):
         r = await client.get("/timeline")
@@ -156,3 +226,48 @@ class TestTimelineEndpoint:
         body = r.json()
         assert "scores" in body
         assert isinstance(body["scores"], list)
+
+    async def test_sessions_returns_list(self, client):
+        r = await client.get("/timeline/sessions")
+        assert r.status_code == 200
+        assert isinstance(r.json(), list)
+
+    async def test_sessions_schema(self, client):
+        """Sessions endpoint returns the expected schema even when empty."""
+        r = await client.get("/timeline/sessions")
+        assert r.status_code == 200
+        sessions = r.json()
+        if sessions:
+            s = sessions[0]
+            assert "start_ts" in s
+            assert "end_ts" in s
+            assert "duration_minutes" in s
+            assert "avg_load_score" in s
+            assert "dominant_context" in s
+            assert "context_distribution" in s
+
+    async def test_daily_stats_returns_list(self, client):
+        r = await client.get("/timeline/stats/daily")
+        assert r.status_code == 200
+        assert isinstance(r.json(), list)
+
+    async def test_daily_stats_schema(self, client):
+        """Daily stats endpoint returns correct schema when data exists."""
+        r = await client.get("/timeline/stats/daily")
+        assert r.status_code == 200
+        stats = r.json()
+        if stats:
+            d = stats[0]
+            assert "date" in d
+            assert "tick_count" in d
+            assert "session_count" in d
+            assert "avg_load_score" in d
+            assert "focus_minutes" in d
+
+    async def test_timeline_source_filter(self, client):
+        """Filtering by source returns only that source."""
+        r = await client.get("/timeline?source=engine&limit=50")
+        assert r.status_code == 200
+        entries = r.json()
+        for e in entries:
+            assert e["source"] == "engine"
