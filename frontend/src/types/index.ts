@@ -58,3 +58,26 @@ export interface PomodoroState {
   sessions_completed: number;
   duration_seconds: number;
 }
+
+export interface SessionSummary {
+  session_index: number;
+  start_ts: number;
+  end_ts: number;
+  duration_minutes: number;
+  tick_count: number;
+  avg_load_score: number;
+  peak_load_score: number;
+  context_distribution: Record<string, number>;
+  dominant_context: string;
+}
+
+export interface DailyStats {
+  date: string;
+  tick_count: number;
+  session_count: number;
+  avg_load_score: number;
+  peak_load_score: number;
+  total_session_minutes: number;
+  focus_minutes: number;
+  context_distribution: Record<string, number>;
+}
