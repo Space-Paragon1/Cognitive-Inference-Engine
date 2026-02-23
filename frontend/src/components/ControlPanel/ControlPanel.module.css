@@ -1,0 +1,109 @@
+.root {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* ── Shared card ─────────────────────────────────────────────────────────── */
+
+.card {
+  flex: 1;
+  min-width: 140px;
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #2a2a4a;
+}
+
+.cardActive {
+  border-color: #4a4af0;
+}
+
+/* ── Labels / text ───────────────────────────────────────────────────────── */
+
+.sectionLabel {
+  font-size: 12px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.focusStatus {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4a4a6a;
+  margin-bottom: 4px;
+}
+
+.focusStatusActive {
+  color: #4a4af0;
+}
+
+.elapsed {
+  font-size: 11px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.btn {
+  width: 100%;
+  padding: 7px 0;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #4a4af0;
+}
+
+.btnStop {
+  background: #2a2a4a;
+}
+
+/* ── Pomodoro timer ──────────────────────────────────────────────────────── */
+
+.timerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.timerWrap {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+}
+
+.svgRotate {
+  transform: rotate(-90deg);
+}
+
+.timerArc {
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timerLabel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* phase name uses --phase-color CSS custom property set on the element */
+.phaseName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--phase-color, #4a4a6a);
+}
+
+.sessionNum {
+  font-size: 11px;
+  opacity: 0.4;
+}
