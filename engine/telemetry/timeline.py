@@ -8,9 +8,10 @@ from __future__ import annotations
 import sqlite3
 import time
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterator, List, Optional
+from typing import Dict, Iterator, List, Optional
 
 
 @dataclass
@@ -22,6 +23,33 @@ class TimelineEntry:
     load_score: float
     context: str
     metadata_json: str = "{}"
+
+
+@dataclass
+class SessionSummary:
+    """A detected work session (contiguous inference ticks without a long gap)."""
+    session_index: int          # 0 = oldest in the queried window
+    start_ts: float
+    end_ts: float
+    duration_minutes: float
+    tick_count: int
+    avg_load_score: float
+    peak_load_score: float
+    context_distribution: Dict[str, float]   # context → fraction (sums to 1.0)
+    dominant_context: str
+
+
+@dataclass
+class DailyStats:
+    """Aggregate statistics for a single calendar day (UTC)."""
+    date: str                   # "YYYY-MM-DD"
+    tick_count: int
+    session_count: int
+    avg_load_score: float
+    peak_load_score: float
+    total_session_minutes: float
+    focus_minutes: float        # time in deep_focus context
+    context_distribution: Dict[str, float]
 
 
 class CognitiveTimeline:
@@ -54,7 +82,7 @@ class CognitiveTimeline:
             return cur.lastrowid  # type: ignore[return-value]
 
     # ------------------------------------------------------------------
-    # Read
+    # Read — raw entries
     # ------------------------------------------------------------------
 
     def query(
@@ -95,6 +123,105 @@ class CognitiveTimeline:
         return [e.load_score for e in reversed(entries)]
 
     # ------------------------------------------------------------------
+    # Read — session analytics
+    # ------------------------------------------------------------------
+
+    def get_sessions(
+        self,
+        since: Optional[float] = None,
+        until: Optional[float] = None,
+        gap_minutes: float = 10.0,
+    ) -> List[SessionSummary]:
+        """
+        Group inference ticks into work sessions.
+        A gap of > gap_minutes between consecutive ticks ends the current session.
+        Returns sessions ordered oldest → newest.
+        """
+        entries = self.query(
+            since=since, until=until, source="engine", limit=10_000
+        )
+        # query() returns newest-first; reverse to chronological
+        ticks = [e for e in reversed(entries) if e.event_type == "inference_tick"]
+        if not ticks:
+            return []
+
+        gap_s = gap_minutes * 60.0
+        raw_sessions: list[list[TimelineEntry]] = []
+        current: list[TimelineEntry] = [ticks[0]]
+
+        for tick in ticks[1:]:
+            if tick.timestamp - current[-1].timestamp > gap_s:
+                raw_sessions.append(current)
+                current = [tick]
+            else:
+                current.append(tick)
+        raw_sessions.append(current)
+
+        result = []
+        for idx, session_ticks in enumerate(raw_sessions):
+            result.append(_build_session(idx, session_ticks))
+        return result
+
+    def get_daily_stats(
+        self,
+        since: Optional[float] = None,
+        until: Optional[float] = None,
+        gap_minutes: float = 10.0,
+    ) -> List[DailyStats]:
+        """
+        Returns one DailyStats record per calendar day (UTC) in the given range.
+        """
+        if since is None:
+            since = time.time() - 7 * 24 * 3600
+        if until is None:
+            until = time.time()
+
+        entries = self.query(since=since, until=until, source="engine", limit=50_000)
+        ticks = [e for e in reversed(entries) if e.event_type == "inference_tick"]
+        if not ticks:
+            return []
+
+        # Group ticks by UTC date
+        by_date: Dict[str, List[TimelineEntry]] = {}
+        for t in ticks:
+            day = datetime.fromtimestamp(t.timestamp, tz=timezone.utc).strftime("%Y-%m-%d")
+            by_date.setdefault(day, []).append(t)
+
+        # Compute sessions per day for session_count + total_session_minutes
+        sessions = self.get_sessions(since=since, until=until, gap_minutes=gap_minutes)
+
+        session_by_date: Dict[str, List[SessionSummary]] = {}
+        for s in sessions:
+            day = datetime.fromtimestamp(s.start_ts, tz=timezone.utc).strftime("%Y-%m-%d")
+            session_by_date.setdefault(day, []).append(s)
+
+        result = []
+        for day in sorted(by_date.keys()):
+            day_ticks = by_date[day]
+            scores = [t.load_score for t in day_ticks]
+            ctx_counts: Dict[str, int] = {}
+            for t in day_ticks:
+                ctx_counts[t.context] = ctx_counts.get(t.context, 0) + 1
+            total = len(day_ticks)
+            ctx_dist = {k: v / total for k, v in ctx_counts.items()}
+
+            day_sessions = session_by_date.get(day, [])
+            total_session_min = sum(s.duration_minutes for s in day_sessions)
+            focus_fraction = ctx_dist.get("deep_focus", 0.0)
+
+            result.append(DailyStats(
+                date=day,
+                tick_count=total,
+                session_count=len(day_sessions),
+                avg_load_score=sum(scores) / len(scores),
+                peak_load_score=max(scores),
+                total_session_minutes=round(total_session_min, 1),
+                focus_minutes=round(total_session_min * focus_fraction, 1),
+                context_distribution=ctx_dist,
+            ))
+        return result
+
+    # ------------------------------------------------------------------
     # Internal
     # ------------------------------------------------------------------
 
@@ -123,3 +250,29 @@ class CognitiveTimeline:
             conn.commit()
         finally:
             conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _build_session(idx: int, ticks: List[TimelineEntry]) -> SessionSummary:
+    scores = [t.load_score for t in ticks]
+    ctx_counts: Dict[str, int] = {}
+    for t in ticks:
+        ctx_counts[t.context] = ctx_counts.get(t.context, 0) + 1
+    total = len(ticks)
+    ctx_dist = {k: round(v / total, 4) for k, v in ctx_counts.items()}
+    dominant = max(ctx_counts, key=lambda k: ctx_counts[k])
+    duration_min = (ticks[-1].timestamp - ticks[0].timestamp) / 60.0
+    return SessionSummary(
+        session_index=idx,
+        start_ts=ticks[0].timestamp,
+        end_ts=ticks[-1].timestamp,
+        duration_minutes=round(duration_min, 2),
+        tick_count=total,
+        avg_load_score=round(sum(scores) / len(scores), 4),
+        peak_load_score=round(max(scores), 4),
+        context_distribution=ctx_dist,
+        dominant_context=dominant,
+    )
