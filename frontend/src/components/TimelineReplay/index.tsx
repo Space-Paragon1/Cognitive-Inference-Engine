@@ -32,6 +32,11 @@ const WINDOWS = [
   { label: "7 d",  seconds: 7 * 24 * 3600 },
 ];
 
+// Playback interval base (ms per step at 1× speed)
+const BASE_INTERVAL_MS = 600;
+
+const SPEEDS = [0.5, 1, 2, 4, 8];
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmtTime(ts: number): string {
@@ -64,6 +69,33 @@ function computeStats(entries: TimelineEntry[]) {
 
 function loadColor(score: number) {
   return score > 0.7 ? "#f05a4a" : score > 0.45 ? "#f0c040" : "#4af0a0";
+}
+
+function exportCSV(entries: TimelineEntry[]): void {
+  const header = "timestamp,iso_time,source,event_type,load_score,context,metadata\n";
+  const rows = entries.map((e) => {
+    const iso = new Date(e.timestamp * 1000).toISOString();
+    const meta = e.metadata_json.replace(/"/g, '""');
+    return `${e.timestamp},${iso},${e.source},${e.event_type},${e.load_score.toFixed(4)},${e.context},"${meta}"`;
+  }).join("\n");
+  const blob = new Blob([header + rows], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `timeline_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/** Parse metadata_json and render key-value pairs neatly. */
+function parseMetadata(json: string): Record<string, unknown> | null {
+  try {
+    const parsed = JSON.parse(json);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+  } catch { /* ignore */ }
+  return null;
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────
@@ -103,8 +135,6 @@ function ContextBar({ ctxDist, total }: { ctxDist: Record<string, number>; total
   );
 }
 
-// ── Session pill ─────────────────────────────────────────────────────────────
-
 function SessionPill({
   session, active, onClick,
 }: { session: SessionSummary; active: boolean; onClick: () => void }) {
@@ -128,6 +158,29 @@ function SessionPill({
   );
 }
 
+/** Icon button used in the playback control strip. */
+function IconBtn({
+  label, title, onClick, active, accent,
+}: { label: string; title: string; onClick: () => void; active?: boolean; accent?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      style={{
+        fontSize: 14, lineHeight: 1, padding: "5px 9px",
+        borderRadius: 7, border: "none", cursor: "pointer",
+        background: active ? "#4a4af033" : accent ? "#f0c04022" : "#1a1a2e",
+        color: active ? "#4a4af0" : accent ? "#f0c040" : "#aaa",
+        outline: active ? "1px solid #4a4af044" : "1px solid #1e1e3a",
+        transition: "background 0.15s",
+        userSelect: "none",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 // ── Main component ──────────────────────────────────────────────────────────
 
 export function TimelineReplay() {
@@ -137,19 +190,52 @@ export function TimelineReplay() {
   const [activeSession, setActiveSession] = useState<SessionSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [playhead, setPlayhead] = useState(0);
-  const fetchRef = useRef(0);
 
-  // Fetch sessions whenever the window changes
+  // Playback state
+  const [playing, setPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
+  const fetchRef = useRef(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Playback interval ───────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (!playing) return;
+
+    intervalRef.current = setInterval(() => {
+      setPlayhead((prev) => {
+        if (prev >= entries.length - 1) {
+          setPlaying(false);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, BASE_INTERVAL_MS / playbackSpeed);
+
+    return () => {
+      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    };
+  }, [playing, playbackSpeed, entries.length]);
+
+  // Stop playback when entries change (window/session switch)
+  useEffect(() => { setPlaying(false); }, [entries]);
+
+  // ── Data fetching ───────────────────────────────────────────────────────
+
   useEffect(() => {
     const windowS = WINDOWS[windowIdx].seconds;
     const since = Date.now() / 1000 - windowS;
     getSessions({ since }).then((s) => {
       setSessions(s);
-      setActiveSession(null);   // clear session selection on window change
+      setActiveSession(null);
     }).catch(() => {});
   }, [windowIdx]);
 
-  // Fetch entries — either for the active session or the full window
   useEffect(() => {
     const id = ++fetchRef.current;
     setLoading(true);
@@ -158,7 +244,6 @@ export function TimelineReplay() {
     let until: number | undefined;
 
     if (activeSession) {
-      // Pad 60 s either side so we see the session in context
       since = activeSession.start_ts - 60;
       until = activeSession.end_ts + 60;
     } else {
@@ -177,6 +262,8 @@ export function TimelineReplay() {
       .finally(() => { if (fetchRef.current === id) setLoading(false); });
   }, [windowIdx, activeSession]);
 
+  // ── Derived values ──────────────────────────────────────────────────────
+
   const stats = computeStats(entries);
   const chartData = entries.map((e, i) => ({
     i, ts: e.timestamp,
@@ -187,13 +274,38 @@ export function TimelineReplay() {
   const currentEntry = entries[playhead] ?? null;
   const playheadTs = currentEntry ? chartData[playhead]?.ts : null;
 
+  // ── Callbacks ───────────────────────────────────────────────────────────
+
   const handleScrub = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPlaying(false);
     setPlayhead(Number(e.target.value));
   }, []);
 
   const handleSessionClick = (s: SessionSummary) => {
     setActiveSession((prev) => prev?.session_index === s.session_index ? null : s);
   };
+
+  const handlePlayPause = () => {
+    if (playing) {
+      setPlaying(false);
+    } else {
+      // If at end, restart from beginning
+      if (playhead >= entries.length - 1) setPlayhead(0);
+      setPlaying(true);
+    }
+  };
+
+  const handleStop = () => {
+    setPlaying(false);
+    setPlayhead(0);
+  };
+
+  const handleStepBack = () => { setPlaying(false); setPlayhead((p) => Math.max(0, p - 1)); };
+  const handleStepForward = () => { setPlaying(false); setPlayhead((p) => Math.min(entries.length - 1, p + 1)); };
+  const handleJumpStart = () => { setPlaying(false); setPlayhead(0); };
+  const handleJumpEnd = () => { setPlaying(false); setPlayhead(Math.max(0, entries.length - 1)); };
+
+  // ── Render ──────────────────────────────────────────────────────────────
 
   return (
     <div>
@@ -205,7 +317,21 @@ export function TimelineReplay() {
         }}>
           Timeline Replay
         </h3>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {entries.length > 0 && (
+            <button
+              onClick={() => exportCSV(entries)}
+              title="Export current view as CSV"
+              style={{
+                fontSize: 11, fontWeight: 600, padding: "3px 10px",
+                borderRadius: 8, border: "none", cursor: "pointer",
+                background: "#1e3a1e", color: "#4af0a0",
+                outline: "1px solid #4af0a022",
+              }}
+            >
+              ↓ CSV
+            </button>
+          )}
           {WINDOWS.map((w, i) => (
             <button key={w.label} onClick={() => { setWindowIdx(i); setActiveSession(null); }}
               style={{
@@ -297,13 +423,62 @@ export function TimelineReplay() {
         </div>
       )}
 
+      {/* ── Playback controls ─────────────────────────────────────────────── */}
+      {entries.length > 1 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          marginTop: 10, flexWrap: "wrap",
+        }}>
+          {/* Transport */}
+          <div style={{ display: "flex", gap: 4 }}>
+            <IconBtn label="⏮" title="Jump to start" onClick={handleJumpStart} />
+            <IconBtn label="◀" title="Step back one event" onClick={handleStepBack} />
+            <IconBtn
+              label={playing ? "⏸" : "▶"}
+              title={playing ? "Pause" : playhead >= entries.length - 1 ? "Replay from start" : "Play"}
+              onClick={handlePlayPause}
+              accent={!playing}
+              active={playing}
+            />
+            <IconBtn label="▶" title="Step forward one event" onClick={handleStepForward} />
+            <IconBtn label="⏭" title="Jump to end" onClick={handleJumpEnd} />
+            <IconBtn label="■" title="Stop and reset to start" onClick={handleStop} />
+          </div>
+
+          {/* Playhead counter */}
+          <span style={{ fontSize: 11, opacity: 0.4, fontFamily: "monospace", minWidth: 70 }}>
+            {playhead + 1} / {entries.length}
+          </span>
+
+          {/* Speed selector */}
+          <div style={{ display: "flex", gap: 3, marginLeft: "auto" }}>
+            <span style={{ fontSize: 10, opacity: 0.4, alignSelf: "center", marginRight: 2 }}>Speed</span>
+            {SPEEDS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setPlaybackSpeed(s)}
+                style={{
+                  fontSize: 10, fontWeight: 600, padding: "3px 7px",
+                  borderRadius: 6, border: "none", cursor: "pointer",
+                  background: playbackSpeed === s ? "#4a4af0" : "#1a1a2e",
+                  color: playbackSpeed === s ? "#fff" : "#666",
+                  outline: "1px solid #1e1e3a",
+                }}
+              >
+                {s}×
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Playhead info box */}
       {currentEntry && (
         <div style={{
           marginTop: 12, background: "#1a1a2e",
           border: `1px solid ${CTX_COLOR[currentEntry.context] ?? "#2a2a4a"}44`,
           borderRadius: 10, padding: "10px 14px",
-          display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap",
+          display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap",
         }}>
           <div>
             <div style={{ fontSize: 10, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em" }}>Time</div>
@@ -321,11 +496,11 @@ export function TimelineReplay() {
               {currentEntry.context.replace(/_/g, " ")}
             </div>
           </div>
-          <div style={{ flex: 1, minWidth: 120 }}>
-            <div style={{ fontSize: 10, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em" }}>Details</div>
-            <div style={{ fontSize: 11, opacity: 0.6, marginTop: 1, fontFamily: "monospace" }}>
-              {currentEntry.metadata_json}
+          <div style={{ flex: 1, minWidth: 140 }}>
+            <div style={{ fontSize: 10, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+              Details
             </div>
+            <MetadataView json={currentEntry.metadata_json} />
           </div>
         </div>
       )}
@@ -359,7 +534,7 @@ export function TimelineReplay() {
                 {[...entries].reverse().slice(0, 100).map((e, idx) => {
                   const origIdx = entries.length - 1 - idx;
                   return (
-                    <tr key={e.id ?? idx} onClick={() => setPlayhead(origIdx)}
+                    <tr key={e.id ?? idx} onClick={() => { setPlaying(false); setPlayhead(origIdx); }}
                       style={{
                         cursor: "pointer",
                         background: origIdx === playhead ? "#1e1e3a" : "transparent",
@@ -380,6 +555,42 @@ export function TimelineReplay() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Metadata viewer ──────────────────────────────────────────────────────────
+
+function MetadataView({ json }: { json: string }) {
+  const parsed = parseMetadata(json);
+
+  if (!parsed) {
+    // Raw fallback for non-object JSON or plain strings
+    return (
+      <div style={{ fontSize: 11, opacity: 0.55, fontFamily: "monospace", wordBreak: "break-all" }}>
+        {json || "—"}
+      </div>
+    );
+  }
+
+  const entries = Object.entries(parsed).filter(([, v]) => v !== null && v !== undefined);
+  if (!entries.length) return <div style={{ fontSize: 11, opacity: 0.3 }}>—</div>;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      {entries.map(([k, v]) => {
+        const valStr = typeof v === "object" ? JSON.stringify(v) : String(v);
+        return (
+          <div key={k} style={{ display: "flex", gap: 8, fontSize: 11 }}>
+            <span style={{ opacity: 0.4, fontFamily: "monospace", minWidth: 120, flexShrink: 0 }}>
+              {k.replace(/_/g, " ")}
+            </span>
+            <span style={{ opacity: 0.8, fontFamily: "monospace", wordBreak: "break-all" }}>
+              {valStr}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
