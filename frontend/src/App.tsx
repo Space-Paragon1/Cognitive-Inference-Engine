@@ -1,6 +1,7 @@
 import { CognitiveTimeline } from "./components/CognitiveTimeline";
 import { ControlPanel } from "./components/ControlPanel";
 import { LoadGauge } from "./components/LoadGauge";
+import { StatsCard } from "./components/StatsCard";
 import { TaskQueue } from "./components/TaskQueue";
 import { TimelineReplay } from "./components/TimelineReplay";
 import { useCognitiveState } from "./hooks/useCognitiveState";
@@ -73,6 +74,9 @@ export default function App() {
       <aside style={styles.sidebar}>
         <div style={styles.card}>
           <LoadGauge state={state} />
+        </div>
+        <div style={styles.card}>
+          <StatsCard />
         </div>
       </aside>
 
