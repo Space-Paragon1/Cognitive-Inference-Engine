@@ -201,15 +201,98 @@ def scenario_recovery(speed: float = 1.0) -> Iterator[tuple[str, list[dict], flo
         )
 
 
+def scenario_lms_exam_pressure(speed: float = 1.0) -> Iterator[tuple[str, list[dict], float]]:
+    """Student working through an LMS quiz under time pressure."""
+    yield (
+        "LMS: Navigate to quiz",
+        [
+            _evt("lms", "COURSE_NAVIGATE", {"lms": "canvas", "course": "CS 201", "title": "Midterm Quiz"}),
+            _evt("lms", "ASSIGNMENT_VIEW", {"lms": "canvas", "course": "CS 201", "title": "Midterm Quiz"}),
+        ],
+        2.0 / speed,
+    )
+    yield (
+        "LMS: Quiz started — high stakes",
+        [
+            _evt("lms", "QUIZ_START", {"lms": "canvas", "course": "CS 201", "title": "Midterm Quiz"}),
+            _evt("ide", "KEYSTROKE", {"intervalMs": random.randint(50, 120)}),
+            _evt("ide", "KEYSTROKE", {"intervalMs": random.randint(50, 120)}),
+        ],
+        2.0 / speed,
+    )
+    for i in range(4):
+        yield (
+            f"LMS: Quiz in progress [{i+1}/4] — frantic switching",
+            [
+                _evt("browser", "TAB_SWITCH", {
+                    "fromUrl": "https://canvas.instructure.com/quiz",
+                    "toUrl": "https://stackoverflow.com/search?q=" + str(random.randint(1000, 9999)),
+                }),
+                _evt("lms", "LMS_SCROLL", {"lms": "canvas", "course": "CS 201", "deltaY": random.randint(200, 600)}),
+                _evt("ide", "COMPILE_ERROR", {"errorCount": random.randint(1, 3), "language": "python"}),
+                _evt("browser", "TAB_SWITCH", {
+                    "fromUrl": "https://stackoverflow.com",
+                    "toUrl": "https://canvas.instructure.com/quiz",
+                }),
+            ],
+            1.5 / speed,
+        )
+    yield (
+        "LMS: Late submission warning",
+        [
+            _evt("lms", "SUBMISSION_LATE", {"lms": "canvas", "course": "CS 201", "title": "Lab 3"}),
+            _evt("lms", "QUIZ_FAIL", {"lms": "canvas", "course": "CS 201", "title": "Practice Quiz"}),
+        ],
+        2.0 / speed,
+    )
+    yield (
+        "LMS: Quiz submitted",
+        [
+            _evt("lms", "QUIZ_SUBMIT", {"lms": "canvas", "course": "CS 201", "title": "Midterm Quiz"}),
+            _evt("lms", "GRADE_VIEW", {"lms": "canvas", "course": "CS 201", "title": "Grades"}),
+        ],
+        2.0 / speed,
+    )
+
+
+def scenario_lms_study_session(speed: float = 1.0) -> Iterator[tuple[str, list[dict], float]]:
+    """Student doing structured reading in the LMS — resource engagement."""
+    courses = ["CS 201", "MATH 301", "ENG 110"]
+    course = random.choice(courses)
+    for i in range(6):
+        yield (
+            f"LMS: Study [{i+1}/6] — deep reading ({course})",
+            [
+                _evt("lms", "RESOURCE_OPEN", {"lms": "moodle", "course": course, "title": f"Week {i+1} Lecture Notes"}),
+                _evt("lms", "LMS_SCROLL", {"lms": "moodle", "course": course, "deltaY": random.randint(400, 1200)}),
+                _evt("browser", "PAGE_SCROLL", {"deltaY": random.randint(300, 800)}),
+                _evt("ide", "KEYSTROKE", {"intervalMs": random.randint(100, 300)}),
+            ],
+            3.0 / speed,
+        )
+    yield (
+        "LMS: Discussion forum browse (shallow work)",
+        [
+            _evt("lms", "DISCUSSION_VIEW", {"lms": "moodle", "course": course, "title": "Week 3 Discussion"}),
+            _evt("lms", "COURSE_NAVIGATE", {"lms": "moodle", "course": course}),
+            _evt("browser", "TAB_SWITCH", {"fromUrl": "https://moodle.edu", "toUrl": "https://reddit.com"}),
+        ],
+        2.0 / speed,
+    )
+
+
 SCENARIOS = {
     "deep_focus": scenario_deep_focus,
     "stuck": scenario_stuck,
     "fatigue": scenario_fatigue,
     "shallow_work": scenario_shallow_work,
     "recovery": scenario_recovery,
+    "lms_exam": scenario_lms_exam_pressure,
+    "lms_study": scenario_lms_study_session,
 }
 
-CYCLE = ["deep_focus", "stuck", "recovery", "deep_focus", "shallow_work", "fatigue", "recovery"]
+CYCLE = ["deep_focus", "stuck", "recovery", "deep_focus", "shallow_work", "fatigue", "recovery",
+         "lms_exam", "lms_study"]
 
 
 # ---------------------------------------------------------------------------
