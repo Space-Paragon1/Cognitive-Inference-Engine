@@ -55,7 +55,9 @@ class AdaptivePomodoro:
         return self.state
 
     def start_break(self, long: bool = False) -> PomodoroState:
-        duration_s = 1200 if long else 300  # 20 min long / 5 min short
+        from ..settings import get_settings
+        s = get_settings()
+        duration_s = s["long_break_seconds"] if long else s["short_break_seconds"]
         self.state = PomodoroState(
             phase=PomodoroPhase.LONG_BREAK if long else PomodoroPhase.SHORT_BREAK,
             started_at=time.time(),
