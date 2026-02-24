@@ -1,0 +1,7 @@
+{
+  "short_break_seconds": 300,
+  "long_break_seconds": 1200,
+  "high_load_threshold": 0.7,
+  "fatigue_threshold": 0.9,
+  "session_gap_minutes": 12
+}
