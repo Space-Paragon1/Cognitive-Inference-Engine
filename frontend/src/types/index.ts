@@ -71,6 +71,19 @@ export interface SessionSummary {
   dominant_context: string;
 }
 
+export interface Settings {
+  short_break_seconds: number;
+  long_break_seconds: number;
+  high_load_threshold: number;
+  fatigue_threshold: number;
+  session_gap_minutes: number;
+}
+
+export interface SettingsResponse {
+  settings: Settings;
+  defaults: Settings;
+}
+
 export interface DailyStats {
   date: string;
   tick_count: number;
