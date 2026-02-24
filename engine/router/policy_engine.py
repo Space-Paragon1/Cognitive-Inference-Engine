@@ -9,7 +9,7 @@ from typing import List
 
 from ..inference.context_classifier import CognitiveContext
 from ..inference.load_estimator import LoadEstimate
-from .rules import ActionDirective, RULES, RoutingRule
+from .rules import RULES, ActionDirective
 
 
 class PolicyEngine:
