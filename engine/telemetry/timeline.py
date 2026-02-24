@@ -67,7 +67,8 @@ class CognitiveTimeline:
         with self._conn() as conn:
             cur = conn.execute(
                 """
-                INSERT INTO timeline (timestamp, source, event_type, load_score, context, metadata_json)
+                INSERT INTO timeline
+                    (timestamp, source, event_type, load_score, context, metadata_json)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
