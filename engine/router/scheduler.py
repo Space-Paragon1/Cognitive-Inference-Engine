@@ -49,13 +49,16 @@ class TaskScheduler:
 
         if load_score >= high_threshold:
             # High load: easy → review → medium → hard
-            priority_order = [Difficulty.EASY, Difficulty.REVIEW, Difficulty.MEDIUM, Difficulty.HARD]
+            priority_order = [Difficulty.EASY, Difficulty.REVIEW,
+                              Difficulty.MEDIUM, Difficulty.HARD]
         elif load_score >= 0.4:
             # Medium load: medium → hard → review → easy
-            priority_order = [Difficulty.MEDIUM, Difficulty.HARD, Difficulty.REVIEW, Difficulty.EASY]
+            priority_order = [Difficulty.MEDIUM, Difficulty.HARD,
+                              Difficulty.REVIEW, Difficulty.EASY]
         else:
             # Low load: hard → medium → review → easy
-            priority_order = [Difficulty.HARD, Difficulty.MEDIUM, Difficulty.REVIEW, Difficulty.EASY]
+            priority_order = [Difficulty.HARD, Difficulty.MEDIUM,
+                              Difficulty.REVIEW, Difficulty.EASY]
 
         rank = {d: i for i, d in enumerate(priority_order)}
         return sorted(tasks, key=lambda t: rank.get(t.difficulty, 99))
