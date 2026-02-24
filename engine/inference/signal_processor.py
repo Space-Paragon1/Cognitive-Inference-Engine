@@ -107,7 +107,6 @@ class SignalProcessor:
     @staticmethod
     def _idle_fraction(events: List[TelemetryEvent]) -> float:
         idle_events = [e for e in events if e.event_type == "idle_start"]
-        active_events = [e for e in events if e.event_type == "idle_end"]
         if not idle_events:
             return 0.0
         # simple approximation: count idle periods over total window
