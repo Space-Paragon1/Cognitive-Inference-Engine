@@ -24,7 +24,6 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Optional
 
-
 # ---------------------------------------------------------------------------
 # Active window detection — platform implementations
 # ---------------------------------------------------------------------------
@@ -59,7 +58,9 @@ def _get_active_window_win32() -> Optional[WindowInfo]:
         if handle:
             buf = ctypes.create_unicode_buffer(260)
             size = ctypes.wintypes.DWORD(260)
-            if ctypes.windll.kernel32.QueryFullProcessImageNameW(handle, 0, buf, ctypes.byref(size)):
+            if ctypes.windll.kernel32.QueryFullProcessImageNameW(
+                handle, 0, buf, ctypes.byref(size)
+            ):
                 import os
                 app = os.path.splitext(os.path.basename(buf.value))[0]
             ctypes.windll.kernel32.CloseHandle(handle)
@@ -74,7 +75,8 @@ def _get_active_window_macos() -> Optional[WindowInfo]:
         import subprocess
         result = subprocess.run(
             ["osascript", "-e",
-             'tell application "System Events" to get name of first application process whose frontmost is true'],
+             "tell application \"System Events\" to get name of "
+             "first application process whose frontmost is true"],
             capture_output=True, text=True, timeout=2,
         )
         app = result.stdout.strip()
