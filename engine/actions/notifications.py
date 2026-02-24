@@ -37,7 +37,8 @@ class NotificationController:
             subprocess.run(
                 [
                     "powershell", "-Command",
-                    f"Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\CloudContent' "
+                    "Set-ItemProperty -Path "
+                    r"'HKCU:\Software\Microsoft\Windows\CurrentVersion\CloudContent' "
                     f"-Name 'DisableWindowsSpotlightFeatures' -Value {value} -Type DWord"
                 ],
                 check=True, capture_output=True, timeout=5,
@@ -47,7 +48,6 @@ class NotificationController:
             return False
 
     def _macos_dnd(self, enable: bool) -> bool:
-        mode = "1" if enable else "0"
         try:
             subprocess.run(
                 ["defaults", "-currentHost", "write", "com.apple.notificationcenterui",
