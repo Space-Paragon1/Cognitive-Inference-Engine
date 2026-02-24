@@ -23,7 +23,6 @@ from ..router.policy_engine import PolicyEngine
 from ..telemetry.aggregator import TelemetryAggregator
 from ..telemetry.timeline import CognitiveTimeline
 
-
 # ---------------------------------------------------------------------------
 # Background inference loop
 # ---------------------------------------------------------------------------
