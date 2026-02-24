@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from ..router.scheduler import Difficulty, Task, TaskScheduler
+from ..router.scheduler import Task, TaskScheduler
 
 
 class TaskQueueManager:
