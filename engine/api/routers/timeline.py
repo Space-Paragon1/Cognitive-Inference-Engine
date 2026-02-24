@@ -9,6 +9,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Request
 
 from ...api.schemas import DailyStatsOut, SessionSummaryOut, TimelineEntryOut
+from ...settings import get_settings
 
 router = APIRouter(prefix="/timeline", tags=["timeline"])
 
@@ -53,14 +54,15 @@ def load_history(
 def get_sessions(
     since: Optional[float] = Query(default=None, description="Unix timestamp lower bound"),
     until: Optional[float] = Query(default=None, description="Unix timestamp upper bound"),
-    gap_minutes: float = Query(default=10.0, description="Inactivity gap that ends a session (minutes)"),
+    gap_minutes: Optional[float] = Query(default=None, description="Inactivity gap that ends a session (minutes); defaults to user setting"),
     timeline=Depends(_get_timeline),
 ):
     """
     Detect and return work sessions within the given time range.
     A session ends when there is a gap of > gap_minutes between inference ticks.
     """
-    sessions = timeline.get_sessions(since=since, until=until, gap_minutes=gap_minutes)
+    effective_gap = gap_minutes if gap_minutes is not None else get_settings()["session_gap_minutes"]
+    sessions = timeline.get_sessions(since=since, until=until, gap_minutes=effective_gap)
     return [
         SessionSummaryOut(
             session_index=s.session_index,
@@ -81,14 +83,15 @@ def get_sessions(
 def get_daily_stats(
     since: Optional[float] = Query(default=None, description="Unix timestamp lower bound (default: 7 days ago)"),
     until: Optional[float] = Query(default=None, description="Unix timestamp upper bound (default: now)"),
-    gap_minutes: float = Query(default=10.0, description="Session gap threshold (minutes)"),
+    gap_minutes: Optional[float] = Query(default=None, description="Session gap threshold (minutes); defaults to user setting"),
     timeline=Depends(_get_timeline),
 ):
     """
     Return per-day productivity statistics: session count, avg/peak load,
     focus minutes, and context distribution. Defaults to the last 7 days.
     """
-    stats = timeline.get_daily_stats(since=since, until=until, gap_minutes=gap_minutes)
+    effective_gap = gap_minutes if gap_minutes is not None else get_settings()["session_gap_minutes"]
+    stats = timeline.get_daily_stats(since=since, until=until, gap_minutes=effective_gap)
     return [
         DailyStatsOut(
             date=d.date,
