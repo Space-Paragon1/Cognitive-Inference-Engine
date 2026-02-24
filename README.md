@@ -70,7 +70,7 @@
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
 
 python -m engine.main
@@ -103,6 +103,131 @@ Then press **F5** in VSCode to launch the Extension Development Host.
 
 ---
 
+## Development Commands
+
+### Backend
+
+```bash
+# Run all tests
+pytest
+
+# Verbose output, stop on first failure
+pytest -v -x
+
+# Run a specific test file
+pytest tests/test_settings.py -v
+
+# Lint — check for issues
+ruff check engine/
+
+# Lint — auto-fix safe issues (unused imports, import ordering)
+ruff check engine/ --fix
+
+# Start engine
+python -m engine.main
+```
+
+### Frontend
+
+```bash
+cd frontend
+
+# Development server with hot reload (port 5173)
+npm run dev
+
+# Type-check + build production bundle
+npm run build
+
+# Serve the production build locally (port 4173)
+npm run preview
+```
+
+> Both `npm run dev` and `npm run preview` proxy `/api` requests to the backend at
+> `http://127.0.0.1:8765`. Make sure the engine is running before opening the dashboard.
+
+### Train the ML load estimator (v2)
+
+```bash
+python scripts/train_estimator.py
+```
+
+---
+
+## Troubleshooting
+
+### `npm run preview` — API calls return 404
+
+The production preview server (`npm run preview`) uses a proxy just like the dev server.
+If you see 404s on API calls after building, make sure the engine is running:
+
+```bash
+# Terminal 1
+python -m engine.main
+
+# Terminal 2
+cd frontend && npm run preview
+```
+
+The proxy config lives in [frontend/vite.config.ts](frontend/vite.config.ts) under both
+`server.proxy` (dev) and `preview.proxy` (preview).
+
+---
+
+### `ruff check engine/` reports errors
+
+Run the auto-fixer first — it handles unused imports and import ordering automatically:
+
+```bash
+ruff check engine/ --fix
+```
+
+For the remaining issues (lines too long, unused variables), fix them manually and re-run
+`ruff check engine/` until it reports **All checks passed**.
+
+---
+
+### `pytest` — collected 0 items for a test file
+
+Check that the file name matches `test_*.py` and that the functions are named `test_*`.
+Also verify you are running pytest from the project root (where `pyproject.toml` lives):
+
+```bash
+# From project root
+pytest tests/test_settings.py -v
+```
+
+---
+
+### Frontend build warning: chunk size > 500 kB
+
+```
+(!) Some chunks are larger than 500 kB after minification.
+```
+
+This is expected — `recharts` is a large charting library (~400 kB). The warning does not
+affect functionality for a local-first app. To silence it, raise the limit in
+[frontend/vite.config.ts](frontend/vite.config.ts):
+
+```ts
+build: {
+  chunkSizeWarningLimit: 600,
+}
+```
+
+---
+
+### Settings not persisting across restarts
+
+User settings are stored in `data/settings.json`. If the file is missing or malformed,
+the engine falls back to the defaults defined in `engine/settings.py`. Delete the file to
+reset all settings to defaults:
+
+```bash
+rm data/settings.json
+```
+
+---
+
 ## API Reference
 
 | Endpoint | Method | Description |
@@ -121,6 +246,11 @@ Then press **F5** in VSCode to launch the Extension Development Host.
 | `/actions/pomodoro/start` | POST | Start adaptive Pomodoro |
 | `/timeline` | GET | Query cognitive timeline |
 | `/timeline/load-history` | GET | Rolling load score array |
+| `/timeline/sessions` | GET | Detected work sessions |
+| `/timeline/stats/daily` | GET | Per-day productivity stats |
+| `/settings` | GET | Read current user settings + defaults |
+| `/settings` | PUT | Update one or more settings (partial patch) |
+| `/health` | GET | Engine health + estimator mode |
 
 ---
 
