@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List
 
+from ..settings import get_settings
+
 
 class Difficulty(str, Enum):
     EASY = "easy"
@@ -40,9 +42,12 @@ class TaskScheduler:
         if not tasks:
             return []
 
+        s = get_settings()
+        high_threshold = s["high_load_threshold"]
+
         priority_order: List[Difficulty]
 
-        if load_score >= 0.75:
+        if load_score >= high_threshold:
             # High load: easy → review → medium → hard
             priority_order = [Difficulty.EASY, Difficulty.REVIEW, Difficulty.MEDIUM, Difficulty.HARD]
         elif load_score >= 0.4:
@@ -57,9 +62,12 @@ class TaskScheduler:
 
     def suggest_pomodoro_duration(self, load_score: float) -> int:
         """Return recommended focus interval in minutes based on load."""
-        if load_score >= 0.85:
+        s = get_settings()
+        fatigue = s["fatigue_threshold"]
+        high    = s["high_load_threshold"]
+        if load_score >= fatigue:
             return 10   # fatigue: very short interval
-        if load_score >= 0.70:
+        if load_score >= high:
             return 15   # high load
         if load_score >= 0.45:
             return 25   # standard Pomodoro
