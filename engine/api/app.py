@@ -100,12 +100,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    from .routers import actions, state, telemetry, timeline
+    from .routers import actions, settings, state, telemetry, timeline
 
     app.include_router(state.router)
     app.include_router(telemetry.router)
     app.include_router(actions.router)
     app.include_router(timeline.router)
+    app.include_router(settings.router)
 
     @app.get("/health")
     def health(request: Request):
