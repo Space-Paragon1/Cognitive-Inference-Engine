@@ -190,6 +190,7 @@ export function TimelineReplay() {
   const [activeSession, setActiveSession] = useState<SessionSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [playhead, setPlayhead] = useState(0);
+  const [ctxFilter, setCtxFilter] = useState<string | null>(null);
 
   // Playback state
   const [playing, setPlaying] = useState(false);
@@ -262,9 +263,16 @@ export function TimelineReplay() {
       .finally(() => { if (fetchRef.current === id) setLoading(false); });
   }, [windowIdx, activeSession]);
 
+  // Clear context filter when entries change (window/session switch)
+  useEffect(() => { setCtxFilter(null); }, [entries]);
+
   // ── Derived values ──────────────────────────────────────────────────────
 
   const stats = computeStats(entries);
+  // Contexts present in this data set (for filter chips)
+  const presentContexts = [...new Set(entries.map((e) => e.context))].sort();
+  // Filtered entries for event log (chart always shows full data)
+  const logEntries = ctxFilter ? entries.filter((e) => e.context === ctxFilter) : entries;
   const chartData = entries.map((e, i) => ({
     i, ts: e.timestamp,
     load: Math.round(e.load_score * 100),
@@ -518,8 +526,54 @@ export function TimelineReplay() {
       {/* Event log */}
       {entries.length > 0 && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 11, opacity: 0.4, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Event log (most recent first)
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 11, opacity: 0.4, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Event log
+            </div>
+            {/* Context filter chips */}
+            {presentContexts.length > 1 && (
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                {presentContexts.map((ctx) => {
+                  const active = ctxFilter === ctx;
+                  const color = CTX_COLOR[ctx] ?? "#666";
+                  return (
+                    <button
+                      key={ctx}
+                      onClick={() => setCtxFilter(active ? null : ctx)}
+                      title={active ? "Clear filter" : `Filter by ${ctx.replace(/_/g, " ")}`}
+                      style={{
+                        fontSize: 10, fontWeight: 600, padding: "2px 8px",
+                        borderRadius: 6, border: "none", cursor: "pointer",
+                        background: active ? color + "33" : "#1a1a2e",
+                        color: active ? color : "#666",
+                        outline: active ? `1px solid ${color}55` : "1px solid #1e1e3a",
+                        transition: "background 0.12s",
+                      }}
+                    >
+                      {ctx.replace(/_/g, " ")}
+                    </button>
+                  );
+                })}
+                {ctxFilter && (
+                  <button
+                    onClick={() => setCtxFilter(null)}
+                    title="Clear filter"
+                    style={{
+                      fontSize: 10, padding: "2px 6px", borderRadius: 6,
+                      border: "none", cursor: "pointer",
+                      background: "none", color: "#555", outline: "1px solid #1e1e3a",
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            )}
+            {ctxFilter && (
+              <span style={{ fontSize: 10, opacity: 0.4, fontFamily: "monospace" }}>
+                {logEntries.length} / {entries.length}
+              </span>
+            )}
           </div>
           <div style={{ maxHeight: 180, overflowY: "auto", borderRadius: 8, border: "1px solid #1e1e3a", fontSize: 11 }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -531,8 +585,8 @@ export function TimelineReplay() {
                 </tr>
               </thead>
               <tbody>
-                {[...entries].reverse().slice(0, 100).map((e, idx) => {
-                  const origIdx = entries.length - 1 - idx;
+                {[...logEntries].reverse().slice(0, 100).map((e, idx) => {
+                  const origIdx = entries.indexOf(e);
                   return (
                     <tr key={e.id ?? idx} onClick={() => { setPlaying(false); setPlayhead(origIdx); }}
                       style={{
