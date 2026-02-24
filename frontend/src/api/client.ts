@@ -4,6 +4,8 @@ import type {
   FocusState,
   PomodoroState,
   SessionSummary,
+  Settings,
+  SettingsResponse,
   Task,
   TaskQueue,
   TimelineEntry,
@@ -100,3 +102,13 @@ export const getTasks = () => get<TaskQueue>("/actions/tasks");
 export const addTask = (task: Omit<Task, "tags"> & { tags?: string[] }) =>
   post<Task>("/actions/tasks", { ...task, tags: task.tags ?? [] });
 export const removeTask = (id: string) => del(`/actions/tasks/${id}`);
+
+// ── Settings ────────────────────────────────────────────────────────────────
+
+export const getSettings = () => get<SettingsResponse>("/settings");
+export const putSettings = (patch: Partial<Settings>) =>
+  fetch(`${BASE}/settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  }).then((r) => r.json() as Promise<{ settings: Settings }>);
