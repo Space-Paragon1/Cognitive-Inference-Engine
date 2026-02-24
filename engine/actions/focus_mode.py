@@ -7,7 +7,7 @@ this module sends the signal via the shared state the extension polls.
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 from .notifications import NotificationController
@@ -36,7 +36,9 @@ class FocusModeController:
         self._notif = NotificationController()
         self.state = FocusState()
 
-    def activate(self, duration_minutes: int = 25, reason: str = "", block_tabs: bool = True) -> FocusState:
+    def activate(
+        self, duration_minutes: int = 25, reason: str = "", block_tabs: bool = True
+    ) -> FocusState:
         self.state = FocusState(
             active=True,
             started_at=time.time(),
