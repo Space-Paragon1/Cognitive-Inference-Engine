@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CognitiveTimeline } from "./components/CognitiveTimeline";
 import { ControlPanel } from "./components/ControlPanel";
 import { LoadGauge } from "./components/LoadGauge";
+import { SettingsPanel } from "./components/Settings";
 import { StatsCard } from "./components/StatsCard";
 import { TaskQueue } from "./components/TaskQueue";
 import { TimelineReplay } from "./components/TimelineReplay";
@@ -45,7 +46,7 @@ const styles = {
   } as React.CSSProperties,
   title: { fontSize: 20, fontWeight: 700 } as React.CSSProperties,
   subtitle: { fontSize: 12, opacity: 0.4, marginTop: 2 } as React.CSSProperties,
-  bellBase: {
+  iconBtnBase: {
     fontSize: 16,
     background: "none",
     border: "none",
@@ -82,10 +83,9 @@ export default function App() {
   const { state, connected } = useCognitiveState();
   const { entries, scores } = useTimeline(300);
   const { enabled, supported, permission, request, disable, notify } = useNotifications();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Track previous context to detect transitions
   const prevContextRef = useRef<string>("unknown");
-  // Track consecutive high-load ticks for spike detection
   const highLoadCountRef = useRef(0);
 
   // Context transition notifications
@@ -118,27 +118,33 @@ export default function App() {
     if (enabled) {
       disable();
     } else {
-      if (permission === "denied") return; // browser blocked — nothing we can do
+      if (permission === "denied") return;
       await request();
     }
   };
 
-  const bellTitle = permission === "denied"
-    ? "Notifications blocked by browser"
-    : enabled ? "Notifications on — click to disable" : "Enable notifications";
-
+  // Computed styles for dynamic values
   const bellStyle: React.CSSProperties = {
-    ...styles.bellBase,
+    ...styles.iconBtnBase,
     opacity: permission === "denied" ? 0.3 : enabled ? 1 : 0.45,
     outline: enabled ? "1px solid #4a4af044" : "none",
     color: enabled ? "#4a4af0" : "#aaa",
   };
-
+  const gearStyle: React.CSSProperties = {
+    ...styles.iconBtnBase,
+    opacity: settingsOpen ? 1 : 0.5,
+    color: settingsOpen ? "#4a4af0" : "#aaa",
+    outline: settingsOpen ? "1px solid #4a4af044" : "none",
+  };
   const badgeStyle: React.CSSProperties = {
     ...styles.badge,
     background: connected ? "#4af0a033" : "#f05a4a33",
     color: connected ? "#4af0a0" : "#f05a4a",
   };
+
+  const bellTitle = permission === "denied"
+    ? "Notifications blocked by browser"
+    : enabled ? "Notifications on — click to disable" : "Enable notifications";
 
   return (
     <div style={styles.root}>
@@ -152,13 +158,19 @@ export default function App() {
         </div>
 
         <div style={styles.headerRight}>
-          {/* Notification bell */}
           {supported && (
             <button type="button" onClick={handleBellClick} title={bellTitle} style={bellStyle}>
               {enabled ? "\uD83D\uDD14" : "\uD83D\uDD15"}
             </button>
           )}
-
+          <button
+            type="button"
+            title="Settings"
+            style={gearStyle}
+            onClick={() => setSettingsOpen((o) => !o)}
+          >
+            ⚙
+          </button>
           <span style={badgeStyle}>
             {connected ? "● Engine Connected" : "○ Engine Offline"}
           </span>
@@ -190,6 +202,9 @@ export default function App() {
           <TaskQueue />
         </div>
       </main>
+
+      {/* Settings drawer */}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }
