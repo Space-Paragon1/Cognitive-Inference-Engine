@@ -1,4 +1,5 @@
 import type {
+  ActiveActions,
   CognitiveState,
   DailyStats,
   FocusState,
@@ -103,6 +104,10 @@ export const addTask = (task: Omit<Task, "tags"> & { tags?: string[] }) =>
   post<Task>("/actions/tasks", { ...task, tags: task.tags ?? [] });
 export const removeTask = (id: string) => del(`/actions/tasks/${id}`);
 
+export const stopPomodoro = () => post<PomodoroState>("/actions/pomodoro/stop");
+
+export const getDirectives = () => get<ActiveActions>("/actions/directives");
+
 // ── Settings ────────────────────────────────────────────────────────────────
 
 export const getSettings = () => get<SettingsResponse>("/settings");
@@ -112,3 +117,7 @@ export const putSettings = (patch: Partial<Settings>) =>
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
   }).then((r) => r.json() as Promise<{ settings: Settings }>);
+// ── Do Not Disturb ──────────────────────────────────────────────────────────
+
+export const setDnD = (enabled: boolean) =>
+  post<{ enabled: boolean; ok: boolean }>("/actions/dnd", { enabled });
