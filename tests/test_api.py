@@ -271,3 +271,31 @@ class TestTimelineEndpoint:
         entries = r.json()
         for e in entries:
             assert e["source"] == "engine"
+
+class TestDnDEndpoint:
+    async def test_dnd_suppress_returns_200(self, client):
+        r = await client.post("/actions/dnd", json={"enabled": True})
+        assert r.status_code == 200
+
+    async def test_dnd_allow_returns_200(self, client):
+        r = await client.post("/actions/dnd", json={"enabled": False})
+        assert r.status_code == 200
+
+    async def test_dnd_response_schema(self, client):
+        r = await client.post("/actions/dnd", json={"enabled": True})
+        body = r.json()
+        assert "enabled" in body
+        assert "ok" in body
+        assert isinstance(body["enabled"], bool)
+        assert isinstance(body["ok"], bool)
+
+    async def test_dnd_enabled_echoed_in_response(self, client):
+        r = await client.post("/actions/dnd", json={"enabled": True})
+        assert r.json()["enabled"] is True
+        r = await client.post("/actions/dnd", json={"enabled": False})
+        assert r.json()["enabled"] is False
+
+    async def test_dnd_missing_body_returns_422(self, client):
+        r = await client.post("/actions/dnd", json={})
+        assert r.status_code == 422
+
