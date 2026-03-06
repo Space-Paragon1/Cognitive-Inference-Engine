@@ -139,3 +139,13 @@ class PomodoroStateOut(BaseModel):
     remaining_seconds: float
     sessions_completed: int
     duration_seconds: int
+
+# ── Do Not Disturb ─────────────────────────────────────────────────────────
+
+class DnDRequest(BaseModel):
+    enabled: bool
+
+
+class DnDOut(BaseModel):
+    enabled: bool
+    ok: bool
