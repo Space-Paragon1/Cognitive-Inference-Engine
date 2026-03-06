@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AnalyticsPanel } from "./components/Analytics";
 import { CognitiveTimeline } from "./components/CognitiveTimeline";
 import { ControlPanel } from "./components/ControlPanel";
 import { LoadGauge } from "./components/LoadGauge";
@@ -84,6 +85,7 @@ export default function App() {
   const { entries, scores } = useTimeline(300);
   const { enabled, supported, permission, request, disable, notify } = useNotifications();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   const prevContextRef = useRef<string>("unknown");
   const highLoadCountRef = useRef(0);
@@ -136,6 +138,12 @@ export default function App() {
     color: settingsOpen ? "#4a4af0" : "#aaa",
     outline: settingsOpen ? "1px solid #4a4af044" : "none",
   };
+  const analyticsStyle: React.CSSProperties = {
+    ...styles.iconBtnBase,
+    opacity: analyticsOpen ? 1 : 0.5,
+    color: analyticsOpen ? "#4a4af0" : "#aaa",
+    outline: analyticsOpen ? "1px solid #4a4af044" : "none",
+  };
   const badgeStyle: React.CSSProperties = {
     ...styles.badge,
     background: connected ? "#4af0a033" : "#f05a4a33",
@@ -165,9 +173,17 @@ export default function App() {
           )}
           <button
             type="button"
+            title="Weekly analytics"
+            style={analyticsStyle}
+            onClick={() => { setSettingsOpen(false); setAnalyticsOpen((o) => !o); }}
+          >
+            ▦
+          </button>
+          <button
+            type="button"
             title="Settings"
             style={gearStyle}
-            onClick={() => setSettingsOpen((o) => !o)}
+            onClick={() => { setAnalyticsOpen(false); setSettingsOpen((o) => !o); }}
           >
             ⚙
           </button>
@@ -205,6 +221,7 @@ export default function App() {
 
       {/* Settings drawer */}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+      {analyticsOpen && <AnalyticsPanel onClose={() => setAnalyticsOpen(false)} />}
     </div>
   );
 }
