@@ -12,6 +12,10 @@
       {
         "command": "clr.toggleTelemetry",
         "title": "CLR: Toggle Telemetry"
+      },
+      {
+        "command": "clr.openDashboard",
+        "title": "CLR: Open Dashboard"
       }
     ],
     "configuration": {
@@ -21,6 +25,11 @@
           "type": "string",
           "default": "http://127.0.0.1:8765",
           "description": "URL of the local CLR engine API"
+        },
+        "clr.dashboardUrl": {
+          "type": "string",
+          "default": "http://localhost:5173",
+          "description": "URL of the CLR React dashboard"
         },
         "clr.telemetryEnabled": {
           "type": "boolean",
