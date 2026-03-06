@@ -5,22 +5,28 @@
 
 import * as vscode from "vscode";
 import { makeEvent } from "./events";
+import { StatusBarController } from "./statusbar";
 import { TelemetryClient } from "./telemetry";
 
 let client: TelemetryClient | null = null;
+let statusBar: StatusBarController | null = null;
 let lastKeystrokeTime = 0;
 let activeFile = "";
 
 export function activate(context: vscode.ExtensionContext): void {
   const cfg = vscode.workspace.getConfiguration("clr");
-  client = new TelemetryClient(
-    cfg.get<string>("engineUrl", "http://127.0.0.1:8765"),
-    5000
-  );
+  const engineUrl = cfg.get<string>("engineUrl", "http://127.0.0.1:8765");
+
+  client = new TelemetryClient(engineUrl, 5000);
 
   if (!cfg.get<boolean>("telemetryEnabled", true)) {
     client.setEnabled(false);
   }
+
+  // ── Status bar ─────────────────────────────────────────────────────────
+  statusBar = new StatusBarController(engineUrl);
+  statusBar.start(5000);
+  context.subscriptions.push({ dispose: () => statusBar?.dispose() });
 
   // ── Keystroke cadence ──────────────────────────────────────────────────
   context.subscriptions.push(
@@ -36,10 +42,12 @@ export function activate(context: vscode.ExtensionContext): void {
   // ── File save ──────────────────────────────────────────────────────────
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((doc) => {
-      client?.push(makeEvent("FILE_SAVE", {
-        language: doc.languageId,
-        file: doc.fileName,
-      }));
+      client?.push(
+        makeEvent("FILE_SAVE", {
+          language: doc.languageId,
+          file: doc.fileName,
+        })
+      );
     })
   );
 
@@ -49,10 +57,12 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!editor) return;
       const file = editor.document.fileName;
       if (file !== activeFile) {
-        client?.push(makeEvent("FILE_SWITCH", {
-          language: editor.document.languageId,
-          file,
-        }));
+        client?.push(
+          makeEvent("FILE_SWITCH", {
+            language: editor.document.languageId,
+            file,
+          })
+        );
         activeFile = file;
       }
     })
@@ -67,11 +77,15 @@ export function activate(context: vscode.ExtensionContext): void {
           (d) => d.severity === vscode.DiagnosticSeverity.Error
         );
         if (errors.length > 0) {
-          client?.push(makeEvent("COMPILE_ERROR", {
-            errorCount: errors.length,
-            file: uri.fsPath,
-            language: vscode.window.activeTextEditor?.document.languageId ?? "unknown",
-          }));
+          client?.push(
+            makeEvent("COMPILE_ERROR", {
+              errorCount: errors.length,
+              file: uri.fsPath,
+              language:
+                vscode.window.activeTextEditor?.document.languageId ??
+                "unknown",
+            })
+          );
         }
       }
     })
@@ -87,15 +101,68 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // ── Toggle command ─────────────────────────────────────────────────────
+  // ── Task execution (terminal commands + test results) ──────────────────
+  context.subscriptions.push(
+    vscode.tasks.onDidStartTask((e) => {
+      const taskName = e.execution.task.name;
+      const taskType = e.execution.task.definition.type;
+      client?.push(
+        makeEvent("TERMINAL_CMD", {
+          command: taskName,
+          taskType,
+        })
+      );
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.tasks.onDidEndTaskProcess((e) => {
+      const taskName = e.execution.task.name;
+      const lowerName = taskName.toLowerCase();
+      const isTestTask =
+        lowerName.includes("test") ||
+        lowerName.includes("spec") ||
+        lowerName.includes("jest") ||
+        lowerName.includes("pytest") ||
+        lowerName.includes("mocha") ||
+        lowerName.includes("vitest");
+
+      if (!isTestTask) return;
+
+      if (e.exitCode === 0) {
+        client?.push(makeEvent("TEST_PASS", { task: taskName }));
+      } else {
+        client?.push(
+          makeEvent("TEST_FAIL", {
+            task: taskName,
+            exitCode: e.exitCode ?? -1,
+          })
+        );
+      }
+    })
+  );
+
+  // ── Toggle telemetry command ───────────────────────────────────────────
   context.subscriptions.push(
     vscode.commands.registerCommand("clr.toggleTelemetry", () => {
       const current = cfg.get<boolean>("telemetryEnabled", true);
-      cfg.update("telemetryEnabled", !current, vscode.ConfigurationTarget.Global);
+      cfg.update(
+        "telemetryEnabled",
+        !current,
+        vscode.ConfigurationTarget.Global
+      );
       client?.setEnabled(!current);
       vscode.window.showInformationMessage(
         `CLR Telemetry ${!current ? "enabled" : "disabled"}`
       );
+    })
+  );
+
+  // ── Open dashboard command ─────────────────────────────────────────────
+  context.subscriptions.push(
+    vscode.commands.registerCommand("clr.openDashboard", () => {
+      const url = cfg.get<string>("dashboardUrl", "http://localhost:5173");
+      vscode.env.openExternal(vscode.Uri.parse(url));
     })
   );
 
@@ -107,13 +174,13 @@ export function activate(context: vscode.ExtensionContext): void {
           .getConfiguration("clr")
           .get<string>("engineUrl", "http://127.0.0.1:8765");
         client?.setEngineUrl(newUrl);
+        statusBar?.setEngineUrl(newUrl);
       }
     })
   );
-
-  vscode.window.setStatusBarMessage("$(brain) CLR connected", 3000);
 }
 
 export function deactivate(): void {
   client?.dispose();
+  statusBar?.dispose();
 }
