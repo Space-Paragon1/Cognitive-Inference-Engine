@@ -66,6 +66,11 @@ class AdaptivePomodoro:
         )
         return self.state
 
+    def reset(self) -> PomodoroState:
+        """Return to idle without incrementing session count."""
+        self.state = PomodoroState()
+        return self.state
+
     def tick(self, load_score: float) -> PomodoroState:
         if self.state.is_complete():
             if self.state.phase == PomodoroPhase.WORK:
