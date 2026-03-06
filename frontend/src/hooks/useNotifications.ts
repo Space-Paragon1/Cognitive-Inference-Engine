@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { setDnD } from "../api/client";
 
 // Minimum ms between repeat notifications of the same key
 const COOLDOWN: Record<string, number> = {
@@ -33,6 +34,7 @@ export function useNotifications() {
     if (perm === "granted") {
       setEnabled(true);
       localStorage.setItem("notif_enabled", "1");
+      setDnD(true).catch(() => {});   // best-effort OS DnD suppress
       return true;
     }
     return false;
@@ -41,6 +43,7 @@ export function useNotifications() {
   const disable = useCallback(() => {
     setEnabled(false);
     localStorage.setItem("notif_enabled", "0");
+    setDnD(false).catch(() => {});    // restore OS DnD
   }, []);
 
   /**
