@@ -94,3 +94,16 @@ export interface DailyStats {
   focus_minutes: number;
   context_distribution: Record<string, number>;
 }
+
+export interface ActionDirective {
+  action_type: string;
+  params: Record<string, unknown>;
+  priority: number;
+  reason: string;
+}
+
+export interface ActiveActions {
+  directives: ActionDirective[];
+  load_score: number;
+  context: string;
+}
