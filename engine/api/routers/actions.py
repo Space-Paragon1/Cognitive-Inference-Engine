@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from ...api.schemas import (
     ActionDirectiveOut,
     ActiveActionsOut,
+    DnDOut,
+    DnDRequest,
     FocusModeRequest,
     FocusModeStateOut,
     PomodoroStateOut,
@@ -152,6 +154,18 @@ def get_pomodoro(
     )
 
 
+@router.post("/pomodoro/stop", response_model=PomodoroStateOut)
+def stop_pomodoro(services=Depends(_get_services)):
+    state = services["pomodoro"].reset()
+    return PomodoroStateOut(
+        phase=state.phase.value,
+        elapsed_seconds=state.elapsed_seconds(),
+        remaining_seconds=state.remaining_seconds(),
+        sessions_completed=state.sessions_completed,
+        duration_seconds=state.duration_seconds,
+    )
+
+
 @router.post("/pomodoro/start", response_model=PomodoroStateOut)
 def start_pomodoro(
     aggregator=Depends(_get_aggregator),
@@ -166,3 +180,13 @@ def start_pomodoro(
         sessions_completed=state.sessions_completed,
         duration_seconds=state.duration_seconds,
     )
+
+# ── Do Not Disturb ──────────────────────────────────────────────────────────
+
+@router.post("/dnd", response_model=DnDOut)
+def set_dnd(body: DnDRequest):
+    """Suppress or restore OS-level Do Not Disturb / Focus Assist."""
+    from ...actions.notifications import NotificationController
+    nc = NotificationController()
+    ok = nc.suppress() if body.enabled else nc.allow()
+    return DnDOut(enabled=body.enabled, ok=ok)
