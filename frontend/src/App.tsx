@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnalyticsPanel } from "./components/Analytics";
 import { CognitiveTimeline } from "./components/CognitiveTimeline";
 import { ControlPanel } from "./components/ControlPanel";
+import { DirectivesFeed } from "./components/DirectivesFeed";
 import { LoadGauge } from "./components/LoadGauge";
 import { SettingsPanel } from "./components/Settings";
 import { StatsCard } from "./components/StatsCard";
@@ -207,6 +208,9 @@ export default function App() {
       <main style={styles.main}>
         <div style={styles.card}>
           <ControlPanel notify={notify} />
+        </div>
+        <div style={styles.card}>
+          <DirectivesFeed />
         </div>
         <div style={styles.card}>
           <CognitiveTimeline scores={scores} entries={entries} />
