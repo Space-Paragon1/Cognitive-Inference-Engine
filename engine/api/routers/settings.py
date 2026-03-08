@@ -6,12 +6,13 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from ...auth.service import get_current_user
 from ...settings import DEFAULTS, get_settings, update_settings
 
-router = APIRouter(prefix="/settings", tags=["settings"])
+router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[Depends(get_current_user)])
 
 
 class SettingsPatch(BaseModel):
