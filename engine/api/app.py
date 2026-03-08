@@ -101,9 +101,10 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://localhost:3000", "null"],
+        allow_origins=[o.strip() for o in config.allowed_origins.split(",") if o.strip()],
         allow_methods=["*"],
         allow_headers=["*"],
+        allow_credentials=True,
     )
 
     from .routers import actions, settings, state, telemetry, timeline
