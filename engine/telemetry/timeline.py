@@ -237,11 +237,16 @@ class CognitiveTimeline:
                     event_type    TEXT    NOT NULL,
                     load_score    REAL    NOT NULL DEFAULT 0.0,
                     context       TEXT    NOT NULL DEFAULT 'unknown',
-                    metadata_json TEXT    NOT NULL DEFAULT '{}'
+                    metadata_json TEXT    NOT NULL DEFAULT '{}',
+                    user_id       INTEGER
                 )
                 """
             )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_ts ON timeline(timestamp)")
+            # Migrate: add user_id to existing databases that predate auth
+            existing = {row[1] for row in conn.execute("PRAGMA table_info(timeline)")}
+            if "user_id" not in existing:
+                conn.execute("ALTER TABLE timeline ADD COLUMN user_id INTEGER")
 
     @contextmanager
     def _conn(self) -> Iterator[sqlite3.Connection]:
