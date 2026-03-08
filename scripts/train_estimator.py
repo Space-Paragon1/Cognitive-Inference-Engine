@@ -149,7 +149,7 @@ def train(n_samples: int, output_path: Path) -> None:
         print("Install: pip install scikit-learn joblib")
         sys.exit(1)
 
-    print(f"Generating {n_samples} synthetic samples across {len(SCENARIOS)} scenarios…")
+    print(f"Generating {n_samples} synthetic samples across {len(SCENARIOS)} scenarios...")
     X, y = generate_dataset(n_samples)
     print(f"Dataset shape: X={X.shape}, y={y.shape}  |  y range: [{y.min():.3f}, {y.max():.3f}]")
 
@@ -166,7 +166,7 @@ def train(n_samples: int, output_path: Path) -> None:
         )),
     ])
 
-    print("Training GradientBoostingRegressor…")
+    print("Training GradientBoostingRegressor...")
     t0 = time.time()
     model.fit(X_train, y_train)
     elapsed = time.time() - t0
@@ -177,8 +177,8 @@ def train(n_samples: int, output_path: Path) -> None:
     mae = float(np.mean(np.abs(y_pred - y_test)))
 
     print(f"\nResults ({elapsed:.1f}s):")
-    print(f"  Train R²: {train_r2:.4f}")
-    print(f"  Test  R²: {test_r2:.4f}")
+    print(f"  Train R^2: {train_r2:.4f}")
+    print(f"  Test  R^2: {test_r2:.4f}")
     print(f"  Test MAE: {mae:.4f}")
 
     # Feature importances
@@ -189,12 +189,12 @@ def train(n_samples: int, output_path: Path) -> None:
     )
     print("\nFeature importances:")
     for name, imp in importances:
-        bar = "█" * int(imp * 40)
+        bar = "#" * int(imp * 40)
         print(f"  {name:<25} {bar}  {imp:.3f}")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, output_path)
-    print(f"\nModel saved → {output_path}")
+    print(f"\nModel saved -> {output_path}")
     print("The MLLoadEstimator will auto-load it on next engine start.")
 
 
