@@ -7,19 +7,22 @@ Uses an in-memory SQLite (`:memory:`) database so no filesystem access is needed
 from __future__ import annotations
 
 import time
-from pathlib import Path
 
 import pytest
+from sqlalchemy import create_engine
 
+from engine.db.connection import init_db, metadata
 from engine.telemetry.timeline import CognitiveTimeline, TimelineEntry
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
 
 @pytest.fixture
-def tl(tmp_path):
-    """A fresh CognitiveTimeline backed by a temp file."""
-    return CognitiveTimeline(tmp_path / "test.db")
+def tl():
+    """A fresh CognitiveTimeline backed by an in-memory SQLite database."""
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    metadata.create_all(engine)
+    return CognitiveTimeline(engine)
 
 
 def _tick(tl: CognitiveTimeline, ts: float, load: float = 0.5, context: str = "deep_focus"):
