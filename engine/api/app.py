@@ -19,6 +19,7 @@ from ..actions.focus_mode import FocusModeController
 from ..actions.pomodoro import AdaptivePomodoro
 from ..actions.task_queue import TaskQueueManager
 from ..config import config
+from ..db.connection import get_engine, init_db, reset_engine
 from ..db.users import UsersDB
 from ..router.policy_engine import PolicyEngine
 from ..telemetry.aggregator import TelemetryAggregator
@@ -46,8 +47,11 @@ async def _inference_loop(aggregator: TelemetryAggregator, interval_ms: int) -> 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     db_path = config.data_dir / config.timeline_db
-    app.state.timeline = CognitiveTimeline(db_path)
-    app.state.users_db = UsersDB(db_path)
+    engine = get_engine(db_path)
+    init_db(engine)                              # create tables if not exist
+    app.state.db_engine = engine
+    app.state.timeline = CognitiveTimeline(engine)
+    app.state.users_db = UsersDB(engine)
     app.state.aggregator = TelemetryAggregator(app.state.timeline)
 
     focus = FocusModeController()
@@ -80,6 +84,7 @@ async def lifespan(app: FastAPI):
         await inference_task
     except asyncio.CancelledError:
         pass
+    reset_engine()
 
 
 # ---------------------------------------------------------------------------

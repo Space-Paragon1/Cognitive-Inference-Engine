@@ -31,6 +31,10 @@ class Config:
     # Storage
     data_dir: Path = field(default_factory=lambda: _ROOT / "data")
     timeline_db: str = "timeline.db"
+    # Set DATABASE_URL to a PostgreSQL URL to switch from SQLite to Postgres.
+    # Example: postgresql://user:password@host:5432/dbname
+    # Leave empty to use local SQLite (default for desktop/dev).
+    database_url: str = ""
 
     # Auth
     jwt_secret: str = "dev-secret-change-in-production"
