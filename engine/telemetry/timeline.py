@@ -1,17 +1,22 @@
 """
-Learning Activity Timeline — append-only SQLite store of cognitive events.
+Learning Activity Timeline — append-only store of cognitive events.
 Acts as the "git history for your attention".
+
+Backed by SQLAlchemy Core so it works with both SQLite (local desktop)
+and PostgreSQL (hosted/production) without any query changes.
 """
 
 from __future__ import annotations
 
-import sqlite3
 import time
-from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, Iterator, List, Optional
+from typing import Dict, List, Optional
+
+from sqlalchemy import and_, select
+from sqlalchemy.engine import Engine
+
+from ..db.connection import timeline_table
 
 
 @dataclass
@@ -23,64 +28,60 @@ class TimelineEntry:
     load_score: float
     context: str
     metadata_json: str = "{}"
+    user_id: Optional[int] = None
 
 
 @dataclass
 class SessionSummary:
     """A detected work session (contiguous inference ticks without a long gap)."""
-    session_index: int          # 0 = oldest in the queried window
+    session_index: int
     start_ts: float
     end_ts: float
     duration_minutes: float
     tick_count: int
     avg_load_score: float
     peak_load_score: float
-    context_distribution: Dict[str, float]   # context → fraction (sums to 1.0)
+    context_distribution: Dict[str, float]
     dominant_context: str
 
 
 @dataclass
 class DailyStats:
     """Aggregate statistics for a single calendar day (UTC)."""
-    date: str                   # "YYYY-MM-DD"
+    date: str
     tick_count: int
     session_count: int
     avg_load_score: float
     peak_load_score: float
     total_session_minutes: float
-    focus_minutes: float        # time in deep_focus context
+    focus_minutes: float
     context_distribution: Dict[str, float]
 
 
 class CognitiveTimeline:
-    """Thread-safe SQLite-backed timeline store."""
+    """Thread-safe SQLAlchemy-backed timeline store."""
 
-    def __init__(self, db_path: Path):
-        self.db_path = db_path
-        self._init_db()
+    def __init__(self, engine: Engine):
+        self._engine = engine
 
     # ------------------------------------------------------------------
     # Write
     # ------------------------------------------------------------------
 
     def append(self, entry: TimelineEntry) -> int:
-        with self._conn() as conn:
-            cur = conn.execute(
-                """
-                INSERT INTO timeline
-                    (timestamp, source, event_type, load_score, context, metadata_json)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    entry.timestamp,
-                    entry.source,
-                    entry.event_type,
-                    entry.load_score,
-                    entry.context,
-                    entry.metadata_json,
-                ),
+        with self._engine.begin() as conn:
+            result = conn.execute(
+                timeline_table.insert().values(
+                    timestamp=entry.timestamp,
+                    source=entry.source,
+                    event_type=entry.event_type,
+                    load_score=entry.load_score,
+                    context=entry.context,
+                    metadata_json=entry.metadata_json,
+                    user_id=entry.user_id,
+                )
             )
-            return cur.lastrowid  # type: ignore[return-value]
+            return result.inserted_primary_key[0]
 
     # ------------------------------------------------------------------
     # Read — raw entries
@@ -92,31 +93,38 @@ class CognitiveTimeline:
         until: Optional[float] = None,
         source: Optional[str] = None,
         limit: int = 500,
+        user_id: Optional[int] = None,
     ) -> List[TimelineEntry]:
-        clauses = []
-        params: list = []
+        stmt = select(timeline_table).order_by(timeline_table.c.timestamp.desc()).limit(limit)
 
-        if since:
-            clauses.append("timestamp >= ?")
-            params.append(since)
-        if until:
-            clauses.append("timestamp <= ?")
-            params.append(until)
-        if source:
-            clauses.append("source = ?")
-            params.append(source)
+        filters = []
+        if since is not None:
+            filters.append(timeline_table.c.timestamp >= since)
+        if until is not None:
+            filters.append(timeline_table.c.timestamp <= until)
+        if source is not None:
+            filters.append(timeline_table.c.source == source)
+        if user_id is not None:
+            filters.append(timeline_table.c.user_id == user_id)
+        if filters:
+            stmt = stmt.where(and_(*filters))
 
-        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
-        params.append(limit)
+        with self._engine.connect() as conn:
+            rows = conn.execute(stmt).fetchall()
 
-        with self._conn() as conn:
-            rows = conn.execute(
-                f"SELECT id, timestamp, source, event_type, load_score, context, metadata_json "
-                f"FROM timeline {where} ORDER BY timestamp DESC LIMIT ?",
-                params,
-            ).fetchall()
-
-        return [TimelineEntry(*row) for row in rows]
+        return [
+            TimelineEntry(
+                id=row.id,
+                timestamp=row.timestamp,
+                source=row.source,
+                event_type=row.event_type,
+                load_score=row.load_score,
+                context=row.context,
+                metadata_json=row.metadata_json,
+                user_id=row.user_id,
+            )
+            for row in rows
+        ]
 
     def recent_load_scores(self, window_s: int = 300) -> List[float]:
         since = time.time() - window_s
@@ -132,16 +140,11 @@ class CognitiveTimeline:
         since: Optional[float] = None,
         until: Optional[float] = None,
         gap_minutes: float = 10.0,
+        user_id: Optional[int] = None,
     ) -> List[SessionSummary]:
-        """
-        Group inference ticks into work sessions.
-        A gap of > gap_minutes between consecutive ticks ends the current session.
-        Returns sessions ordered oldest → newest.
-        """
         entries = self.query(
-            since=since, until=until, source="engine", limit=10_000
+            since=since, until=until, source="engine", limit=10_000, user_id=user_id
         )
-        # query() returns newest-first; reverse to chronological
         ticks = [e for e in reversed(entries) if e.event_type == "inference_tick"]
         if not ticks:
             return []
@@ -158,39 +161,35 @@ class CognitiveTimeline:
                 current.append(tick)
         raw_sessions.append(current)
 
-        result = []
-        for idx, session_ticks in enumerate(raw_sessions):
-            result.append(_build_session(idx, session_ticks))
-        return result
+        return [_build_session(idx, s) for idx, s in enumerate(raw_sessions)]
 
     def get_daily_stats(
         self,
         since: Optional[float] = None,
         until: Optional[float] = None,
         gap_minutes: float = 10.0,
+        user_id: Optional[int] = None,
     ) -> List[DailyStats]:
-        """
-        Returns one DailyStats record per calendar day (UTC) in the given range.
-        """
         if since is None:
             since = time.time() - 7 * 24 * 3600
         if until is None:
             until = time.time()
 
-        entries = self.query(since=since, until=until, source="engine", limit=50_000)
+        entries = self.query(
+            since=since, until=until, source="engine", limit=50_000, user_id=user_id
+        )
         ticks = [e for e in reversed(entries) if e.event_type == "inference_tick"]
         if not ticks:
             return []
 
-        # Group ticks by UTC date
         by_date: Dict[str, List[TimelineEntry]] = {}
         for t in ticks:
             day = datetime.fromtimestamp(t.timestamp, tz=timezone.utc).strftime("%Y-%m-%d")
             by_date.setdefault(day, []).append(t)
 
-        # Compute sessions per day for session_count + total_session_minutes
-        sessions = self.get_sessions(since=since, until=until, gap_minutes=gap_minutes)
-
+        sessions = self.get_sessions(
+            since=since, until=until, gap_minutes=gap_minutes, user_id=user_id
+        )
         session_by_date: Dict[str, List[SessionSummary]] = {}
         for s in sessions:
             day = datetime.fromtimestamp(s.start_ts, tz=timezone.utc).strftime("%Y-%m-%d")
@@ -221,41 +220,6 @@ class CognitiveTimeline:
                 context_distribution=ctx_dist,
             ))
         return result
-
-    # ------------------------------------------------------------------
-    # Internal
-    # ------------------------------------------------------------------
-
-    def _init_db(self) -> None:
-        with self._conn() as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS timeline (
-                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-                    timestamp     REAL    NOT NULL,
-                    source        TEXT    NOT NULL,
-                    event_type    TEXT    NOT NULL,
-                    load_score    REAL    NOT NULL DEFAULT 0.0,
-                    context       TEXT    NOT NULL DEFAULT 'unknown',
-                    metadata_json TEXT    NOT NULL DEFAULT '{}',
-                    user_id       INTEGER
-                )
-                """
-            )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_ts ON timeline(timestamp)")
-            # Migrate: add user_id to existing databases that predate auth
-            existing = {row[1] for row in conn.execute("PRAGMA table_info(timeline)")}
-            if "user_id" not in existing:
-                conn.execute("ALTER TABLE timeline ADD COLUMN user_id INTEGER")
-
-    @contextmanager
-    def _conn(self) -> Iterator[sqlite3.Connection]:
-        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
-        try:
-            yield conn
-            conn.commit()
-        finally:
-            conn.close()
 
 
 # ---------------------------------------------------------------------------
