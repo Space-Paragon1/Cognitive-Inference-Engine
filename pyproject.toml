@@ -24,7 +24,12 @@ dependencies = [
     "sqlalchemy>=2.0.0",
     "alembic>=1.13.0",
     "psycopg2-binary>=2.9.0",
+    "python-multipart>=0.0.9",
 ]
+
+[project.optional-dependencies.desktop]
+# Windows-only extras for the desktop agent (not needed on the server)
+dependencies = ["pygetwindow>=0.0.9"]
 
 [project.optional-dependencies]
 dev = [
