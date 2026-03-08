@@ -19,6 +19,10 @@ class Config:
     # API
     api_host: str = "127.0.0.1"
     api_port: int = 8765
+    # Comma-separated list of allowed CORS origins.
+    # Add your Railway domain + Capacitor app origin here in production.
+    # Example: https://myapp.railway.app,capacitor://localhost,http://localhost:5173
+    allowed_origins: str = "http://localhost:5173,http://localhost:3000,null"
 
     # Inference
     inference_interval_ms: int = 2000        # how often load is recalculated
