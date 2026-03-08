@@ -32,6 +32,10 @@ class Config:
     data_dir: Path = field(default_factory=lambda: _ROOT / "data")
     timeline_db: str = "timeline.db"
 
+    # Auth
+    jwt_secret: str = "dev-secret-change-in-production"
+    jwt_expire_days: int = 7
+
     # Action thresholds
     high_load_threshold: float = 0.75
     fatigue_threshold: float = 0.85
