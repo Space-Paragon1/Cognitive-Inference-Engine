@@ -1,0 +1,14 @@
+.git
+.env
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+tests/
+frontend/
+plugins/
+docs/
+scripts/
+data/timeline.db
+data/settings.json
+*.egg-info
