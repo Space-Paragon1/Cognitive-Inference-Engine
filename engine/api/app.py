@@ -19,6 +19,7 @@ from ..actions.focus_mode import FocusModeController
 from ..actions.pomodoro import AdaptivePomodoro
 from ..actions.task_queue import TaskQueueManager
 from ..config import config
+from ..db.users import UsersDB
 from ..router.policy_engine import PolicyEngine
 from ..telemetry.aggregator import TelemetryAggregator
 from ..telemetry.timeline import CognitiveTimeline
@@ -46,6 +47,7 @@ async def _inference_loop(aggregator: TelemetryAggregator, interval_ms: int) -> 
 async def lifespan(app: FastAPI):
     db_path = config.data_dir / config.timeline_db
     app.state.timeline = CognitiveTimeline(db_path)
+    app.state.users_db = UsersDB(db_path)
     app.state.aggregator = TelemetryAggregator(app.state.timeline)
 
     focus = FocusModeController()
@@ -100,7 +102,9 @@ def create_app() -> FastAPI:
     )
 
     from .routers import actions, settings, state, telemetry, timeline
+    from ..auth.router import router as auth_router
 
+    app.include_router(auth_router)
     app.include_router(state.router)
     app.include_router(telemetry.router)
     app.include_router(actions.router)
