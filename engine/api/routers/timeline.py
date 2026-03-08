@@ -9,9 +9,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, Request
 
 from ...api.schemas import DailyStatsOut, SessionSummaryOut, TimelineEntryOut
+from ...auth.service import get_current_user
 from ...settings import get_settings
 
-router = APIRouter(prefix="/timeline", tags=["timeline"])
+router = APIRouter(prefix="/timeline", tags=["timeline"], dependencies=[Depends(get_current_user)])
 
 
 def _get_timeline(request: Request):
