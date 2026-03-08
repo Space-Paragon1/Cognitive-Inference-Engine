@@ -14,6 +14,8 @@ from httpx import ASGITransport, AsyncClient
 
 import engine.settings as settings_mod
 from engine.api.app import create_app
+from engine.auth.service import create_access_token, hash_password
+from engine.db.users import UsersDB
 from engine.settings import DEFAULTS, get_settings, update_settings
 
 
@@ -41,8 +43,16 @@ def app():
 @pytest_asyncio.fixture(scope="module")
 async def client(app):
     async with app.router.lifespan_context(app):
+        users_db: UsersDB = app.state.users_db
+        email = "settings-test@example.com"
+        if users_db.get_by_email(email) is None:
+            users_db.create_user(email, hash_password("testpassword"))
+        user = users_db.get_by_email(email)
+        token = create_access_token(user.id)
         async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+            headers={"Authorization": f"Bearer {token}"},
         ) as ac:
             yield ac
 
