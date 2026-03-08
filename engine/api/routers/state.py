@@ -5,12 +5,14 @@
 from __future__ import annotations
 
 import asyncio
+from typing import Optional
 
-from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, Request, WebSocket, WebSocketDisconnect
 
 from ...api.schemas import CognitiveStateOut, LoadBreakdown
+from ...auth.service import _decode_token, _get_users_db, get_current_user
 
-router = APIRouter(prefix="/state", tags=["state"])
+router = APIRouter(prefix="/state", tags=["state"], dependencies=[Depends(get_current_user)])
 
 
 def _get_aggregator(request: Request):
@@ -36,11 +38,20 @@ def get_state(aggregator=Depends(_get_aggregator)):
 
 
 @router.websocket("/ws")
-async def state_websocket(websocket: WebSocket, aggregator=Depends(_get_aggregator)):
+async def state_websocket(
+    websocket: WebSocket,
+    token: Optional[str] = Query(default=None),
+    aggregator=Depends(_get_aggregator),
+    users_db=Depends(_get_users_db),
+):
     """
     WebSocket stream — pushes a new cognitive state JSON object every 2 seconds.
-    The React dashboard subscribes to this for live updates.
+    Auth via ?token=<jwt> query parameter (browsers cannot set WS headers).
     """
+    user_id = _decode_token(token) if token else None
+    if user_id is None or users_db.get_by_id(user_id) is None:
+        await websocket.close(code=4001)
+        return
     await websocket.accept()
     try:
         while True:
