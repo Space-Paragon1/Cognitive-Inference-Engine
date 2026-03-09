@@ -17,6 +17,12 @@ data/*.sqlite
 frontend/node_modules/
 frontend/dist/
 
+# Capacitor — Android build outputs (keep source, ignore generated builds)
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/local.properties
+
 # VSCode extension
 plugins/vscode-extension/node_modules/
 plugins/vscode-extension/out/
