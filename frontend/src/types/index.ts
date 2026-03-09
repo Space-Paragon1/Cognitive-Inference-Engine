@@ -107,3 +107,14 @@ export interface ActiveActions {
   load_score: number;
   context: string;
 }
+
+export interface AuthUser {
+  id: number;
+  email: string;
+  created_at: number;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
