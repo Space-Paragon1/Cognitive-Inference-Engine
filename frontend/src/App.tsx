@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "./auth/AuthContext";
 import { AnalyticsPanel } from "./components/Analytics";
 import { CognitiveTimeline } from "./components/CognitiveTimeline";
 import { ControlPanel } from "./components/ControlPanel";
 import { DirectivesFeed } from "./components/DirectivesFeed";
 import { LoadGauge } from "./components/LoadGauge";
+import { LoginPage } from "./components/LoginPage";
 import { SettingsPanel } from "./components/Settings";
 import { StatsCard } from "./components/StatsCard";
 import { TaskQueue } from "./components/TaskQueue";
@@ -27,9 +29,9 @@ const CTX_MESSAGES: Record<string, [string, string]> = {
 const styles = {
   root: {
     minHeight: "100vh",
-    padding: "24px 32px",
+    padding: "24px clamp(12px, 4vw, 32px)",
     display: "grid",
-    gridTemplateColumns: "260px 1fr",
+    gridTemplateColumns: "clamp(200px, 22vw, 260px) 1fr",
     gridTemplateRows: "auto 1fr",
     gap: 24,
     maxWidth: 1200,
@@ -40,11 +42,14 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 10,
   } as React.CSSProperties,
   headerRight: {
     display: "flex",
     alignItems: "center",
     gap: 10,
+    flexWrap: "wrap",
   } as React.CSSProperties,
   title: { fontSize: 20, fontWeight: 700 } as React.CSSProperties,
   subtitle: { fontSize: 12, opacity: 0.4, marginTop: 2 } as React.CSSProperties,
@@ -77,11 +82,59 @@ const styles = {
     padding: 20,
     border: "1px solid #1e1e3a",
   } as React.CSSProperties,
+  logoutBtn: {
+    fontSize: 11,
+    background: "none",
+    border: "1px solid #2a2a4a",
+    cursor: "pointer",
+    padding: "4px 10px",
+    borderRadius: 8,
+    color: "#6666aa",
+    fontWeight: 600,
+  } as React.CSSProperties,
 } as const;
+
+// ── Responsive override injected once ────────────────────────────────────────
+
+const MOBILE_CSS = `
+@media (max-width: 640px) {
+  .clr-root {
+    grid-template-columns: 1fr !important;
+  }
+}
+`;
+
+function injectMobileCss() {
+  if (document.getElementById("clr-mobile-css")) return;
+  const style = document.createElement("style");
+  style.id = "clr-mobile-css";
+  style.textContent = MOBILE_CSS;
+  document.head.appendChild(style);
+}
 
 // ── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const { user, loading, logout } = useAuth();
+
+  injectMobileCss();
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#6666aa" }}>
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return <Dashboard user={user} logout={logout} />;
+}
+
+function Dashboard({ user, logout }: { user: { email: string }; logout: () => void }) {
   const { state, connected } = useCognitiveState();
   const { entries, scores } = useTimeline(300);
   const { enabled, supported, permission, request, disable, notify } = useNotifications();
@@ -91,7 +144,6 @@ export default function App() {
   const prevContextRef = useRef<string>("unknown");
   const highLoadCountRef = useRef(0);
 
-  // Context transition notifications
   useEffect(() => {
     const prev = prevContextRef.current;
     const curr = state.context;
@@ -101,7 +153,6 @@ export default function App() {
     if (msg) notify(curr, msg[0], msg[1]);
   }, [state.context, notify]);
 
-  // Load spike notifications (3 consecutive ticks above 85%)
   useEffect(() => {
     if (state.load_score > 0.85) {
       highLoadCountRef.current += 1;
@@ -126,7 +177,6 @@ export default function App() {
     }
   };
 
-  // Computed styles for dynamic values
   const bellStyle: React.CSSProperties = {
     ...styles.iconBtnBase,
     opacity: permission === "denied" ? 0.3 : enabled ? 1 : 0.45,
@@ -156,7 +206,7 @@ export default function App() {
     : enabled ? "Notifications on — click to disable" : "Enable notifications";
 
   return (
-    <div style={styles.root}>
+    <div style={styles.root} className="clr-root">
       {/* Header */}
       <header style={styles.header}>
         <div>
@@ -191,6 +241,10 @@ export default function App() {
           <span style={badgeStyle}>
             {connected ? "● Engine Connected" : "○ Engine Offline"}
           </span>
+          <span style={{ fontSize: 11, color: "#4444aa" }}>{user.email}</span>
+          <button type="button" style={styles.logoutBtn} onClick={logout}>
+            Sign out
+          </button>
         </div>
       </header>
 
@@ -223,7 +277,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* Settings drawer */}
+      {/* Drawers */}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
       {analyticsOpen && <AnalyticsPanel onClose={() => setAnalyticsOpen(false)} />}
     </div>
