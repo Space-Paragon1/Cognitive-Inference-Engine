@@ -18,16 +18,16 @@ def _get_users_db(request: Request) -> UsersDB:
     return request.app.state.users_db
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(body: RegisterRequest, users_db: UsersDB = Depends(_get_users_db)):
-    """Create a new user account."""
+    """Create a new user account and return an access token."""
     if users_db.get_by_email(body.email):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="An account with that email already exists",
         )
     user = users_db.create_user(body.email, hash_password(body.password))
-    return UserOut(id=user.id, email=user.email, created_at=user.created_at)
+    return TokenResponse(access_token=create_access_token(user.id))
 
 
 @router.post("/login", response_model=TokenResponse)
