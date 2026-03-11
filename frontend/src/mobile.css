@@ -1,0 +1,97 @@
+/* ── Mobile-first global overrides ─────────────────────────────────────── */
+
+/* Prevent text from being too small on mobile */
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Larger touch targets for all buttons */
+button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Safe area padding for notched phones */
+.safe-top    { padding-top:    env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ── Dashboard grid ─────────────────────────────────────────────────────── */
+.clr-root {
+  grid-template-columns: 260px 1fr;
+}
+
+@media (max-width: 768px) {
+  .clr-root {
+    grid-template-columns: 1fr !important;
+    padding: 12px 12px 80px 12px !important; /* bottom padding for tab bar */
+    gap: 12px !important;
+  }
+}
+
+/* ── Bottom tab bar (mobile only) ───────────────────────────────────────── */
+.tab-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .tab-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #13132b;
+    border-top: 1px solid #1e1e3a;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+.tab-bar-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #4444aa;
+  font-size: 10px;
+  gap: 3px;
+  min-height: 56px;
+  transition: color 0.15s;
+}
+
+.tab-bar-btn.active {
+  color: #7070ff;
+}
+
+.tab-bar-btn .tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* ── Card improvements on mobile ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Hide sections that aren't the active tab */
+  .tab-section {
+    display: none;
+  }
+  .tab-section.tab-active {
+    display: block;
+  }
+  /* Sidebar always visible on mobile (contains gauge) */
+  .clr-sidebar {
+    display: block !important;
+  }
+}
+
+/* ── Input / button sizing ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important; /* prevents iOS zoom on focus */
+  }
+}

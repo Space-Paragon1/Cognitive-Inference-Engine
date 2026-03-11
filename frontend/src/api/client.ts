@@ -15,9 +15,10 @@ import type {
 } from "../types";
 
 // VITE_API_URL is set to the Railway backend URL in production.
-// In dev it is empty and requests go through Vite's proxy at /api.
+// In dev: empty → requests go through Vite's proxy at /api (strips the prefix).
+// In prod (mobile/Railway): requests go directly to the backend — no /api prefix needed.
 const API_ROOT = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
-const BASE = `${API_ROOT}/api`;
+const BASE = API_ROOT || "/api";
 
 // ── Token storage ────────────────────────────────────────────────────────────
 
