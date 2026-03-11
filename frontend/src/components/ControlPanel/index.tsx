@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { useEffect, useRef, useState } from "react";
 import {
   getFocusState,
@@ -8,6 +10,12 @@ import {
 } from "../../api/client";
 import type { FocusState, PomodoroState } from "../../types";
 import css from "./ControlPanel.module.css";
+
+async function haptic(style: ImpactStyle = ImpactStyle.Medium) {
+  if (Capacitor.isNativePlatform()) {
+    await Haptics.impact({ style }).catch(() => {});
+  }
+}
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -73,12 +81,14 @@ export function ControlPanel({ notify }: ControlPanelProps) {
   }, [pomo?.phase, notify]);
 
   const toggleFocus = async () => {
+    await haptic(ImpactStyle.Medium);
     if (focus?.active) await stopFocus();
     else await startFocus(25, true);
     refresh();
   };
 
   const handleStartPomo = async () => {
+    await haptic(ImpactStyle.Heavy);
     await startPomodoro();
     refresh();
   };
