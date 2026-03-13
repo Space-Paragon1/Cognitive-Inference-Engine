@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import (
+    Boolean,
     Column,
     Float,
     Integer,
@@ -42,6 +43,16 @@ users_table = Table(
     Column("email", String(255), nullable=False, unique=True),
     Column("hashed_password", Text, nullable=False),
     Column("created_at", Float, nullable=False),
+)
+
+password_reset_table = Table(
+    "password_reset_tokens",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("user_id", Integer, nullable=False, index=True),
+    Column("token", String(64), nullable=False, unique=True),
+    Column("expires_at", Float, nullable=False),
+    Column("used", Boolean, nullable=False, default=False),
 )
 
 timeline_table = Table(
