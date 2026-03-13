@@ -37,9 +37,9 @@ class TestRegister:
         })
         assert r.status_code == 201
         body = r.json()
-        assert body["email"] == unique_email
-        assert "id" in body
-        assert "created_at" in body
+        assert "access_token" in body
+        assert body["token_type"] == "bearer"
+        assert len(body["access_token"]) > 20
         assert "password" not in body
         assert "hashed_password" not in body
 

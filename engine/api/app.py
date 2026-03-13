@@ -107,8 +107,8 @@ def create_app() -> FastAPI:
         allow_credentials=True,
     )
 
-    from .routers import actions, settings, state, telemetry, timeline
     from ..auth.router import router as auth_router
+    from .routers import actions, settings, state, telemetry, timeline
 
     app.include_router(auth_router)
     app.include_router(state.router)

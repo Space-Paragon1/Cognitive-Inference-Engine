@@ -13,7 +13,9 @@ from ...telemetry.sources.desktop import parse_desktop_event
 from ...telemetry.sources.ide import parse_ide_event
 from ...telemetry.sources.lms import parse_lms_event
 
-router = APIRouter(prefix="/telemetry", tags=["telemetry"], dependencies=[Depends(get_current_user)])
+router = APIRouter(
+    prefix="/telemetry", tags=["telemetry"], dependencies=[Depends(get_current_user)]
+)
 
 
 def _get_aggregator(request: Request):

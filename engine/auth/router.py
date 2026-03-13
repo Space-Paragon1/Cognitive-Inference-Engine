@@ -6,10 +6,17 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from ..db.users import UsersDB
-from .schemas import LoginRequest, RegisterRequest, TokenResponse, UserOut
+from ..db.users import UserRecord, UsersDB
+from .email import send_password_reset
+from .schemas import (
+    ForgotPasswordRequest,
+    LoginRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    TokenResponse,
+    UserOut,
+)
 from .service import create_access_token, get_current_user, hash_password, verify_password
-from ..db.users import UserRecord
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -50,3 +57,34 @@ def me(current_user: UserRecord = Depends(get_current_user)):
         email=current_user.email,
         created_at=current_user.created_at,
     )
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+def forgot_password(body: ForgotPasswordRequest, users_db: UsersDB = Depends(_get_users_db)):
+    """
+    Send a password-reset email if the account exists.
+    Always returns 200 to avoid user-enumeration.
+    """
+    user = users_db.get_by_email(body.email)
+    if user:
+        token = users_db.create_reset_token(user.id)
+        try:
+            send_password_reset(user.email, token)
+        except Exception:
+            # Don't leak SMTP errors to the client
+            pass
+    return {"detail": "If that email is registered, a reset link has been sent."}
+
+
+@router.post("/reset-password", response_model=TokenResponse)
+def reset_password(body: ResetPasswordRequest, users_db: UsersDB = Depends(_get_users_db)):
+    """Verify the reset token and set a new password. Returns a fresh JWT."""
+    user_id = users_db.get_valid_reset_token(body.token)
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset link is invalid or has expired.",
+        )
+    users_db.update_password(user_id, hash_password(body.new_password))
+    users_db.consume_reset_token(body.token)
+    return TokenResponse(access_token=create_access_token(user_id))

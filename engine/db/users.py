@@ -5,13 +5,14 @@ Works with both SQLite (local) and PostgreSQL (hosted).
 
 from __future__ import annotations
 
+import secrets
 import time
 from dataclasses import dataclass
 from typing import Optional
 
 from sqlalchemy.engine import Engine
 
-from .connection import users_table
+from .connection import password_reset_table, users_table
 
 
 @dataclass
@@ -68,3 +69,60 @@ class UsersDB:
                 users_table.select().where(users_table.c.id == user_id)
             ).fetchone()
         return UserRecord(*row) if row else None
+
+    def update_password(self, user_id: int, hashed_password: str) -> None:
+        with self._engine.begin() as conn:
+            conn.execute(
+                users_table.update()
+                .where(users_table.c.id == user_id)
+                .values(hashed_password=hashed_password)
+            )
+
+    # ------------------------------------------------------------------
+    # Password reset tokens
+    # ------------------------------------------------------------------
+
+    def create_reset_token(self, user_id: int, ttl_seconds: int = 3600) -> str:
+        """Create a single-use reset token valid for ttl_seconds. Returns the raw token."""
+        token = secrets.token_hex(32)
+        expires_at = time.time() + ttl_seconds
+        # Delete any existing tokens for this user first
+        with self._engine.begin() as conn:
+            conn.execute(
+                password_reset_table.delete().where(
+                    password_reset_table.c.user_id == user_id
+                )
+            )
+            conn.execute(
+                password_reset_table.insert().values(
+                    user_id=user_id,
+                    token=token,
+                    expires_at=expires_at,
+                    used=False,
+                )
+            )
+        return token
+
+    def get_valid_reset_token(self, token: str) -> Optional[int]:
+        """Return user_id if the token is valid and unused, else None."""
+        with self._engine.connect() as conn:
+            row = conn.execute(
+                password_reset_table.select().where(
+                    password_reset_table.c.token == token
+                )
+            ).fetchone()
+        if row is None:
+            return None
+        _id, user_id, _token, expires_at, used = row
+        if used or time.time() > expires_at:
+            return None
+        return user_id
+
+    def consume_reset_token(self, token: str) -> None:
+        """Mark the token as used."""
+        with self._engine.begin() as conn:
+            conn.execute(
+                password_reset_table.update()
+                .where(password_reset_table.c.token == token)
+                .values(used=True)
+            )

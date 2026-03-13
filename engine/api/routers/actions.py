@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from ...auth.service import get_current_user
 from ...api.schemas import (
     ActionDirectiveOut,
     ActiveActionsOut,
@@ -19,6 +18,7 @@ from ...api.schemas import (
     TaskOut,
     TaskQueueOut,
 )
+from ...auth.service import get_current_user
 
 router = APIRouter(prefix="/actions", tags=["actions"], dependencies=[Depends(get_current_user)])
 
