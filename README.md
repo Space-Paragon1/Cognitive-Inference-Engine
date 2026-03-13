@@ -21,6 +21,10 @@
 │  │ desktop       │   └────────────────┘   │ pomodoro/tasks │  │
 │  └───────────────┘                        └────────────────┘  │
 │                                                                 │
+│  ┌────────────────┐                                            │
+│  │  Auth (JWT)    │  register · login · forgot/reset password  │
+│  └────────────────┘                                            │
+│                                                                 │
 │                    FastAPI  :8765                               │
 └──────────┬──────────────────────────────────────┬──────────────┘
            │  REST + WebSocket                    │
@@ -28,11 +32,11 @@
   │ Browser Ext.    │                   │  React Dashboard │
   │ (Manifest V3)   │                   │  :5173           │
   └─────────────────┘                   └──────────────────┘
-           │
-  ┌────────▼────────┐
-  │  VSCode Ext.    │
-  │  (TypeScript)   │
-  └─────────────────┘
+           │                                      │
+  ┌────────▼────────┐                   ┌─────────▼────────┐
+  │  VSCode Ext.    │                   │  Android App     │
+  │  (TypeScript)   │                   │  (Capacitor 8)   │
+  └─────────────────┘                   └──────────────────┘
 ```
 
 ## Repository Layout
@@ -42,6 +46,8 @@
 ├── engine/                  # Python backend
 │   ├── config.py            # Config (env vars or config.json)
 │   ├── main.py              # Entry point (uvicorn)
+│   ├── auth/                # JWT auth — register, login, forgot/reset password
+│   ├── db/                  # SQLite user store + password-reset tokens
 │   ├── inference/           # Load estimator + context classifier
 │   ├── telemetry/           # Aggregator, timeline, source parsers
 │   ├── router/              # Policy engine + task scheduler
@@ -52,12 +58,16 @@
 │   ├── browser-extension/   # Chrome/Firefox MV3 extension
 │   └── vscode-extension/    # VSCode extension (TypeScript)
 │
-├── frontend/                # React + Vite dashboard
-│   └── src/
-│       ├── components/      # LoadGauge, Timeline, TaskQueue, ControlPanel
-│       ├── hooks/           # useCognitiveState, useTimeline
-│       ├── api/             # Typed API client
-│       └── types/           # Shared TypeScript types
+├── frontend/                # React + Vite dashboard + Android app
+│   ├── src/
+│   │   ├── auth/            # AuthContext — login/register/logout state
+│   │   ├── components/      # LoadGauge, Timeline, TaskQueue, ControlPanel,
+│   │   │                    # LoginPage (incl. forgot/reset password)
+│   │   ├── hooks/           # useCognitiveState, useTimeline
+│   │   ├── api/             # Typed API client (auth, state, timeline, …)
+│   │   └── types/           # Shared TypeScript types
+│   ├── android/             # Capacitor 8 Android project
+│   └── capacitor.config.ts
 │
 ├── data/                    # Runtime SQLite DBs (gitignored)
 ├── config.json.example      # Configuration template
@@ -86,6 +96,11 @@ npm run dev
 # → http://localhost:5173
 ```
 
+Open the URL, create an account on the Sign In page, and you are in.
+
+> Both `npm run dev` and `npm run preview` proxy `/api` requests to the backend at
+> `http://127.0.0.1:8765`. Make sure the engine is running before opening the dashboard.
+
 ### 3. Load the browser extension
 
 1. Open Chrome → `chrome://extensions`
@@ -101,6 +116,39 @@ npm run compile
 ```
 Then press **F5** in VSCode to launch the Extension Development Host.
 
+### 5. Build the Android app
+
+```bash
+cd frontend
+
+# Build web assets and sync to Android project
+npm run cap:sync
+
+# Open in Android Studio (then run on device / emulator)
+npm run cap:android
+```
+
+The `build:mobile` script sets `VITE_API_URL` to the Railway production backend.
+For local development against your own backend, use `npm run dev` in the browser instead.
+
+---
+
+## Authentication
+
+All API endpoints (except `/health`) require a JWT Bearer token.
+
+**Flow:**
+1. `POST /auth/register` — create account, receive token
+2. `POST /auth/login` — authenticate, receive token
+3. Include token in every request: `Authorization: Bearer <token>`
+
+**Forgot password:**
+1. `POST /auth/forgot-password` — sends a reset link to the registered email
+2. Click the link (contains `?token=xxx`) — the app auto-detects the token and shows the reset form
+3. `POST /auth/reset-password` — set new password, receive fresh token and log in immediately
+
+The reset link is valid for **1 hour**.
+
 ---
 
 ## Development Commands
@@ -108,14 +156,14 @@ Then press **F5** in VSCode to launch the Extension Development Host.
 ### Backend
 
 ```bash
-# Run all tests
+# Run all tests (160 tests)
 pytest
 
 # Verbose output, stop on first failure
 pytest -v -x
 
 # Run a specific test file
-pytest tests/test_settings.py -v
+pytest tests/test_auth.py -v
 
 # Lint — check for issues
 ruff check engine/
@@ -140,10 +188,16 @@ npm run build
 
 # Serve the production build locally (port 4173)
 npm run preview
-```
 
-> Both `npm run dev` and `npm run preview` proxy `/api` requests to the backend at
-> `http://127.0.0.1:8765`. Make sure the engine is running before opening the dashboard.
+# Build for mobile (Railway backend URL baked in)
+npm run build:mobile
+
+# Build + sync to Android / iOS
+npm run cap:sync
+
+# Sync and open Android Studio
+npm run cap:android
+```
 
 ### Train the ML load estimator (v2)
 
@@ -228,12 +282,41 @@ rm data/settings.json
 
 ---
 
+### ML model version warning on startup
+
+```
+InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.5.2
+```
+
+The saved model was trained with an older scikit-learn version. Retrain it:
+
+```bash
+python scripts/train_estimator.py
+```
+
+The engine falls back to the v1 heuristic estimator until a compatible model exists.
+
+---
+
 ## API Reference
+
+### Auth
+
+| Endpoint | Method | Auth | Description |
+|---|---|---|---|
+| `/auth/register` | POST | — | Create account, returns JWT |
+| `/auth/login` | POST | — | Authenticate, returns JWT |
+| `/auth/me` | GET | required | Current user info |
+| `/auth/forgot-password` | POST | — | Send password-reset email |
+| `/auth/reset-password` | POST | — | Set new password, returns JWT |
+| `/health` | GET | — | Engine health + estimator mode |
+
+### Core (all require `Authorization: Bearer <token>`)
 
 | Endpoint | Method | Description |
 |---|---|---|
 | `/state` | GET | Current cognitive load snapshot |
-| `/state/ws` | WS | Live state stream (2s interval) |
+| `/state/ws` | WS | Live state stream (2 s interval) |
 | `/telemetry/event` | POST | Ingest single event |
 | `/telemetry/batch` | POST | Ingest event batch |
 | `/actions/directives` | GET | Active routing directives |
@@ -244,13 +327,14 @@ rm data/settings.json
 | `/actions/tasks/{id}` | DELETE | Remove task |
 | `/actions/pomodoro` | GET | Pomodoro state |
 | `/actions/pomodoro/start` | POST | Start adaptive Pomodoro |
+| `/actions/pomodoro/stop` | POST | Stop Pomodoro |
+| `/actions/dnd` | POST | Toggle Do Not Disturb |
 | `/timeline` | GET | Query cognitive timeline |
 | `/timeline/load-history` | GET | Rolling load score array |
 | `/timeline/sessions` | GET | Detected work sessions |
 | `/timeline/stats/daily` | GET | Per-day productivity stats |
 | `/settings` | GET | Read current user settings + defaults |
 | `/settings` | PUT | Update one or more settings (partial patch) |
-| `/health` | GET | Engine health + estimator mode |
 
 ---
 
