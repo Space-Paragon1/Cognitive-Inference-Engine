@@ -38,3 +38,6 @@ Thumbs.db
 
 # Config override (keep config.json.example, not config.json)
 config.json
+
+# Claude Code local settings
+.claude/settings.local.json
