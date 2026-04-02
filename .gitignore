@@ -11,6 +11,7 @@ env/
 
 # Data (local only — never commit)
 data/*.db
+data/*.db-journal
 data/*.sqlite
 
 # Frontend
