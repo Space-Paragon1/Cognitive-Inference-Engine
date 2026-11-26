@@ -1,0 +1,75 @@
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { ReactNode } from "react";
+import type { CognitiveState } from "../types";
+import { LiveStore } from "./store";
+import type { LiveSnapshot } from "./store";
+
+const LiveContext = createContext<LiveStore | null>(null);
+
+/** Owns the one LiveStore for the signed-in session. */
+export function LiveStateProvider({ children }: { children: ReactNode }) {
+  const [store] = useState(() => new LiveStore());
+  useEffect(() => {
+    store.start();
+    return () => store.stop();
+  }, [store]);
+  return <LiveContext.Provider value={store}>{children}</LiveContext.Provider>;
+}
+
+export function useLiveStore(): LiveStore {
+  const store = useContext(LiveContext);
+  if (!store) throw new Error("useLive must be used inside <LiveStateProvider>");
+  return store;
+}
+
+/**
+ * Subscribe to a slice of the live snapshot. The component re-renders only when
+ * the selected value changes (by `isEqual`, default Object.is).
+ */
+export function useLive<T>(selector: (s: LiveSnapshot) => T, isEqual: (a: T, b: T) => boolean = Object.is): T {
+  const store = useLiveStore();
+  const cache = useRef<{ snap: LiveSnapshot; value: T } | null>(null);
+  const read = () => {
+    const snap = store.get();
+    const c = cache.current;
+    if (c && c.snap === snap) return c.value;
+    const value = selector(snap);
+    if (c && isEqual(c.value, value)) {
+      cache.current = { snap, value: c.value };
+      return c.value;
+    }
+    cache.current = { snap, value };
+    return value;
+  };
+  return useSyncExternalStore(store.subscribe, read, read);
+}
+
+/** Run `fn` on every reading (alerts). */
+export function useLiveTicks(fn: (s: CognitiveState) => void) {
+  const store = useLiveStore();
+  const ref = useRef(fn);
+  ref.current = fn;
+  useEffect(() => store.onTick((s) => ref.current(s)), [store]);
+}
+
+export const shallowEqual = <T extends object>(a: T, b: T): boolean => {
+  if (a === b) return true;
+  const ka = Object.keys(a) as (keyof T)[];
+  if (ka.length !== Object.keys(b).length) return false;
+  return ka.every((k) => Object.is(a[k], b[k]));
+};
+
+/** The common gauge slice: load (null before data), context, confidence, status. */
+export function useGaugeState() {
+  return useLive(
+    (s) => ({
+      load: s.state ? s.state.load_score : null,
+      context: s.state?.context ?? "unknown",
+      confidence: s.state?.confidence ?? 0,
+      status: s.status,
+      loading: s.loading,
+      lastReadingAt: s.lastReadingAt,
+    }),
+    shallowEqual
+  );
+}

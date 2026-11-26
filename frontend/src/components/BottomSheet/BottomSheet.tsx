@@ -38,7 +38,6 @@ export function BottomSheet({ open, title, children, actions, onClose, dismissib
       trigger.current?.focus?.();
     }, EXIT_MS);
     return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // Focus the first field (or the first control) once the panel is in the DOM.
