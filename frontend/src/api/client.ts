@@ -90,28 +90,36 @@ export function createStateWebSocket(onMessage: (s: CognitiveState) => void): We
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
-export async function login(email: string, password: string): Promise<TokenResponse> {
-  const res = await fetch(`${API_ROOT}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  return res.json() as Promise<TokenResponse>;
+/** A failed auth request, with the status so the forms can word the error. */
+export class HttpError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+    /** Seconds from Retry-After on a 429. */
+    public retryAfter: number | null = null
+  ) {
+    super(message);
+    this.name = "HttpError";
+  }
 }
 
-export async function register(email: string, password: string): Promise<TokenResponse> {
-  const res = await fetch(`${API_ROOT}/auth/register`, {
+async function authPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_ROOT}/auth/${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const data = await res.json().catch(() => ({})) as { detail?: string };
-    throw new Error(data.detail ?? `${res.status} ${res.statusText}`);
+    const data = (await res.json().catch(() => ({}))) as { detail?: unknown };
+    const retry = Number(res.headers.get("Retry-After"));
+    throw new HttpError(res.status, typeof data.detail === "string" ? data.detail : `${res.status} ${res.statusText}`, Number.isFinite(retry) && retry > 0 ? retry : null);
   }
-  return res.json() as Promise<TokenResponse>;
+  return res.json() as Promise<T>;
 }
+
+export const login = (email: string, password: string) => authPost<TokenResponse>("login", { email, password });
+
+export const register = (email: string, password: string) => authPost<TokenResponse>("register", { email, password });
 
 export const getMe = () =>
   fetch(`${API_ROOT}/auth/me`, { headers: authHeaders() }).then((r) => {
@@ -120,29 +128,10 @@ export const getMe = () =>
   });
 
 export async function forgotPassword(email: string): Promise<void> {
-  const res = await fetch(`${API_ROOT}/auth/forgot-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  await authPost<unknown>("forgot-password", { email });
 }
 
-export async function resetPassword(
-  token: string,
-  newPassword: string
-): Promise<TokenResponse> {
-  const res = await fetch(`${API_ROOT}/auth/reset-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, new_password: newPassword }),
-  });
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { detail?: string };
-    throw new Error(data.detail ?? `${res.status} ${res.statusText}`);
-  }
-  return res.json() as Promise<TokenResponse>;
-}
+export const resetPassword = (token: string, newPassword: string) => authPost<TokenResponse>("reset-password", { token, new_password: newPassword });
 
 // ── State ──────────────────────────────────────────────────────────────────
 

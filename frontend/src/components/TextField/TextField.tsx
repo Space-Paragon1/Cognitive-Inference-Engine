@@ -113,7 +113,7 @@ export function TextField({
         </span>
       )}
       {strength != null && (
-        <span className={styles.strength} aria-hidden="true">
+        <span className={styles.strength} data-tone={strength <= 1 ? "critical" : strength === 2 ? "caution" : "positive"} aria-hidden="true">
           {[0, 1, 2, 3].map((i) => (
             <span key={i} className={i < strength ? styles.on : undefined} />
           ))}

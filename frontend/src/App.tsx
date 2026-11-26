@@ -1,12 +1,10 @@
-import { useEffect, useRef } from "react";
-import { App as CapApp } from "@capacitor/app";
-import { Capacitor } from "@capacitor/core";
+import { useEffect, useState } from "react";
 import { useAuth } from "./auth/AuthContext";
-import { LoginPage } from "./components/LoginPage";
+import { LoginPage, SESSION_EXPIRED_KEY } from "./components/LoginPage";
 import { AppShell, useLayout } from "./components/Shell";
 import { Spinner } from "./components/Spinner";
 import { ToastProvider } from "./components/Toast";
-import { runBack } from "./lib/backStack";
+import { exitApp, useHardwareBack } from "./lib/backStack";
 import { navigate, parentRoute, useRoute } from "./lib/router";
 import { DirectivesProvider } from "./live/DirectivesState";
 import { LiveStateProvider, useLive } from "./live/LiveState";
@@ -21,10 +19,10 @@ import { HistoryScreen } from "./screens/History/HistoryScreen";
 import { InsightsScreen } from "./screens/Insights/InsightsScreen";
 import { SettingsScreen } from "./screens/Settings/SettingsScreen";
 import { MoreScreen } from "./screens/More/MoreScreen";
+import { Onboarding } from "./screens/Onboarding/Onboarding";
+import { markOnboarded, onboardingDue } from "./lib/onboarding";
 import type { Route } from "./types/ui";
 import styles from "./App.module.css";
-
-export const SESSION_EXPIRED_KEY = "clr_session_expired";
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -59,18 +57,9 @@ export default function App() {
 }
 
 function SignedIn() {
-  const { route, sub } = useRoute();
-  const layout = useLayout();
-  const mobile = layout === "mobile";
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const authFailed = useLive((s) => s.authFailed);
-
-  useAndroidBack(route, sub, mobile);
-
-  // More is the phone's overflow tab; wider layouts have everything in the sidebar.
-  useEffect(() => {
-    if (!mobile && route === "more") navigate("now", null, { replace: true });
-  }, [mobile, route]);
+  const [onboarding, setOnboarding] = useState(() => !!user && onboardingDue(user));
 
   // The socket refused our token (4001): the session has ended on the engine.
   useEffect(() => {
@@ -82,6 +71,32 @@ function SignedIn() {
     }
     logout();
   }, [authFailed, logout]);
+
+  if (onboarding && user) {
+    return (
+      <Onboarding
+        onDone={() => {
+          markOnboarded(user.id);
+          navigate("now", null, { replace: true });
+          setOnboarding(false);
+        }}
+      />
+    );
+  }
+  return <MainApp />;
+}
+
+function MainApp() {
+  const { route, sub } = useRoute();
+  const layout = useLayout();
+  const mobile = layout === "mobile";
+
+  useAndroidBack(route, sub, mobile);
+
+  // More is the phone's overflow tab; wider layouts have everything in the sidebar.
+  useEffect(() => {
+    if (!mobile && route === "more") navigate("now", null, { replace: true });
+  }, [mobile, route]);
 
   return (
     <AppShell route={route} sub={sub}>
@@ -112,20 +127,10 @@ function Screen({ route, sub }: { route: Route; sub: string | null }) {
 
 /** Android back: close a sheet, then pop a sub-page, then go to Now; from Now, exit. */
 function useAndroidBack(route: Route, sub: string | null, mobile: boolean) {
-  const ref = useRef({ route, sub, mobile });
-  ref.current = { route, sub, mobile };
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    const handle = CapApp.addListener("backButton", () => {
-      if (runBack()) return;
-      const { route: r, sub: s, mobile: m } = ref.current;
-      const parent = parentRoute(r, m, s);
-      if (parent) navigate(parent.route, parent.sub, { replace: true });
-      else if (r !== "now") navigate("now", null, { replace: true });
-      else CapApp.exitApp();
-    });
-    return () => {
-      handle.then((h) => h.remove());
-    };
-  }, []);
+  useHardwareBack(() => {
+    const parent = parentRoute(route, mobile, sub);
+    if (parent) navigate(parent.route, parent.sub, { replace: true });
+    else if (route !== "now") navigate("now", null, { replace: true });
+    else exitApp();
+  });
 }

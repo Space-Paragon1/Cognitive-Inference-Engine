@@ -15,6 +15,7 @@ import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { ThemeSwitch } from "../../components/Settings";
 import { Page } from "../../components/Shell";
+import { PrivacyPromise } from "../../components/PrivacyPromise";
 import styles from "./MoreScreen.module.css";
 
 function Row({ icon: I, title, sub, onClick, chevron = true }: { icon: Icon; title: string; sub?: ReactNode; onClick: () => void; chevron?: boolean }) {
@@ -86,13 +87,7 @@ export function MoreScreen() {
       >
         <div className={styles.help}>
           <p>CLR estimates how mentally loaded you are, every 2 seconds, from how you work. Then it adjusts your timers, your task order and your notifications.</p>
-          <p>
-            <b>What CLR reads:</b> tab and window switches (counts, not page content), typing rhythm and pauses, compile errors and their frequency, idle time and
-            scrolling, LMS page visits.
-          </p>
-          <p>
-            <b>What it never reads:</b> what you type, page text, grades, messages or passwords, your camera or microphone.
-          </p>
+          <PrivacyPromise flat />
           <p>You can export or delete your data any time in Settings, under Privacy.</p>
         </div>
       </BottomSheet>

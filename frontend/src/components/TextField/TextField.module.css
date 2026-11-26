@@ -119,8 +119,9 @@
   background: var(--surface-sunken);
   transition: background-color var(--dur-fast) var(--ease-standard);
 }
+/* Weak bars are critical, fair ones caution, strong ones positive (data-tone sets --c). */
 .strength .on {
-  background: var(--positive);
+  background: var(--c, var(--positive));
 }
 @media (max-width: 767px) {
   .input {

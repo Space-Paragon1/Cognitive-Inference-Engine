@@ -1,6 +1,7 @@
 /* Ported from .clr-banner in design/components/bundle.css */
 .banner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   padding: 12px 14px;
@@ -21,8 +22,9 @@
 .icon {
   color: var(--c);
 }
+/* When the text would get narrower than ~200px, the action drops to its own line. */
 .text {
-  flex: 1;
+  flex: 1 1 200px;
   min-width: 0;
 }
 .title {
@@ -32,6 +34,7 @@
   color: var(--ink-muted);
 }
 .action {
+  margin-left: auto;
   color: var(--ink);
 }
 @keyframes fade {

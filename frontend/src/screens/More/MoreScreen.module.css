@@ -90,7 +90,3 @@
 .help p {
   margin: 0;
 }
-.help b {
-  color: var(--ink);
-  font-weight: 600;
-}

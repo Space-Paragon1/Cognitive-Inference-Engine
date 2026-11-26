@@ -56,8 +56,8 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Insights
 - [x] Settings
 - [x] More
-- [ ] Auth (LoginPage, forgot and reset password)
-- [ ] Onboarding
+- [x] Auth (LoginPage, forgot and reset password)
+- [x] Onboarding
 - [ ] Alerts (toasts, overload notification, haptics)
 
 ### 6. States pass
@@ -160,6 +160,19 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **SourceCard `lastSeen`** is the full phrase ("12s ago"), as in index.d.ts; the card no longer adds its own "ago".
 - **More** (phones only) follows the ScreenSettings preview: History, Settings, Connected sources ("2 of 4 connected"), Help and feedback; Theme; account and Sign out. "Help and feedback" opens a sheet explaining what CLR reads and never reads; there is no feedback channel to send to yet.
 
+- **Auth layout**: the form column sits left and the brand panel right at 1024px and wider (as in the preview); below that the brand panel is dropped and the logo sits above the form. One page handles sign in, create account, forgot and reset; switching forms moves focus to the new heading, and Android back returns to sign in.
+- **Reset links** open the reset form from `?reset_token=` (what the engine's email sends) as well as the old `?token=`. The old page only read `?token=`, so emailed links never opened the reset form.
+- **Reset link lifetime**: the engine keeps reset tokens for 60 minutes, so the copy says "It works for an hour" and "Reset links last an hour" instead of voice.md's 30 minutes.
+- **"Set a new password"** can't show "For sam@uni.edu": the link carries only a token and the API has no way to look up its email. The subtitle says "You will be signed in as soon as it is saved."
+- **Auth errors**: wrong email or password sits under the password field; an existing account sits under the email ("There's already an account with this email. Sign in instead."); rate limits use the engine's Retry-After ("Too many attempts. Wait 2 min and try again."); server and network failures show a critical banner above the button. A signed-out session shows "You were signed out." above the sign-in form once.
+- **Password strength**: 1 bar under 8 characters (critical), 2 for 8–11 (caution), 3 for 12+ and 4 for 12+ with mixed characters or 16+ (positive, "Strong. 12+ characters."). The engine only enforces 8.
+- **Terms checkbox** is kept from the design. There are no terms or privacy-policy pages yet, so "terms and privacy policy" opens a sheet with what CLR reads and never reads, with "I agree".
+- **Onboarding is shown** to accounts less than a day old that haven't finished it on this device (`clr_onboarded` in localStorage), so it follows sign-up and a first sign-in on a new phone, and returning students go straight to Now. The current step survives a reload for the visit.
+- **Onboarding on phones** adds a Back arrow at top-left from step 2 (the preview has none; Android's back button also goes back a step). "Skip" top-right ends onboarding. Step 4's "Turn on notifications" asks for system permission (Android 13+ or the browser) and finishes either way; "Not now" finishes without asking.
+- **What CLR reads and never reads** is one shared component (`components/PrivacyPromise`) used by onboarding, the sign-up terms sheet and More → Help.
+- **Onboarding source descriptions** (the VS Code install steps and so on) show only until that source is connected.
+- **Banner actions** wrap onto their own line when the text would get narrower than about 200px.
+
 ## Needs backend
 
 - **Pomodoro pause, resume and skip.** The API has only `POST /actions/pomodoro/start` and `/stop`. The Timer shows Pause/Resume and Skip as the design asks. Until the engine has endpoints, pause is held locally in the Focus screen (`// TODO(backend)` in `ControlPanel`), and Skip stops the current phase.
@@ -177,3 +190,6 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Export my data.** No export endpoint; the app stitches one together from what it can read, and the timeline part is limited to the last 30 days (`src/api/privacy.ts`, `// TODO(backend)`).
 - **Delete my data and account.** No endpoint; `deleteMyData()` in `src/api/privacy.ts` is a stub that throws `NotAvailableError`, and the sheet says nothing was removed.
 - **Feedback.** "Help and feedback" has nowhere to send feedback, so it only explains what CLR reads.
+- **Onboarded flag.** Whether a student has finished onboarding is kept per device (`src/lib/onboarding.ts`, `// TODO(backend)`); a flag on the user would make it follow the account.
+- **Terms and privacy policy.** No documents or URLs exist yet; the sign-up checkbox opens the in-app privacy summary.
+- **Reset email address.** The reset form can't show which account it is for; the token lookup would need to return the email.

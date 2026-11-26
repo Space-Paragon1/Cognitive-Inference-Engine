@@ -305,16 +305,25 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   await delay(scenario === "live" ? 120 : 250);
 
   if (path.startsWith("/auth/")) {
+    // Passwords "wrong" (401) and "limit" (429), email "taken@uni.edu" (409) and reset
+    // token "expired" (400) show the error states. A new account opens onboarding.
     if (path === "/auth/login" || path === "/auth/register") {
-      if (body?.password === "wrong") return json({ detail: "Incorrect email or password" }, 401);
+      if (body?.password === "limit") return new Response(JSON.stringify({ detail: "Too many attempts. Please wait and try again." }), { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "120" } });
+      if (path === "/auth/login" && body?.password === "wrong") return json({ detail: "Incorrect email or password" }, 401);
+      if (path === "/auth/register" && body?.email === "taken@uni.edu") return json({ detail: "An account with that email already exists" }, 409);
+      if (path === "/auth/register") sessionStorage.setItem("clr_mock_new", String(Math.floor(Date.now() / 1000)));
       return json({ access_token: "mock-token", token_type: "bearer" });
     }
     if (path === "/auth/me") {
       const auth = new Headers(init?.headers).get("Authorization");
-      return auth ? json({ id: 1, email: "sam@uni.edu", created_at: t0 - 86400 * 30 }) : json({ detail: "Unauthorized" }, 401);
+      const created = Number(sessionStorage.getItem("clr_mock_new")) || t0 - 86400 * 30;
+      return auth ? json({ id: 1, email: "sam@uni.edu", created_at: created }) : json({ detail: "Unauthorized" }, 401);
     }
-    if (path === "/auth/forgot-password") return json({ ok: true });
-    if (path === "/auth/reset-password") return json({ access_token: "mock-token", token_type: "bearer" });
+    if (path === "/auth/forgot-password") return json({ detail: "If that email is registered, a reset link has been sent." });
+    if (path === "/auth/reset-password") {
+      if (body?.token === "expired") return json({ detail: "Reset link is invalid or has expired." }, 400);
+      return json({ access_token: "mock-token", token_type: "bearer" });
+    }
   }
 
   if (scenario === "offline") throw new TypeError("Failed to fetch");

@@ -222,15 +222,44 @@ const KINDS: { kind: SourceKind; recommended?: boolean; optional?: boolean }[] =
   { kind: "lms", optional: true },
 ];
 
-export function SourcesSection({ variant }: { variant: Variant }) {
+/** The four source cards with their pairing flow, shared by Settings and onboarding. */
+export function SourceList({ descriptions }: { descriptions?: Partial<Record<SourceKind, string>> }) {
   const pairing = usePairing();
-  const toast = useToast();
-  const url = engineUrlForPlugins();
   const [lastKind, setLastKind] = useState<SourceKind>("browser");
   const connect = (kind: SourceKind) => {
     setLastKind(kind);
     pairing.connect(kind);
   };
+  return (
+    <>
+      {pairing.failed && (
+        <Banner tone="critical" title="Couldn't create a pairing code." body="Check your connection." action={{ label: "Retry", onClick: () => connect(lastKind) }} />
+      )}
+      {pairing.devicesError && !pairing.devices && <Banner tone="critical" title="Couldn't load your sources." body="Try again in a moment." />}
+      {KINDS.map(({ kind, recommended, optional }) => (
+        <SourceCard
+          key={kind}
+          kind={kind}
+          desc={pairing.stateFor(kind) === "connected" ? undefined : descriptions?.[kind]}
+          state={pairing.stateFor(kind)}
+          code={pairing.waiting?.kind === kind ? pairing.waiting.code : undefined}
+          codeExpiresIn={pairing.waiting?.kind === kind ? pairing.codeExpiresIn : undefined}
+          recommended={recommended && pairing.stateFor(kind) !== "connected"}
+          optional={optional}
+          connecting={pairing.connecting === kind}
+          lastSeen={pairing.lastSeen(kind)}
+          onConnect={() => connect(kind)}
+          onCancel={pairing.cancel}
+          onDisconnect={() => pairing.disconnect(kind)}
+        />
+      ))}
+    </>
+  );
+}
+
+export function SourcesSection({ variant }: { variant: Variant }) {
+  const toast = useToast();
+  const url = engineUrlForPlugins();
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(url);
@@ -242,26 +271,7 @@ export function SourcesSection({ variant }: { variant: Variant }) {
   return (
     <Section id="sources" variant={variant} plain title="Connected sources" desc="CLR reads how you work, not what you work on.">
       <div className={styles.sources}>
-        {pairing.failed && (
-          <Banner tone="critical" title="Couldn't create a pairing code." body="Check your connection." action={{ label: "Retry", onClick: () => connect(lastKind) }} />
-        )}
-        {pairing.devicesError && !pairing.devices && <Banner tone="critical" title="Couldn't load your sources." body="Try again in a moment." />}
-        {KINDS.map(({ kind, recommended, optional }) => (
-          <SourceCard
-            key={kind}
-            kind={kind}
-            state={pairing.stateFor(kind)}
-            code={pairing.waiting?.kind === kind ? pairing.waiting.code : undefined}
-            codeExpiresIn={pairing.waiting?.kind === kind ? pairing.codeExpiresIn : undefined}
-            recommended={recommended && pairing.stateFor(kind) !== "connected"}
-            optional={optional}
-            connecting={pairing.connecting === kind}
-            lastSeen={pairing.lastSeen(kind)}
-            onConnect={() => connect(kind)}
-            onCancel={pairing.cancel}
-            onDisconnect={() => pairing.disconnect(kind)}
-          />
-        ))}
+        <SourceList />
         <div className={styles.engine}>
           <span>
             Extensions connect to <code>{url}</code>

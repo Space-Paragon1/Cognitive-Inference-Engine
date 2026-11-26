@@ -6,6 +6,7 @@ export {
   SessionSection,
   NotificationSection,
   SourcesSection,
+  SourceList,
   AccountSection,
   PrivacySection,
   ThemeSwitch,
