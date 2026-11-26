@@ -163,3 +163,9 @@ svg {
     scroll-behavior: auto;
   }
 }
+
+/* Lucide icons: 1.75px stroke everywhere (design/README.md, Iconography). */
+svg.lucide {
+  stroke-width: 1.75;
+  flex: none;
+}

@@ -13,7 +13,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Conflicting `mobile.css` rules removed
 
 ### 2. Primitives
-- [ ] Button
+- [x] Button
 - [ ] Toggle
 - [ ] SegmentedControl (+ FilterChip)
 - [ ] TextField

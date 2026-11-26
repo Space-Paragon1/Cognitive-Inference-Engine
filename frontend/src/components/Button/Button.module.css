@@ -1,0 +1,136 @@
+/* Ported from .clr-btn in design/components/bundle.css */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard),
+    transform var(--dur-instant) var(--ease-standard);
+}
+.btn:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.98);
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.secondary {
+  background: var(--surface-raised);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.ghost {
+  background: transparent;
+  color: var(--ink-muted);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+.ghost[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.danger {
+  background: var(--critical);
+  color: var(--on-critical);
+}
+.dangerGhost {
+  background: transparent;
+  color: var(--critical);
+  border-color: var(--critical);
+}
+.dangerGhost:hover:not(:disabled) {
+  background: var(--critical-soft);
+}
+.rest {
+  background: var(--rest-accent);
+  color: var(--rest-surface);
+}
+.restGhost {
+  background: transparent;
+  color: var(--rest-ink);
+  border-color: var(--rest-line);
+}
+.restGhost:hover:not(:disabled) {
+  background: var(--rest-surface-raised);
+}
+
+.sm {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+/* 36px visual, 44px hit area. */
+.sm::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+.lg {
+  height: 52px;
+  padding: 0 22px;
+  font-size: 16px;
+}
+.block {
+  width: 100%;
+}
+.iconOnly {
+  width: 44px;
+  padding: 0;
+}
+.iconOnly.sm {
+  width: 36px;
+}
+.iconOnly.lg {
+  width: 52px;
+}
+.round {
+  border-radius: var(--radius-full);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.loading {
+  cursor: progress;
+}
+
+/* Label and loading label share one grid cell, so the width never changes. */
+.stack {
+  display: inline-grid;
+}
+.stack > * {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+.hidden {
+  visibility: hidden;
+}
