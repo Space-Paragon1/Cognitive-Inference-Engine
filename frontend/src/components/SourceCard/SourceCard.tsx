@@ -74,7 +74,7 @@ export function SourceCard({
           <div className={styles.between}>
             <span className={styles.status} role="status">
               <b aria-hidden="true" />
-              Connected{lastSeen ? ` · last seen ${lastSeen} ago` : ""}
+              Connected{lastSeen ? ` · last seen ${lastSeen}` : ""}
             </span>
             {onDisconnect && (
               <Button variant="ghost" size="sm" onClick={onDisconnect}>

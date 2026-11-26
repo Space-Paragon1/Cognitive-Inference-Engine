@@ -66,3 +66,17 @@ export function longDate(d = new Date()): string {
   const month = d.toLocaleDateString("en-GB", { month: "long" });
   return `${day} ${d.getDate()} ${month}`;
 }
+
+/** Avatar initials from an email's local part: "sam.rivera@…" gives "SR". */
+export function initials(email?: string | null): string {
+  if (!email) return "";
+  const name = email.split("@")[0].replace(/[^a-zA-Z]+/g, " ").trim();
+  const parts = name.split(" ").filter(Boolean);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? parts[0]?.[1] ?? "")).toUpperCase();
+}
+
+/** "3 November 2026" */
+export function fullDate(ms: number): string {
+  const d = new Date(ms);
+  return `${d.getDate()} ${d.toLocaleDateString("en-GB", { month: "long" })} ${d.getFullYear()}`;
+}

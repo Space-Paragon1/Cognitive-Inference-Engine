@@ -19,8 +19,14 @@ import { useLiveStore } from "./LiveState";
 
 export type Haptic = "light" | "medium";
 
+/** A short vibration on phones, unless the student turned Vibrate off in Settings. */
 export async function haptic(kind: Haptic) {
   if (!Capacitor.isNativePlatform()) return;
+  try {
+    if (localStorage.getItem("clr_vibrate") === "0") return;
+  } catch {
+    /* storage blocked: vibrate */
+  }
   await Haptics.impact({ style: kind === "light" ? ImpactStyle.Light : ImpactStyle.Medium }).catch(() => {});
 }
 

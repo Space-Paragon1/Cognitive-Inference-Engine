@@ -2,7 +2,7 @@ import { ChartColumn, Gauge, History, ListChecks, Moon, Settings, Sun, Timer, Wi
 import type { MouseEvent } from "react";
 import type { Icon, Route, SidebarProps } from "../../types/ui";
 import { CTX } from "../../lib/domain";
-import { clock, mmss } from "../../lib/format";
+import { initials, clock, mmss } from "../../lib/format";
 import { href } from "../../lib/router";
 import { sourcesLine } from "../../lib/sources";
 import { gaugeValueText, LoadGauge } from "../LoadGauge";
@@ -33,13 +33,6 @@ export const NAV: { route: Exclude<Route, "more">; label: string; icon: Icon }[]
   { route: "insights", label: "Insights", icon: ChartColumn },
   { route: "settings", label: "Settings", icon: Settings },
 ];
-
-function initials(email?: string) {
-  if (!email) return "";
-  const name = email.split("@")[0].replace(/[^a-zA-Z]+/g, " ").trim();
-  const parts = name.split(" ").filter(Boolean);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? parts[0]?.[1] ?? "")).toUpperCase();
-}
 
 /** Desktop navigation: brand, live card, six sections, the running timer and the account. */
 export function Sidebar({

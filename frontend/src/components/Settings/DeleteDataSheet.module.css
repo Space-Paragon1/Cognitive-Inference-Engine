@@ -1,0 +1,10 @@
+/* Ported from the delete confirmation sheet in design/components/ScreenSettings/preview.html */
+.body {
+  display: grid;
+  gap: var(--space-3);
+}
+.text {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--ink-muted);
+}

@@ -54,8 +54,8 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Tasks
 - [x] History
 - [x] Insights
-- [ ] Settings
-- [ ] More
+- [x] Settings
+- [x] More
 - [ ] Auth (LoginPage, forgot and reset password)
 - [ ] Onboarding
 - [ ] Alerts (toasts, overload notification, haptics)
@@ -147,6 +147,19 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **StatTile values** with no digits ("Wed") render at full size; only letters next to numbers are treated as units.
 - **Insights with no data**: the KPIs show "–" and one card below says either "Connect a source to see your load" (nothing sending) or "Nothing tracked this week yet", with "See last week".
 
+- **Settings layout**: section nav 3 · cards 9 on desktop (the nav stays pinned and follows the scroll; picking a section scrolls to it, moves focus there and updates the link, e.g. `#/settings/sources`). On tablet the nav becomes one scrolling row above the cards. On phones the sections are grouped under overlines, and Privacy and Connected sources are their own pages (`#/settings/privacy`, `#/settings/sources`) so More can link straight to sources. Back goes Privacy → Settings → More.
+- **Slider ranges** follow the design (short break 1–15 min, long break 5–40 min, high load 50–95%, fatigue 60–99%, session gap 2–60 min), which sit inside the API's limits. Moving high load up past fatigue pushes fatigue to one point above it; fatigue's slider shows the blocked stretch below high load + 1.
+- **Saving**: every change saves on its own (the engine-backed settings through `PUT /settings`). The top bar shows Saving…, Saved, "Saves when you are back online" or "Couldn't save" with Retry. On phones the load pill stays in the top bar and the status takes its place only while saving, for 3 s after "Saved", or until an error or queued save resolves.
+- **Notification and vibration settings are per device** (`clr_alerts`, `clr_vibrate` in localStorage). Vibrate is on by default (the preview shows it off) because the old app always vibrated; the timer's haptics read the same key.
+- **Theme** is System, Dark or Light. System follows the OS live and clears the saved choice, so the no-flash script falls back to `prefers-color-scheme`.
+- **Account** shows "Member since 3 November 2026" from `created_at` (the preview's "Signed in since" isn't something the API knows).
+- **Engine URL** under Connected sources, with Copy, kept from the old Connected devices panel because the browser and VS Code extensions ask for it.
+- **Export my data** is assembled in the app from the existing endpoints: settings, tasks, sources, all sessions and daily stats, and the last 30 days of the timeline, as one JSON file plus a timeline CSV (shared or downloaded like the other exports).
+- **Delete my data** follows the design (type DELETE to arm "Delete forever"), but the engine has no endpoint, so it calls a stub that changes nothing and the sheet says "Couldn't delete your data. This needs an update on our side. Nothing was removed."
+- **Zone strip on phones**: the high and fatigue segments drop their percentages (the sliders right below show them) and never clip their names.
+- **SourceCard `lastSeen`** is the full phrase ("12s ago"), as in index.d.ts; the card no longer adds its own "ago".
+- **More** (phones only) follows the ScreenSettings preview: History, Settings, Connected sources ("2 of 4 connected"), Help and feedback; Theme; account and Sign out. "Help and feedback" opens a sheet explaining what CLR reads and never reads; there is no feedback channel to send to yet.
+
 ## Needs backend
 
 - **Pomodoro pause, resume and skip.** The API has only `POST /actions/pomodoro/start` and `/stop`. The Timer shows Pause/Resume and Skip as the design asks. Until the engine has endpoints, pause is held locally in the Focus screen (`// TODO(backend)` in `ControlPanel`), and Skip stops the current phase.
@@ -161,3 +174,6 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Hourly focus data** for "Your best hours". It is estimated from sessions (`heatGrid` in `src/lib/insights.ts`, `// TODO(backend)`) and marked Preview.
 - **Weekly reflection.** The design calls for an AI-written reflection plus feedback ("Not helpful"). Both need endpoints; the card is written from rules and marked Preview, and the feedback only hides the card on this device (`// TODO(backend)` in `components/Analytics/WeeklyReflection.tsx`).
 - **Daily stats time zone.** `GET /timeline/stats/daily` keys days by date; the app matches them to the student's local Monday-to-Sunday week. If the engine buckets days in UTC, sessions near midnight can land on the neighbouring day.
+- **Export my data.** No export endpoint; the app stitches one together from what it can read, and the timeline part is limited to the last 30 days (`src/api/privacy.ts`, `// TODO(backend)`).
+- **Delete my data and account.** No endpoint; `deleteMyData()` in `src/api/privacy.ts` is a stub that throws `NotAvailableError`, and the sheet says nothing was removed.
+- **Feedback.** "Help and feedback" has nowhere to send feedback, so it only explains what CLR reads.

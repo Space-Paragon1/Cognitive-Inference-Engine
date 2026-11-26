@@ -4,6 +4,7 @@
 import type { CognitiveContext, SessionSummary, TimelineEntry } from "../types";
 import { CTX, CTX_ORDER, asContext } from "./domain";
 import { pct } from "./format";
+import { saveFile } from "./files";
 
 export interface ReplayTick {
   /** Unix seconds. */
@@ -322,24 +323,7 @@ export function logCsv(rows: LogRow[]): string {
   return [head, ...body].join("\n");
 }
 
-/** Save a CSV: the share sheet where the platform has one for files, else a download. */
-export async function saveCsv(name: string, csv: string): Promise<void> {
-  const file = new File([csv], name, { type: "text/csv" });
-  const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean };
-  if (nav.canShare?.({ files: [file] }) && nav.share) {
-    try {
-      await nav.share({ files: [file], title: name });
-      return;
-    } catch (e) {
-      if ((e as Error).name === "AbortError") return;
-    }
-  }
-  const url = URL.createObjectURL(file);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+/** Save a CSV (share sheet on phones, download elsewhere). */
+export function saveCsv(name: string, csv: string): Promise<void> {
+  return saveFile(name, csv, "text/csv");
 }

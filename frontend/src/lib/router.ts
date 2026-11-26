@@ -57,7 +57,8 @@ export function useRoute() {
     so only its session and event-log pages have a parent; Settings sits under More. */
 export function parentRoute(route: Route, mobile: boolean, sub: string | null = null): Location | null {
   if (!mobile) return null;
-  if (route === "settings") return sub ? { route: "settings", sub: null } : { route: "more", sub: null };
+  // Privacy opens from Settings; everything else in Settings (and Connected sources) from More.
+  if (route === "settings") return sub === "privacy" ? { route: "settings", sub: null } : { route: "more", sub: null };
   if (route === "history" && sub) {
     const [session, page] = sub.split("/");
     return page ? { route: "history", sub: session } : { route: "history", sub: null };

@@ -16,10 +16,11 @@ import { TasksProvider } from "./live/TasksState";
 import { TimerProvider } from "./live/TimerState";
 import { FocusScreen } from "./screens/Focus/FocusScreen";
 import { NowScreen } from "./screens/Now/NowScreen";
-import { Placeholder } from "./screens/Placeholder";
 import { TasksScreen } from "./screens/Tasks/TasksScreen";
 import { HistoryScreen } from "./screens/History/HistoryScreen";
 import { InsightsScreen } from "./screens/Insights/InsightsScreen";
+import { SettingsScreen } from "./screens/Settings/SettingsScreen";
+import { MoreScreen } from "./screens/More/MoreScreen";
 import type { Route } from "./types/ui";
 import styles from "./App.module.css";
 
@@ -103,9 +104,9 @@ function Screen({ route, sub }: { route: Route; sub: string | null }) {
     case "insights":
       return <InsightsScreen />;
     case "settings":
-      return <Placeholder title="Settings" />;
+      return <SettingsScreen sub={sub} />;
     case "more":
-      return <Placeholder title="More" />;
+      return <MoreScreen />;
   }
 }
 

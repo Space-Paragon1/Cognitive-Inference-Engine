@@ -1,0 +1,232 @@
+/* Ported from .clr-card, .clr-zones, .clr-overline, .clr-toggle-row, .clr-avatar and the
+   Settings cards in design/components/ScreenSettings/preview.html */
+
+/* Desktop: one card per section */
+.card {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  scroll-margin-top: calc(var(--topbar-height) + var(--space-4));
+}
+.card:focus {
+  outline: none;
+}
+.title {
+  margin: 0;
+  font: var(--text-title-3);
+}
+.desc {
+  margin: 2px 0 0;
+  font: var(--text-body-sm);
+  color: var(--ink-muted);
+}
+
+/* Phone: overline heading above a card */
+.group {
+  display: grid;
+  gap: var(--space-2);
+  scroll-margin-top: calc(var(--mobile-topbar-height) + var(--space-4));
+}
+.overline {
+  margin: var(--space-2) 0 0;
+  font: var(--text-overline);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.groupDesc {
+  margin: 0;
+  font: var(--text-body-sm);
+  color: var(--ink-muted);
+}
+.groupCard {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8);
+}
+.single {
+  max-width: 420px;
+}
+@media (max-width: 1023px) {
+  .pair {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+/* Zones strip above the threshold sliders */
+.zones {
+  display: flex;
+  gap: 2px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.zones > span {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 var(--space-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--c-soft);
+  color: var(--c);
+}
+.zones > span.zoneNormal {
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+}
+
+/* The high and fatigue segments are narrow: they never clip their label, and on
+   phones the percentages (shown by the sliders below) drop out. */
+.zones > span.zoneEdge {
+  min-width: max-content;
+}
+@media (max-width: 767px) {
+  .zonePct {
+    display: none;
+  }
+}
+
+/* Toggle rows */
+.rows {
+  display: grid;
+}
+.rows > * + * {
+  border-top: 1px solid var(--line);
+}
+.themeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 56px;
+}
+.themeLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 15px;
+  font-weight: 500;
+}
+.themeLabel svg {
+  color: var(--ink-muted);
+}
+
+/* Sources */
+.sources {
+  display: grid;
+  gap: var(--space-3);
+}
+.engine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font: var(--text-body-sm);
+  color: var(--ink-muted);
+}
+.engine code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink);
+  word-break: break-all;
+}
+
+/* Account */
+.account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex: none;
+}
+.who {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+.who b {
+  font-size: 15px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.who small {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+/* Privacy */
+.privacy {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.privacyCard,
+.dangerCard {
+  display: grid;
+  gap: var(--space-3);
+  align-content: space-between;
+  justify-items: start;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+}
+.privacyCard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.dangerCard {
+  background: var(--critical-soft);
+  border: 1px solid transparent;
+}
+.small {
+  margin: 0;
+  font: var(--text-body-sm);
+  color: var(--ink-muted);
+}
+.small b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.group .privacy {
+  grid-template-columns: minmax(0, 1fr);
+}
+.group .privacyCard,
+.group .dangerCard {
+  justify-items: stretch;
+  padding: var(--space-4);
+}
+@media (max-width: 1023px) {
+  .privacy {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
