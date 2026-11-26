@@ -1,0 +1,48 @@
+/* Ported from .clr-diff in design/components/bundle.css */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.md {
+  height: 26px;
+  font-size: 13px;
+  padding: 0 10px 0 8px;
+}
+.hard {
+  color: var(--ink);
+}
+.bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+.bars i {
+  width: 3px;
+  border-radius: 1px;
+  background: var(--line-strong);
+  opacity: 0.45;
+}
+.bars i:nth-child(1) {
+  height: 5px;
+}
+.bars i:nth-child(2) {
+  height: 8px;
+}
+.bars i:nth-child(3) {
+  height: 12px;
+}
+.bars i.on {
+  background: var(--ink);
+  opacity: 1;
+}

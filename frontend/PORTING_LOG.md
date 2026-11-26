@@ -19,7 +19,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] TextField
 - [x] Slider
 - [x] ContextPill
-- [ ] DifficultyChip
+- [x] DifficultyChip
 - [ ] Skeleton
 - [ ] Banner
 - [ ] Toast
