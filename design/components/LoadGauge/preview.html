@@ -1,0 +1,20 @@
+<!-- @dsCard group="Live state" height=470 subtitle="Hero gauge, live every 2 s; low confidence; mini ring and pill" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>LoadGauge</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="align-items:center;gap:40px">' +
+  '<div class="clr-stack" style="align-items:center"><p class="clr-spec">Live · 280 px · ticks at the high-load (70%) and fatigue (85%) thresholds</p><div id="live"></div></div>' +
+  '<div class="clr-stack" style="align-items:center"><p class="clr-spec">Low confidence (&lt; 50%): dotted arc, ≈ prefix, outlined pill</p>' + C.LoadGauge({ load: .47, context: 'unknown', confidence: .32, size: 220 }) + '</div>' +
+  '<div class="clr-stack"><p class="clr-spec">Mini ring · sidebar, popup</p><div class="clr-row">' + C.MiniGauge({ load: .62, context: 'deep_focus', size: 56 }) + C.MiniGauge({ load: .78, context: 'stuck', size: 44 }) + C.MiniGauge({ load: .88, context: 'fatigue', size: 44 }) + '</div>' +
+  '<p class="clr-spec" style="margin-top:16px">Load pill · mobile top bar</p><div class="clr-row">' + C.LoadPill({ load: .62, context: 'deep_focus' }) + C.LoadPill({ load: .34, context: 'recovering' }) + '</div></div></div>';
+var g = C.mountGauge(document.getElementById('live'), Object.assign({ size: 280 }, C.sample.state));
+var states = [{ load: .62, context: 'deep_focus', confidence: .8 }, { load: .74, context: 'shallow_work', confidence: .7 }, { load: .81, context: 'stuck', confidence: .76 }, { load: .9, context: 'fatigue', confidence: .82 }, { load: .38, context: 'recovering', confidence: .7 }, { load: .45, context: 'unknown', confidence: .3 }];
+var i = 0, base = states[0], r = C.rng(9);
+setInterval(function () { i++; var s = states[Math.floor(i / 3) % states.length]; base = Object.assign({}, s, { load: Math.max(.05, Math.min(.98, s.load + (r() - .5) * .06)) }); g.update(base); }, 2000);
+</script>
+</body>
+</html>

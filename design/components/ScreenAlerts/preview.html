@@ -1,0 +1,26 @@
+<!-- @dsCard group="Screens" page width=1520 height=1900 subtitle="Context-change toast, overload warning, break prompt, Android notifications" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ScreenAlerts</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+var fat = { load: .88, context: 'fatigue', confidence: .84, breakdown: { intrinsic: .64, extraneous: .31, germane: .42 } };
+var desk = '<div class="clr-grid" style="align-items:start"><div class="clr-span-8 clr-stack" style="gap:24px">' + C.HeroCard(fat) + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">' + C.QuickActions({ dnd: true }) + C.TodayCard({ legend: false }) + '</div></div><div class="clr-span-4 clr-stack" style="gap:24px">' +
+  C.DirectivesFeed({ items: [{ type: 'recommend_break', reason: 'Load has stayed above 85% for 6 minutes.', action: 'Start break', isNew: true }, { type: 'shorten_focus_interval', reason: 'Next Pomodoro is 10 min while you recover.' }, { type: 'delay_hard_tasks', reason: 'Linear Algebra moved down for now.', action: 'Undo' }] }) + C.UpNext({ task: C.sample.tasks[3], why: 'A quick, easy win while your load comes down.' }) + '</div></div>';
+var toastOver = C.Toast({ context: 'fatigue', icon: 'wind', title: 'Your load has been high for a while', body: 'It has stayed above 85% for 6 minutes. A short break now usually makes the next stretch easier.', actions: ['Take 5 minutes', 'Not now'] });
+var m1 = C.HeroMobile() + C.QuickActions({ grid: true });
+var shade = '<div style="margin:-4px -16px 0;min-height:820px;padding:20px 15px;background:#1b1c1f;display:grid;gap:10px;align-content:start" data-theme="dark"><div class="clr-row" style="justify-content:space-between;color:#e8e9ec;padding:0 6px 8px"><span style="font:500 40px/44px Roboto,system-ui">9:58</span><span style="font:14px Roboto,system-ui;opacity:.8">Tue 25 Nov</span></div>' +
+  C.AndroidNotification({ icon: 'timer', title: 'Focus · 11:24 left', body: '25 min session, 2 of 4 done', progress: 54, actions: ['Pause', 'Stop'], time: 'ongoing' }) +
+  C.AndroidNotification({ icon: 'wind', title: 'Your load has been high for a while', body: 'Above 85% for 6 minutes. A short break could help.', actions: ['Take 5 min', 'Not now'], time: '1 min' }) +
+  C.AndroidNotification({ icon: 'target', title: 'Deep focus activated', body: 'Notifications are silenced until you surface.', time: '16 min' }) + '</div>';
+var sheetBody = '<div class="clr-stack" style="gap:14px;text-align:center;justify-items:center"><div class="clr-empty__art" data-tone="rest" style="width:64px;height:64px;margin:0"><span>' + I('coffee', 28) + '</span></div><p class="clr-p clr-muted">Focus session 3 is done. 25 minutes, mostly in deep focus. Nice.</p><div class="clr-lengths clr-num" style="grid-template-columns:repeat(3,1fr)"><div class="is-on"><b>5 min</b>short break</div><div><b>15 min</b>long break</div><div><b>Skip</b>keep going</div></div></div>';
+var overlay = '<div class="clr-scrim"></div>' + C.BottomSheet({ title: 'Break time', body: sheetBody, actions: B({ label: 'Start break', variant: 'rest' }), style: 'padding-bottom:36px' });
+root.innerHTML = C.Board({ sections: [
+  { title: 'Overload · desktop 1440', note: 'Load has stayed above 85% for 6 minutes (3 ticks above threshold, then a 5-minute hold before repeating). Warm fatigue tones, never alarm red. The toast stacks bottom-right; max 2 visible.', html: C.Desk({ active: 'now', title: 'Good evening', sub: 'Tuesday 25 November · 2 h 10 m of focus so far', state: fat, content: desk, toast: toastOver }) },
+  { title: 'Mobile 390', note: 'Context-change toast slides down under the status bar · Android notification shade · Break prompt as a bottom sheet when the app is open', phones: [C.Phone({ tab: 'now', content: m1, toast: C.Toast({ context: 'deep_focus', title: 'Deep focus activated', body: 'You are in the zone. Notifications are silenced.' }) }), C.Phone({ notop: true, nonav: true, content: shade, statusBg: '#1b1c1f', statusInk: '#e8e9ec', gestureBg: '#1b1c1f' }), C.Phone({ tab: 'focus', title: 'Focus', content: '<div style="display:grid;justify-items:center;padding-top:12px">' + C.Timer({ phase: 'work', remaining: 0, total: 1500, sessions: 3, controls: false, why: false, size: 250 }) + '</div>', overlay: overlay })] }
+] });
+</script>
+</body>
+</html>

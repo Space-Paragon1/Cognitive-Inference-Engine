@@ -1,0 +1,32 @@
+<!-- @dsCard group="Screens" page width=1520 height=1900 subtitle="Task queue reordered by load, add task, empty state" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ScreenTasks</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+var T = C.sample.tasks, hi = { load: .78, context: 'shallow_work', confidence: .74 };
+var ordered = [Object.assign({ recommended: true, moved: 3 }, T[3]), Object.assign({ moved: 1 }, T[2]), Object.assign({ moved: -1 }, T[1]), Object.assign({ moved: -3 }, T[0])];
+var list = '<div class="clr-card clr-stack" style="gap:14px"><div class="clr-card__head" style="margin:0"><h3 class="clr-card__title">Your queue</h3><span class="clr-row" style="gap:8px"><span class="clr-card__meta clr-num">4 tasks · 2 h</span>' + C.Segmented({ options: ['Auto order', 'My order'], value: 'Auto order', size: 'sm' }) + '</span></div>' +
+  C.Banner({ icon: 'arrow-up-down', title: 'Load is high (78%), so easier tasks are on top.', body: 'Linear Algebra will move back up when you have more headroom.', action: 'Why?' }) +
+  '<div class="clr-tasks">' + ordered.map(C.TaskRow).join('') + '</div>' +
+  '<details style="margin-top:4px"><summary class="clr-muted clr-body-sm" style="cursor:pointer;min-height:44px;display:flex;align-items:center;gap:6px">' + I('chevron-right', 16) + 'Done today (2)</summary></details></div>';
+var add = '<div class="clr-card clr-stack" style="gap:16px"><h3 class="clr-card__title">Add a task</h3>' + C.TextField({ label: 'Title', placeholder: 'e.g. Read chapter 5' }) +
+  '<div class="clr-field"><span class="clr-field__label">Difficulty</span>' + C.Segmented({ options: ['Easy', 'Medium', 'Hard', 'Review'], value: 'Medium' }).replace('class="clr-seg"', 'class="clr-seg" style="display:flex"').replace(/<button type="button"/g, '<button type="button" style="flex:1"') + '</div>' +
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' + C.TextField({ label: 'Minutes', value: '30' }) + C.TextField({ label: 'Tags', placeholder: 'cs201, math' }) + '</div>' + B({ label: 'Add task', icon: 'plus', block: true }) + '</div>';
+var how = '<div class="clr-card"><h3 class="clr-card__title" style="margin-bottom:12px">How the order works</h3><div class="clr-stack" style="gap:12px">' +
+  [['fatigue', 'High load or fatigue', 'Easy and review first'], ['deep_focus', 'Normal load', 'Medium first, hard close behind'], ['recovering', 'Low load', 'Hard first, while you are fresh']].map(function (x) { return '<div class="clr-row" style="flex-wrap:nowrap;gap:12px" data-ctx="' + x[0] + '"><span class="clr-directive__icon" style="width:32px;height:32px;border-radius:10px">' + I(C.CTX[x[0]].icon, 16) + '</span><span class="clr-body-sm"><b>' + x[1] + '</b><br><span class="clr-muted">' + x[2] + '</span></span></div>'; }).join('') + '</div></div>';
+var desk = '<div class="clr-grid" style="align-items:start"><div class="clr-span-8">' + list + '</div><div class="clr-span-4 clr-stack" style="gap:24px">' + add + how + '</div></div>';
+var low = [Object.assign({ recommended: true, moved: 3 }, T[0]), Object.assign({ moved: -1 }, T[1]), Object.assign({ moved: -1 }, T[2]), Object.assign({}, T[3])];
+var m1 = C.Banner({ context: 'recovering', icon: 'mountain', title: 'Load is low (34%).', body: 'Harder tasks are first while you are fresh.' }) + '<div class="clr-tasks">' + low.map(C.TaskRow).join('') + '</div>' + B({ label: 'Add task', icon: 'plus', variant: 'secondary', block: true });
+var sheetBody = '<div class="clr-stack" style="gap:16px">' + C.TextField({ label: 'Title', value: 'Read chapter 5', focus: true }) + '<div class="clr-field"><span class="clr-field__label">Difficulty</span>' + C.Segmented({ options: ['Easy', 'Medium', 'Hard', 'Review'], value: 'Review' }).replace('class="clr-seg"', 'class="clr-seg" style="display:flex"').replace(/<button type="button"/g, '<button type="button" style="flex:1"') + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' + C.TextField({ label: 'Minutes', value: '30' }) + C.TextField({ label: 'Tags', value: 'cs201' }) + '</div></div>';
+var overlay = '<div class="clr-scrim"></div>' + C.BottomSheet({ title: 'Add a task', body: sheetBody, actions: B({ label: 'Cancel', variant: 'secondary' }) + B({ label: 'Add task' }), style: 'padding-bottom:36px' });
+var m3 = '<div class="clr-card" style="margin-top:40px">' + C.EmptyState({ icon: 'list-checks', title: 'Nothing on your list', body: 'Add what is on your plate. CLR will put the right task on top for how you are doing.', actions: [B({ label: 'Add a task', icon: 'plus' })] }) + '</div>';
+root.innerHTML = C.Board({ sections: [
+  { title: 'Tasks · desktop 1440', note: 'High load (78%, shallow work): easy and review rise, hard drops. Arrow chips show the move and fade after 4 s.', html: C.Desk({ active: 'tasks', title: 'Tasks', sub: 'Ordered for how you are doing right now', state: hi, content: desk, actions: C.ConnectionStatus({ status: 'live' }) + B({ label: 'Add task', icon: 'plus' }) }) },
+  { title: 'Mobile 390', note: 'Low load: hard first · Add task as a bottom sheet · Empty state', phones: [C.Phone({ tab: 'tasks', title: 'Tasks', state: { load: .34, context: 'recovering' }, content: m1 }), C.Phone({ tab: 'tasks', title: 'Tasks', content: m1, overlay: overlay }), C.Phone({ tab: 'tasks', title: 'Tasks', content: m3 })] }
+] });
+</script>
+</body>
+</html>

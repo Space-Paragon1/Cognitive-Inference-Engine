@@ -1,0 +1,14 @@
+<!-- @dsCard group="Controls" height=210 subtitle="Segmented options and context filter chips" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>SegmentedControl</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;gap:20px">' +
+  '<div class="clr-row" style="gap:20px">' + C.Segmented({ options: ['Easy', 'Medium', 'Hard', 'Review'], value: 'Medium', label: 'Difficulty' }) + C.Segmented({ options: ['Week', 'History'], value: 'Week' }) + C.Segmented({ options: ['1×', '2×', '5×', '10×'], value: '2×', size: 'sm', num: true }) + '</div>' +
+  '<div class="clr-row" style="gap:8px">' + C.FilterChip({ label: 'All', selected: true, count: 412 }) + C.FilterChip({ context: 'deep_focus', selected: true, count: 188 }) + C.FilterChip({ context: 'shallow_work', count: 97 }) + C.FilterChip({ context: 'stuck', count: 31 }) + C.FilterChip({ context: 'fatigue', count: 12 }) + C.FilterChip({ context: 'recovering', count: 61 }) + '</div></div>';
+</script>
+</body>
+</html>

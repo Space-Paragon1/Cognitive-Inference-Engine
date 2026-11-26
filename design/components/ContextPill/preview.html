@@ -1,0 +1,16 @@
+<!-- @dsCard group="Live state" height=230 subtitle="Six contexts, each a colour plus an icon plus a word" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ContextPill</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+var ks = C.CTX_ORDER;
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;gap:18px">' +
+  '<div><p class="clr-spec">Large · hero, under the gauge on mobile</p><div class="clr-row">' + ks.map(function (k) { return C.ContextPill({ context: k, size: 'lg' }); }).join('') + '</div></div>' +
+  '<div><p class="clr-spec">Default · cards, lists, toasts</p><div class="clr-row">' + ks.map(function (k) { return C.ContextPill({ context: k }); }).join('') + '</div></div>' +
+  '<div><p class="clr-spec">Small · table cells, event log · and uncertain (outlined) when confidence is under 50%</p><div class="clr-row">' + ks.map(function (k) { return C.ContextPill({ context: k, size: 'sm' }); }).join('') + C.ContextPill({ context: 'shallow_work', size: 'sm', uncertain: true }) + '</div></div></div>';
+</script>
+</body>
+</html>

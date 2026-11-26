@@ -1,0 +1,29 @@
+<!-- @dsCard group="Small surfaces" page width=1100 height=620 subtitle="One-line status-bar item: format, icons and colours" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>VSCodeStatusBar</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+var rows = [
+  ['target', '62% Deep focus', '$(target) 62% Deep focus', 'none', 'deep_focus'],
+  ['waves', '74% Shallow work', '$(layers) 74% Shallow work', 'none', 'shallow_work'],
+  ['repeat', '81% Stuck', '$(sync) 81% Stuck', 'none', 'stuck'],
+  ['battery-low', '88% Fatigue · take a break', '$(coffee) 88% Fatigue · take a break', 'statusBarItem.warningBackground', 'fatigue'],
+  ['leaf', '38% Recovering', '$(pulse) 38% Recovering', 'none', 'recovering'],
+  ['circle-dashed', '≈47% Warming up', '$(circle-large-outline) ≈47% Warming up', 'none', 'unknown'],
+  ['timer', '62% Deep focus · 11:24', '$(target) 62% Deep focus · $(watch) 11:24', 'none', 'deep_focus'],
+  ['wifi-off', 'CLR offline', '$(debug-disconnect) CLR offline', 'none', null]
+];
+function bar(r, light) {
+  var warn = r[3] !== 'none';
+  return '<div class="clr-vsbar' + (light ? ' clr-vsbar--light' : '') + '"><span class="clr-vsbar__item">' + I('code', 12) + 'main</span><span class="clr-vsbar__item">Ln 42, Col 17</span><span style="flex:1"></span><span class="clr-vsbar__item is-clr" style="' + (warn ? 'background:' + (light ? '#ffd27a' : '#c9861f') + ';color:#1f1f1f' : '') + '">' + I(r[0], 12) + r[1] + '</span><span class="clr-vsbar__item">' + I('bell', 12) + '</span></div>';
+}
+var table = '<table class="clr-table" style="margin-top:8px"><tr><th>State</th><th>item.text</th><th>Background</th></tr>' + rows.map(function (r) { return '<tr><td>' + (r[4] ? C.ContextPill({ context: r[4], size: 'sm' }) : '<span class="clr-caption">Offline</span>') + '</td><td><code style="font-family:var(--font-mono);font-size:12px;color:var(--ink)">' + C.esc(r[2]) + '</code></td><td><code style="font-family:var(--font-mono);font-size:12px">' + r[3] + '</code></td></tr>'; }).join('') + '</table>';
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;align-items:stretch;gap:20px;width:1040px">' +
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><div class="clr-stack" style="gap:8px"><p class="clr-spec" style="margin:0">Dark Modern</p>' + [0, 3, 5, 7].map(function (i) { return bar(rows[i]); }).join('') + '</div><div class="clr-stack" style="gap:8px"><p class="clr-spec" style="margin:0">Light Modern</p>' + [0, 3, 6, 7].map(function (i) { return bar(rows[i], true); }).join('') + '</div></div>' +
+  '<div class="clr-card">' + table + '<p class="clr-p clr-body-sm clr-muted" style="margin-top:14px">Format: <code style="font-family:var(--font-mono)">$(icon) NN% Context</code>, right-aligned, priority 100. Text inherits the theme’s status-bar foreground, so no custom colours. Only fatigue sets a background, the theme’s warning colour, never <code style="font-family:var(--font-mono)">errorBackground</code>. Tooltip (Markdown): “Load 62% · Deep focus · confidence 80%”, then active directives, then “Click to open CLR”. Update every 2 s from the WebSocket; never animate. Previews draw Lucide icons in place of the codicons named in the table.</p></div></div>';
+</script>
+</body>
+</html>

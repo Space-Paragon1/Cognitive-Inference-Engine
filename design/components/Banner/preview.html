@@ -1,0 +1,17 @@
+<!-- @dsCard group="Coaching" height=380 subtitle="Inline notices: reorder, low confidence, reconnecting, offline, error" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Banner</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;align-items:stretch;gap:12px;max-width:720px">' +
+  C.Banner({ icon: 'arrow-up-down', title: 'Load is high, so easier tasks are on top.', body: 'Hard work waits for a calmer moment.', action: 'Why?' }) +
+  C.Banner({ context: 'unknown', icon: 'circle-dashed', title: 'Still learning how you work today.', body: 'Estimates firm up after about 2 minutes of activity.' }) +
+  C.Banner({ tone: 'caution', icon: 'refresh', title: 'Reconnecting to the engine…', body: 'Showing your last reading from 9:58 pm.' }) +
+  C.Banner({ neutral: true, icon: 'wifi-off', title: 'You are offline.', body: 'Timers and tasks still work. Live load returns when you reconnect.', action: 'Retry' }) +
+  C.Banner({ tone: 'critical', icon: 'alert-circle', title: 'Could not load your history.', body: 'Your data is safe. Try again in a moment.', action: 'Try again' }) + '</div>';
+</script>
+</body>
+</html>

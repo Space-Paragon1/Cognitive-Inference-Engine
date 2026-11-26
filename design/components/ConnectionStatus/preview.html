@@ -1,0 +1,15 @@
+<!-- @dsCard group="Live state" height=180 subtitle="Live, reconnecting and offline, plus which sources are sending" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ConnectionStatus</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;gap:20px">' +
+  '<div class="clr-row" style="gap:16px">' + C.ConnectionStatus({ status: 'live' }) + C.ConnectionStatus({ status: 'reconnecting' }) + C.ConnectionStatus({ status: 'offline' }) + '</div>' +
+  '<div>' + C.ConnectionStatus({ status: 'live', sources: ['browser', 'vscode', 'lms'], on: ['browser', 'vscode'] }) + '</div>' +
+  '<p class="clr-spec" style="margin:0">Filled dot = sending now. Hollow dot = not connected (screen readers hear “not connected”). Never colour alone: every state has a word.</p></div>';
+</script>
+</body>
+</html>

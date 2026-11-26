@@ -1,0 +1,15 @@
+<!-- @dsCard group="Controls" height=330 subtitle="Primary, secondary, ghost, danger; three sizes; loading and disabled" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Button</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+var v = ['primary', 'secondary', 'ghost', 'danger'], L = { primary: 'Start focus', secondary: 'Add task', ghost: 'Skip break', danger: 'Delete my data' }, ic = { primary: 'timer', secondary: 'plus', ghost: 'skip-forward', danger: 'trash' };
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;gap:16px">' +
+  ['lg', null, 'sm'].map(function (sz) { return '<div class="clr-row">' + v.map(function (x) { return C.Button({ label: L[x], variant: x, size: sz, icon: ic[x] }); }).join('') + '<span class="clr-spec" style="margin:0 0 0 8px">' + (sz === 'lg' ? '52 px' : sz === 'sm' ? '36 px (44 px hit area)' : '44 px default') + '</span></div>'; }).join('') +
+  '<div class="clr-row">' + C.Button({ label: 'Sign in', loading: true, loadingLabel: 'Signing in…' }) + C.Button({ label: 'Send reset link', variant: 'primary', disabled: true }) + C.Button({ label: 'Settings', icon: 'settings', variant: 'secondary', iconOnly: true }) + C.Button({ label: 'Pause', icon: 'pause', variant: 'primary', iconOnly: true, round: true }) + C.Button({ label: 'Start break', variant: 'rest' }) + '</div></div>';
+</script>
+</body>
+</html>

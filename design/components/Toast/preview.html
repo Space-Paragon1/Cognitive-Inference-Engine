@@ -1,0 +1,19 @@
+<!-- @dsCard group="Coaching" height=560 subtitle="Context change, overload, break prompt; and as Android notifications" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Toast</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="align-items:flex-start;gap:28px"><div class="clr-stack" style="gap:14px"><p class="clr-spec">In-app toasts · bottom-right on desktop, top on mobile · 6 s, paused on hover or focus</p>' +
+  C.Toast({ context: 'deep_focus', title: 'Deep focus activated', body: 'You are in the zone. Notifications are silenced until you surface.' }) +
+  C.Toast({ context: 'fatigue', icon: 'wind', title: 'Your load has been high for a while', body: 'It has stayed above 85% for 6 minutes. A short break now usually makes the next stretch easier.', actions: ['Take 5 minutes', 'Not now'] }) +
+  C.Toast({ tone: 'rest', icon: 'coffee', title: 'Break time', body: 'Focus session 3 is done. Your 5-minute break starts when you are ready.', actions: ['Start break', 'Skip'] }) + '</div>' +
+  '<div class="clr-stack" style="gap:14px"><p class="clr-spec">Android (Capacitor local notifications)</p>' +
+  C.AndroidNotification({ icon: 'target', title: 'Deep focus activated', body: 'Notifications are silenced until you surface.' }) +
+  C.AndroidNotification({ icon: 'wind', title: 'Your load has been high for a while', body: 'Above 85% for 6 minutes. A short break could help.', actions: ['Take 5 min', 'Not now'] }) +
+  C.AndroidNotification({ icon: 'timer', title: 'Focus · 11:24 left', body: '25 min session, 2 of 4 done', progress: 54, actions: ['Pause', 'Stop'], time: 'ongoing' }) + '</div></div>';
+</script>
+</body>
+</html>

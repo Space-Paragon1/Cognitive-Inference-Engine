@@ -1,0 +1,14 @@
+<!-- @dsCard group="Navigation" height=270 subtitle="Mobile bottom tabs and top bar with the live load pill" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>TabBar</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="align-items:flex-start;gap:24px">' + ['now', 'tasks'].map(function (a) {
+  return '<div style="width:390px;border:1px solid var(--line);border-radius:16px;overflow:hidden">' + C.MobileTopBar({ title: a === 'now' ? 'Now' : 'Tasks' }) + '<div style="height:60px;background:var(--bg)"></div>' + C.TabBar({ active: a }) + '<div class="clr-phone__gesture"><i></i></div></div>';
+}).join('') + '</div>';
+</script>
+</body>
+</html>

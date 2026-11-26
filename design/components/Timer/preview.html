@@ -1,0 +1,16 @@
+<!-- @dsCard group="Focus and timer" height=760 subtitle="Adaptive Pomodoro: focus, short break, and why this length" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Timer</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="align-items:stretch;gap:24px">' +
+  '<div class="clr-card" style="width:420px;padding:28px 24px;display:grid;justify-items:center;gap:20px">' + C.Timer(C.sample.pomodoro) +
+  '<div style="width:100%"><p class="clr-spec">Length adapts to load</p><div class="clr-lengths clr-num"><div><b>10</b>fatigued</div><div><b>15</b>high load</div><div class="is-on"><b>25</b>normal</div><div><b>35</b>low load</div></div></div></div>' +
+  '<div class="clr-card clr-rest" style="width:420px;padding:28px 24px;display:grid;justify-items:center;gap:20px;background:var(--rest-surface);border-color:var(--rest-line)">' +
+  C.Timer({ phase: 'short_break', remaining: 252, total: 300, sessions: 3, whyText: 'Stand up, roll your shoulders, and look at something far away.', load: .5 }).replace('class="clr-why"', 'class="clr-why" style="background:var(--rest-surface-raised);border-color:var(--rest-line);color:var(--rest-ink-muted)"') + '</div></div>';
+</script>
+</body>
+</html>

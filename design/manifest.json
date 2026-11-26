@@ -1,0 +1,284 @@
+{
+  "manifestVersion": 3,
+  "name": "Cognitive Load Router",
+  "namespace": "CLR",
+  "files": [
+    "assets/Logos/README.md",
+    "components/Banner/README.md",
+    "components/BlockedOverlay/README.md",
+    "components/BottomSheet/README.md",
+    "components/Breakdown/README.md",
+    "components/Button/README.md",
+    "components/ChartStyle/README.md",
+    "components/ConnectionStatus/README.md",
+    "components/ContextPill/README.md",
+    "components/DifficultyChip/README.md",
+    "components/DirectiveCard/README.md",
+    "components/EmptyState/README.md",
+    "components/ExtensionPopup/README.md",
+    "components/LoadGauge/README.md",
+    "components/MiniPlayer/README.md",
+    "components/PlaybackControls/README.md",
+    "components/ScreenAlerts/README.md",
+    "components/ScreenAuth/README.md",
+    "components/ScreenFocus/README.md",
+    "components/ScreenHistory/README.md",
+    "components/ScreenInsights/README.md",
+    "components/ScreenNow/README.md",
+    "components/ScreenOnboarding/README.md",
+    "components/ScreenSettings/README.md",
+    "components/ScreenStates/README.md",
+    "components/ScreenTasks/README.md",
+    "components/SegmentedControl/README.md",
+    "components/Sidebar/README.md",
+    "components/Skeleton/README.md",
+    "components/Slider/README.md",
+    "components/SourceCard/README.md",
+    "components/StatTile/README.md",
+    "components/TabBar/README.md",
+    "components/TaskRow/README.md",
+    "components/TextField/README.md",
+    "components/Timer/README.md",
+    "components/Toast/README.md",
+    "components/Toggle/README.md",
+    "components/VSCodeStatusBar/README.md",
+    "components/bundle.css",
+    "components/bundle.js",
+    "components/index.d.ts",
+    "handoff.md",
+    "tokens.css",
+    "voice.md"
+  ],
+  "libraries": [],
+  "components": [
+    {
+      "name": "LoadGauge",
+      "group": "Live state",
+      "summary": "The live centrepiece: a 270° arc that shows load from 0 to 100%, the current context, and how sure CLR is."
+    },
+    {
+      "name": "ContextPill",
+      "group": "Live state",
+      "summary": "A small chip that names the student's current context with a colour, an icon and the exact label."
+    },
+    {
+      "name": "Breakdown",
+      "group": "Live state",
+      "summary": "Three bars that split load into intrinsic, extraneous and germane, each with a one-line plain-English explanation."
+    },
+    {
+      "name": "ConnectionStatus",
+      "group": "Live state",
+      "summary": "Shows whether the engine is live and which sources are sending data right now."
+    },
+    {
+      "name": "StatTile",
+      "group": "Data display",
+      "summary": "A compact number tile for KPIs and \"today at a glance\", plus the context-distribution bar."
+    },
+    {
+      "name": "DirectiveCard",
+      "group": "Coaching",
+      "summary": "One thing the engine is doing or suggesting right now: icon, short label, and the reason in plain words."
+    },
+    {
+      "name": "TaskRow",
+      "group": "Tasks",
+      "summary": "One task in the queue: done check, title, difficulty, estimate and tags, with a highlighted state for the one CLR recommends now."
+    },
+    {
+      "name": "DifficultyChip",
+      "group": "Tasks",
+      "summary": "Difficulty as shape, not colour: 1, 2 or 3 bars for easy, medium and hard, and a book for review."
+    },
+    {
+      "name": "Timer",
+      "group": "Focus and timer",
+      "summary": "The adaptive Pomodoro: a ring countdown with session dots and a line that explains why the session is this long."
+    },
+    {
+      "name": "MiniPlayer",
+      "group": "Focus and timer",
+      "summary": "The running timer as a slim bar, so a focus session or Pomodoro is visible from every screen."
+    },
+    {
+      "name": "PlaybackControls",
+      "group": "History",
+      "summary": "Transport for timeline replay: jump to start, step back, play/pause, step forward, jump to end, plus a speed switch."
+    },
+    {
+      "name": "ChartStyle",
+      "group": "Data display",
+      "summary": "How every chart in CLR is styled in Recharts: the live load line, replay, daily focus bars, context mix, and the best-hours heatmap."
+    },
+    {
+      "name": "Slider",
+      "group": "Controls",
+      "summary": "A Settings slider with the current value, its default marked as a tick, \"Reset to default\", and a hatched range it can't enter."
+    },
+    {
+      "name": "Toggle",
+      "group": "Controls",
+      "summary": "An on/off switch with a check mark in the thumb, so the state never depends on colour alone."
+    },
+    {
+      "name": "Button",
+      "group": "Controls",
+      "summary": "Buttons in four variants (primary, secondary, ghost, danger) plus a rest variant for break screens, in three sizes, with loading and disabled states."
+    },
+    {
+      "name": "TextField",
+      "group": "Controls",
+      "summary": "A labelled text input with an icon, help text, inline error and valid states, and a password reveal."
+    },
+    {
+      "name": "SegmentedControl",
+      "group": "Controls",
+      "summary": "A row of mutually exclusive options, plus the context filter chips used in the event log."
+    },
+    {
+      "name": "TabBar",
+      "group": "Navigation",
+      "summary": "The mobile bottom tab bar (Now, Focus, Tasks, Insights, More) and the mobile top bar with the live load pill."
+    },
+    {
+      "name": "Sidebar",
+      "group": "Navigation",
+      "summary": "The desktop sidebar with the brand, the always-visible live mini-gauge and connection status, the six sections, the running timer, and the account."
+    },
+    {
+      "name": "BottomSheet",
+      "group": "Navigation",
+      "summary": "A sheet that rises from the bottom on mobile and becomes a centred dialog on desktop, used for add task, confirmations and break prompts."
+    },
+    {
+      "name": "Toast",
+      "group": "Coaching",
+      "summary": "Short in-app alerts for context changes, the overload warning and break prompts, plus how the same messages look as Android notifications."
+    },
+    {
+      "name": "Banner",
+      "group": "Coaching",
+      "summary": "An inline notice at the top of a card or screen: reorder explanations, low confidence, reconnecting, offline and errors."
+    },
+    {
+      "name": "EmptyState",
+      "group": "Feedback",
+      "summary": "A friendly placeholder for when there's nothing to show yet, with the next step as a button."
+    },
+    {
+      "name": "Skeleton",
+      "group": "Feedback",
+      "summary": "Loading placeholders that copy the shape of the real layout, so nothing jumps when the data arrives."
+    },
+    {
+      "name": "SourceCard",
+      "group": "Onboarding",
+      "summary": "A card for one data source (Browser extension, VS Code, Desktop agent, LMS) in one of three states: not connected, waiting with a pairing code, or connected."
+    },
+    {
+      "name": "BlockedOverlay",
+      "group": "Small surfaces",
+      "summary": "The full-page overlay shown over a distracting site during focus mode, gentle, with a deliberate 5-minute escape.",
+      "page": true
+    },
+    {
+      "name": "ExtensionPopup",
+      "group": "Small surfaces",
+      "summary": "The browser extension popup at 360 × 520: mini live gauge, context, breakdown, focus toggle and connection status.",
+      "page": true
+    },
+    {
+      "name": "ScreenAlerts",
+      "group": "Screens",
+      "summary": "Context-change toasts, the overload warning, break prompts, and the same messages as Android notifications.",
+      "page": true
+    },
+    {
+      "name": "ScreenAuth",
+      "group": "Screens",
+      "summary": "Sign in, create account, forgot password and set new password, at desktop 1440 and mobile 390.",
+      "page": true
+    },
+    {
+      "name": "ScreenFocus",
+      "group": "Screens",
+      "summary": "Focus mode and the adaptive Pomodoro, plus the break screen that deliberately feels different from work.",
+      "page": true
+    },
+    {
+      "name": "ScreenHistory",
+      "group": "Screens",
+      "summary": "The live 5-minute load chart, timeline replay of a past session, session stats and the event log.",
+      "page": true
+    },
+    {
+      "name": "ScreenInsights",
+      "group": "Screens",
+      "summary": "Weekly analytics: KPI tiles, daily focus bars, context mix per day, the day-by-day table, and two future slots (weekly reflection and best hours).",
+      "page": true
+    },
+    {
+      "name": "ScreenNow",
+      "group": "Screens",
+      "summary": "Home: the live gauge, breakdown, directives, recommended next task, quick actions and today at a glance.",
+      "page": true
+    },
+    {
+      "name": "ScreenOnboarding",
+      "group": "Screens",
+      "summary": "Four short steps: what CLR does, the privacy promise, connecting sources, and turning on notifications.",
+      "page": true
+    },
+    {
+      "name": "ScreenSettings",
+      "group": "Screens",
+      "summary": "Settings: Pomodoro lengths, load thresholds with their constraint, session gap, notifications, connected sources, account and privacy.",
+      "page": true
+    },
+    {
+      "name": "ScreenStates",
+      "group": "Screens",
+      "summary": "The system states every screen needs: loading, reconnecting, offline, no data yet, low confidence and error.",
+      "page": true
+    },
+    {
+      "name": "ScreenTasks",
+      "group": "Screens",
+      "summary": "The task queue, reordered by current load, with an explanation banner, the recommended task, add task, and the empty state.",
+      "page": true
+    },
+    {
+      "name": "VSCodeStatusBar",
+      "group": "Small surfaces",
+      "summary": "The VS Code status-bar item format: one line with a codicon, load and context, plus its colours.",
+      "page": true
+    }
+  ],
+  "assetGroups": [
+    {
+      "name": "Logos",
+      "tile": "l",
+      "order": [
+        "clr-mark.svg"
+      ],
+      "files": [
+        {
+          "path": "assets/Logos/clr-mark.svg",
+          "id": "590647f42e6e9ddd677d939173bb0357"
+        }
+      ]
+    }
+  ],
+  "storage": {
+    "files": {
+      "assets/Logos/clr-mark.svg": {
+        "store": "blob",
+        "id": "590647f42e6e9ddd677d939173bb0357",
+        "bytes": 642,
+        "type": "image/svg+xml"
+      }
+    },
+    "blobBytesUsed": 642
+  }
+}

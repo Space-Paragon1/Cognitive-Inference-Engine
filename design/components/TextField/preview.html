@@ -1,0 +1,18 @@
+<!-- @dsCard group="Controls" height=470 subtitle="LoginPage inputs: default, focus, error, valid, password" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>TextField</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="display:grid;grid-template-columns:repeat(2,360px);gap:24px">' +
+  C.TextField({ label: 'Email', icon: 'mail', placeholder: 'you@university.edu', type: 'email' }) +
+  C.TextField({ label: 'Email', icon: 'mail', value: 'sam@uni.edu', focus: true }) +
+  C.TextField({ label: 'Email', icon: 'mail', value: 'sam@uni', error: 'Add the rest of your email, like sam@uni.edu.' }) +
+  C.TextField({ label: 'Password', icon: 'lock', type: 'password', value: 'correcthorse', trailing: 'eye', aside: '<a class="clr-link" href="#">Forgot password?</a>' }) +
+  C.TextField({ label: 'New password', icon: 'lock', type: 'password', value: 'correcthorsebattery', trailing: 'eye-off', valid: 'Strong. 12+ characters.', extra: '<span class="clr-strength" aria-hidden="true"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span></span>' }) +
+  C.TextField({ label: 'Task title', placeholder: 'e.g. CS 201 lab: linked lists', help: 'Keep it short. You can add tags below.' }) + '</div>';
+</script>
+</body>
+</html>

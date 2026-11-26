@@ -1,0 +1,22 @@
+<!-- @dsCard group="Small surfaces" page width=1520 height=1000 subtitle="Shown over distracting sites during focus mode" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>BlockedOverlay</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+var card = '<div class="clr-blocked" style="top:44px"><div class="clr-blocked__card"><span class="clr-empty__art" data-tone="accent" style="width:64px;height:64px;margin:0"><span>' + I('shield', 28) + '</span></span>' +
+  '<p class="clr-overline">youtube.com is paused</p><h1 class="clr-h1">You’re 31 minutes into a focus session.</h1><p class="clr-p clr-muted">19 minutes to go. This will still be here at 10:31 pm.</p>' +
+  '<div style="width:100%;margin:6px 0"><div class="clr-breakdown__bar" style="height:8px;margin:0"><span style="width:62%;background:var(--accent)"></span></div><div class="clr-row clr-caption clr-num" style="justify-content:space-between;margin-top:6px"><span>31:00</span><span>50:00</span></div></div>' +
+  '<div class="clr-stack" style="width:100%;gap:8px">' + B({ label: 'Back to work', block: true, size: 'lg', icon: 'arrow-left' }) + B({ label: 'Let me through for 5 min', variant: 'ghost', block: true }) + '</div>' +
+  '<p class="clr-p clr-caption">Used 1 of 3 passes this session · <a class="clr-link" href="#" style="font-size:12px">End focus mode</a></p></div></div>';
+var bar = '<div class="clr-browser"><span class="clr-browser__dots"><i></i><i></i><i></i></span>' + I('chevron-left', 16) + I('chevron-right', 16) + '<span class="clr-browser__url">' + I('lock', 12) + 'youtube.com/watch?v=…</span><span style="margin-left:auto" class="clr-row">' + C.LoadPill() + '</span></div>';
+var pass = '<div class="clr-browser" style="border-radius:14px 14px 0 0"><span class="clr-browser__dots"><i></i><i></i><i></i></span><span class="clr-browser__url">' + I('lock', 12) + 'reddit.com/r/learnprogramming</span></div><div style="display:flex;align-items:center;justify-content:center;gap:10px;height:40px;background:var(--accent-soft);font-size:14px;color:var(--ink)">' + I('timer', 16, 'style="color:var(--accent)"') + '<span>Pass active · <b class="clr-num">3:42</b> left, then this tab pauses again</span>' + B({ label: 'Back to work now', variant: 'ghost', size: 'sm', style: 'color:var(--accent)' }) + '</div>';
+root.innerHTML = C.Board({ sections: [
+  { title: 'Blocked tab · full page', note: 'Solid page colour over the site (no blur, so it stays cheap). Focus lands on “Back to work”. Esc does nothing; the pass is a deliberate choice.', html: '<div class="clr-desk clr-desk--bare" style="height:760px">' + bar + card + '</div>' },
+  { title: 'During a 5-minute pass', note: 'A slim bar pinned to the top of the page counts down; the overlay returns when it ends.', html: '<div style="width:900px;border:1px solid var(--line);border-radius:14px;overflow:hidden">' + pass + '<div style="height:60px;background:var(--surface)"></div></div>' }
+] });
+</script>
+</body>
+</html>

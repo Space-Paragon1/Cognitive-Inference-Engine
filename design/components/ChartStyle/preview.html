@@ -1,0 +1,20 @@
+<!-- @dsCard group="Data display" height=720 width=1180 subtitle="Recharts styling: live load, daily bars, context mix, best-hours heatmap" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ChartStyle</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+var pts = C.series(150, 11);
+root.innerHTML = '<div class="clr-preview" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;width:1180px">' +
+  '<div class="clr-card"><div class="clr-card__head"><h3 class="clr-card__title">Live load · last 5 minutes</h3>' + C.ConnectionStatus({ status: 'live' }) + '</div>' +
+  C.LoadChart({ w: 500, h: 220, points: pts, tooltip: C.Tooltip({ x: 330, y: 40, time: '9:58:12 pm', load: 63, context: 'deep_focus' }) }) +
+  '<div class="clr-legend">' + ['deep_focus', 'shallow_work', 'stuck', 'recovering', 'unknown'].map(function (k) { return '<span data-ctx="' + k + '">' + C.icon(C.CTX[k].icon, 14) + C.CTX[k].label + '</span>'; }).join('') + '</div></div>' +
+  '<div class="clr-card"><div class="clr-card__head"><h3 class="clr-card__title">Focus time per day</h3><span class="clr-card__meta">This week · 12.3 h</span></div>' + C.BarChart({ w: 500, h: 236 }) + '</div>' +
+  '<div class="clr-card"><div class="clr-card__head"><h3 class="clr-card__title">Context mix per day</h3></div>' + C.StackedBars({ w: 500, h: 200 }) +
+  '<div class="clr-legend">' + C.CTX_ORDER.map(function (k) { return '<span data-ctx="' + k + '">' + C.icon(C.CTX[k].icon, 14) + C.CTX[k].label + '</span>'; }).join('') + '</div></div>' +
+  '<div class="clr-card"><div class="clr-card__head"><h3 class="clr-card__title">Your best hours</h3><span class="clr-badge" data-tone="accent">Preview</span></div>' + C.Heatmap({ cell: 23 }) + '</div></div>';
+</script>
+</body>
+</html>

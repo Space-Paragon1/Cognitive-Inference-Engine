@@ -1,0 +1,36 @@
+<!-- @dsCard group="Screens" page width=1520 height=1900 subtitle="What CLR does, privacy promise, connect sources, notifications" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ScreenOnboarding</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+var step = function (n) { var h = '<div class="clr-stepper" role="img" aria-label="Step ' + n + ' of 4">'; for (var i = 1; i <= 4; i++) h += '<i class="' + (i <= n ? 'is-done' : '') + '"></i>'; return h + '</div>'; };
+var desk = '<div style="height:100%;display:grid;grid-template-rows:auto 1fr auto;padding:40px 120px 32px;gap:28px">' +
+  '<div class="clr-row" style="justify-content:space-between"><div class="clr-row" style="gap:10px">' + C.Logo(28) + '<b>Cognitive Load Router</b></div><div style="width:320px" class="clr-stack"><span class="clr-caption">Step 3 of 4 · Connect sources</span>' + step(3) + '</div></div>' +
+  '<div class="clr-stack" style="gap:24px;max-width:1000px;justify-self:center;width:100%"><div><h1 class="clr-h1" style="font-size:34px;line-height:40px">Connect where you study</h1><p class="clr-p clr-body-lg clr-muted" style="margin-top:8px;max-width:640px">Each source adds a little more signal. Start with one: CLR works with any mix, and you can add more later in Settings.</p></div>' +
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">' + C.SourceCard({ kind: 'browser', state: 'connected', lastSeen: '12s' }) + C.SourceCard({ kind: 'vscode', state: 'waiting', code: 'K7Q-4M2', desc: 'Install “Cognitive Load Router” from the Extensions view, run “CLR: Pair”, then enter this code.' }) + C.SourceCard({ kind: 'desktop', state: 'idle', recommended: true, desc: 'Window changes and idle time across all apps. macOS, Windows, Linux.' }) + C.SourceCard({ kind: 'lms', state: 'idle', optional: true, desc: 'Activity in Canvas, Moodle or Blackboard. Not your grades or messages.' }) + '</div>' +
+  C.Banner({ neutral: true, icon: 'info', title: '1 source connected.', body: 'Enough to start. Load estimates get steadier with 2 or more.' }) + '</div>' +
+  '<div class="clr-row" style="justify-content:space-between;max-width:1000px;width:100%;justify-self:center">' + B({ label: 'Back', variant: 'ghost', icon: 'arrow-left' }) + '<div class="clr-row">' + B({ label: 'Skip for now', variant: 'ghost' }) + B({ label: 'Continue', iconRight: 'arrow-right' }) + '</div></div></div>';
+var foot = function (primary, skip) { return '<div class="clr-stack" style="gap:8px;margin-top:auto">' + B({ label: primary, block: true, size: 'lg' }) + (skip ? B({ label: skip, variant: 'ghost', block: true }) : '') + '</div>'; };
+var s1 = '<div class="clr-stack" style="gap:20px;min-height:700px">' + step(1) + '<div style="display:grid;justify-items:center;padding:8px 0">' + C.LoadGauge({ size: 200, load: .62 }) + '</div><h1 class="clr-h1">Study with your brain, not against it</h1><p class="clr-p clr-muted">CLR estimates how mentally loaded you are, every 2 seconds, from how you work. Then it adjusts:</p>' +
+  '<div class="clr-stack" style="gap:12px">' + [['bell-off', 'Protects deep focus', 'Silences notifications and distracting tabs.'], ['coffee', 'Times your breaks', 'Pomodoros from 10 to 35 min, sized to your load.'], ['arrow-up-down', 'Reorders your tasks', 'Easier work when you are loaded, harder when you are fresh.']].map(function (x) { return '<div class="clr-promise">' + I(x[0], 20, 'style="color:var(--accent)"') + '<span><b>' + x[1] + '</b>' + x[2] + '</span></div>'; }).join('') + '</div>' + foot('Get started') + '</div>';
+var yes = ['Tab and window switches (counts, not page content)', 'Typing rhythm and pauses', 'Compile errors and their frequency', 'Idle time and scrolling', 'LMS page visits (if you connect it)'];
+var no = ['What you type', 'Text on any page', 'Your files or code', 'Grades, messages or passwords', 'Your camera or microphone'];
+var s2 = '<div class="clr-stack" style="gap:18px;min-height:700px">' + step(2) + '<h1 class="clr-h1">What CLR sees, and what it never does</h1>' +
+  '<div class="clr-card" style="padding:16px"><p class="clr-overline" style="margin-bottom:10px">Collected</p><div class="clr-stack" style="gap:8px">' + yes.map(function (t) { return '<div class="clr-promise" data-tone="positive">' + I('check', 18, 'style="color:var(--positive)"') + '<span>' + t + '</span></div>'; }).join('') + '</div></div>' +
+  '<div class="clr-card" style="padding:16px"><p class="clr-overline" style="margin-bottom:10px">Never collected</p><div class="clr-stack" style="gap:8px">' + no.map(function (t) { return '<div class="clr-promise">' + I('x', 18, 'style="color:var(--ink-subtle)"') + '<span style="color:var(--ink)">' + t + '</span></div>'; }).join('') + '</div></div>' +
+  '<p class="clr-p clr-body-sm clr-subtle">Export or delete everything at any time in Settings → Privacy.</p>' + foot('Sounds good') + '</div>';
+var s4 = '<div class="clr-stack" style="gap:18px;min-height:700px">' + step(4) + '<h1 class="clr-h1">Let CLR nudge you</h1><p class="clr-p clr-muted">Just three kinds of notification, all gentle. You can change each one later.</p>' +
+  '<div style="transform:scale(.95);transform-origin:left">' + C.AndroidNotification({ icon: 'coffee', title: 'Break time', body: 'Focus session 3 is done. Your 5-minute break is ready.', actions: ['Start break', 'Skip'] }) + '</div>' +
+  '<div class="clr-card" style="padding:4px 16px">' + C.Toggle({ row: true, on: true, label: 'Break prompts', desc: 'When a Pomodoro ends.' }) + '<hr class="clr-divider" style="margin:0">' + C.Toggle({ row: true, on: true, label: 'Context changes', desc: 'Entering deep focus, or getting stuck.' }) + '<hr class="clr-divider" style="margin:0">' + C.Toggle({ row: true, on: true, label: 'Overload warnings', desc: 'When load stays above 85%.' }) + '</div>' +
+  foot('Turn on notifications', 'Not now') + '</div>';
+var ph = function (c) { return C.Phone({ notop: true, nonav: true, content: c, bodyStyle: 'padding:8px 8px 0' }); };
+root.innerHTML = C.Board({ sections: [
+  { title: 'Step 3 · Connect sources · desktop 1440', note: 'One card per source, each in one of three states. Continue is always enabled: the app works with any mix.', html: C.Desk({ bare: true, content: desk }) },
+  { title: 'Mobile 390', note: 'Step 1 what CLR does · Step 2 the privacy promise · Step 4 notifications (Android asks for permission after “Turn on”)', phones: [ph(s1), ph(s2), ph(s4)] }
+] });
+</script>
+</body>
+</html>

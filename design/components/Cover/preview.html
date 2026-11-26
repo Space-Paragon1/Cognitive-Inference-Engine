@@ -1,0 +1,46 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cover</title>
+<style>
+  html, body { margin: 0; }
+  .cover { position: relative; width: 960px; height: 288px; overflow: hidden; background: var(--bg); font-family: var(--font-sans, "Geist", system-ui, sans-serif); }
+  .cover svg { position: absolute; inset: 0; display: block; }
+  .b-accent { fill: var(--accent); }
+  .b-focus { fill: var(--ctx-deep-focus); }
+  .b-stuck { fill: var(--ctx-stuck); }
+  .b-recover { fill: var(--ctx-recovering); }
+  .r-xl { rx: var(--radius-xl, 24px); ry: var(--radius-xl, 24px); }
+  .r-lg { rx: var(--radius-lg, 16px); ry: var(--radius-lg, 16px); }
+  .arc { fill: none; stroke: var(--bg); stroke-width: 12px; stroke-linecap: round; }
+  .text { position: absolute; left: 40px; bottom: 36px; max-width: 440px; }
+  .name { margin: 0; font-size: 64px; line-height: .95; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); }
+  .tag { margin: 16px 0 0; font-size: 14px; line-height: 20px; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+  <!--
+    blocks: accent 240×288 slab (radius-xl) · ctx-deep-focus 248×152 (radius-xl) · ctx-stuck 104×120 and ctx-recovering 128×120 (radius-lg); gaps space-4 (16)
+    arrangement: one tall slab bleeding off the top, with three satellites to its right, two of them bleeding off the right edge; all bottoms share one line
+    pattern: literal motif → three 270° gauge arcs cut from the slab in --bg. The README makes the live load gauge the product's centrepiece, so its arc is the shape people remember
+    scales: arc radii 40 / 64 / 88 (space-10, space-16, +space-6), stroke 12 (space-3), round caps like the gauge; text inset space-10, tagline gap space-4
+  -->
+  <svg width="960" height="288" viewBox="0 0 960 288" aria-hidden="true">
+    <rect class="b-accent r-xl" x="480" y="-24" width="240" height="288"/>
+    <rect class="b-focus r-xl" x="736" y="-24" width="248" height="152"/>
+    <rect class="b-stuck r-lg" x="736" y="144" width="104" height="120"/>
+    <rect class="b-recover r-lg" x="856" y="144" width="128" height="120"/>
+    <path class="arc" d="M 537.78 202.22 A 88 88 0 1 1 662.22 202.22"/>
+    <path class="arc" d="M 554.75 185.25 A 64 64 0 1 1 645.25 185.25"/>
+    <path class="arc" d="M 571.72 168.28 A 40 40 0 1 1 628.28 168.28"/>
+  </svg>
+  <div class="text">
+    <h1 class="name">Cognitive<br>Load Router</h1>
+    <p class="tag">A calm coach for how you study.</p>
+  </div>
+</div>
+</body>
+</html>

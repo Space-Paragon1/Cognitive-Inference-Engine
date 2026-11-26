@@ -1,0 +1,21 @@
+<!-- @dsCard group="Tasks" height=470 subtitle="Recommended row, reorder marks, done state" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>TaskRow</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+var T = C.sample.tasks;
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;align-items:stretch;max-width:640px">' +
+  C.Banner({ icon: 'arrow-up-down', title: 'Load is high (78%), so easier tasks are on top.', body: 'The order updates as your load changes.', action: 'Why?' }) +
+  '<div class="clr-tasks">' +
+  C.TaskRow(Object.assign({ recommended: true, moved: 3 }, T[3])) +
+  C.TaskRow(Object.assign({ moved: 1 }, T[2])) +
+  C.TaskRow(Object.assign({ moved: -1 }, T[1])) +
+  C.TaskRow(Object.assign({ moved: -3 }, T[0])) +
+  C.TaskRow({ title: 'Submit reading response 3', difficulty: 'easy', minutes: 15, tags: ['eng102'], done: true }) +
+  '</div><p class="clr-spec" style="margin:0">Arrow chips show how far a row moved in the last reorder and fade after 4 s. Rows slide to their new place with a 400 ms FLIP animation.</p></div>';
+</script>
+</body>
+</html>

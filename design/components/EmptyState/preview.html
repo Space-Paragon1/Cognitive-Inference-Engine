@@ -1,0 +1,16 @@
+<!-- @dsCard group="Feedback" height=420 subtitle="No data yet (the most important one), all clear, no tasks, no sessions" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>EmptyState</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;width:1100px">' +
+  '<div class="clr-card">' + C.EmptyState({ icon: 'gauge', title: 'Connect a source to see your load', body: 'CLR needs at least one plugin to read how you work. The browser extension takes about a minute.', actions: [C.Button({ label: 'Connect a source', variant: 'primary', size: 'sm' })] }) + '</div>' +
+  '<div class="clr-card">' + C.EmptyState({ icon: 'check-circle', tone: 'positive', title: 'All clear', body: 'Nothing needs adjusting right now. CLR will step in if your load changes.' }) + '</div>' +
+  '<div class="clr-card">' + C.EmptyState({ icon: 'list-checks', title: 'No tasks yet', body: 'Add what is on your plate and CLR will order it to match your energy.', actions: [C.Button({ label: 'Add a task', icon: 'plus', variant: 'secondary', size: 'sm' })] }) + '</div>' +
+  '<div class="clr-card">' + C.EmptyState({ icon: 'history', title: 'No sessions to replay', body: 'Sessions appear here after your first 10 minutes of tracked work.' }) + '</div></div>';
+</script>
+</body>
+</html>

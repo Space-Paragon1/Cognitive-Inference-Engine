@@ -1,0 +1,13 @@
+<!-- @dsCard group="Navigation" height=840 subtitle="Desktop sidebar with the live mini gauge and running timer; 72 px rail" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Sidebar</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="align-items:flex-start;gap:24px"><div style="height:780px;border:1px solid var(--line);border-radius:14px;overflow:hidden">' + C.Sidebar({ active: 'now', timer: C.sample.pomodoro }) + '</div>' +
+  '<div style="height:780px;border:1px solid var(--line);border-radius:14px;overflow:hidden"><aside class="clr-sidebar clr-rail" aria-label="Main">' + C.Logo(28) + C.MiniGauge({ size: 44 }) + '<nav class="clr-nav">' + [['gauge', 1], ['timer'], ['list-checks'], ['history'], ['bar-chart'], ['settings']].map(function (n) { return '<a href="#" ' + (n[1] ? 'aria-current="page"' : '') + ' aria-label="' + n[0] + '">' + C.icon(n[0], 20) + '</a>'; }).join('') + '</nav></aside></div></div>';
+</script>
+</body>
+</html>

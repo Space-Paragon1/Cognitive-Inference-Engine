@@ -1,0 +1,22 @@
+<!-- @dsCard group="Small surfaces" page width=1260 height=620 subtitle="Browser extension popup, 360 × 520" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ExtensionPopup</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+function popup(o) {
+  var body;
+  if (o.kind === 'unpaired') body = '<div class="clr-popup__body" style="align-content:center;text-align:center;justify-items:center">' + C.Logo(48) + '<h2 class="clr-h3">Pair this browser</h2><p class="clr-p clr-body-sm clr-muted">Enter the code shown in the CLR app under Settings → Connected sources.</p><div style="width:100%">' + C.TextField({ label: 'Pairing code', value: 'K7Q-4M2' }).replace('class="clr-input"', 'class="clr-input" style="font-family:var(--font-mono);letter-spacing:.12em;text-align:center"') + '</div>' + B({ label: 'Pair', block: true }) + '</div>';
+  else body = '<div class="clr-popup__body"' + (o.focus ? ' style="gap:12px;padding:14px 16px"' : '') + '><div class="clr-row" style="flex-wrap:nowrap;gap:16px" data-ctx="' + o.state.context + '">' + C.MiniGauge({ load: o.state.load, context: o.state.context, size: 84 }) + '<div class="clr-stack" style="gap:6px">' + C.ContextPill({ context: o.state.context }) + '<span class="clr-body-sm clr-muted">Confidence <b class="clr-num" style="color:var(--ink)">' + Math.round(o.state.confidence * 100) + '%</b></span></div></div>' +
+    C.Breakdown(Object.assign({ compact: true }, o.state.breakdown || C.sample.state.breakdown)) +
+    (o.focus ? '<div class="clr-card" style="padding:12px 14px;display:grid;gap:8px"><div class="clr-row" style="justify-content:space-between"><b class="clr-body-sm">' + I('shield', 14, 'style="color:var(--accent)"') + ' Focus mode</b><span class="clr-num clr-body-sm clr-muted">31 / 50 min</span></div><div class="clr-breakdown__bar" style="margin:0"><span style="width:62%;background:var(--accent)"></span></div><span class="clr-caption">Blocking 3 sites · notifications silenced</span></div>' + B({ label: 'Stop focus', variant: 'secondary', block: true }) :
+      '<div class="clr-toggle-row" style="min-height:48px"><div class="clr-toggle-row__text"><span class="clr-toggle-row__label">Focus mode</span><span class="clr-toggle-row__desc">Blocks your distracting sites</span></div>' + C.Toggle({ on: false, label: 'Focus mode' }) + '</div>' + B({ label: 'Open dashboard', variant: 'secondary', block: true, iconRight: 'external-link' })) + '</div>';
+  var foot = o.kind === 'unpaired' ? '<span>' + C.ConnectionStatus({ status: 'offline' }).replace('Offline', 'Not paired') + '</span><span>v0.1.0</span>' : '<span>' + C.ConnectionStatus({ status: 'live' }) + '</span><span class="clr-num">Sent 4s ago</span>';
+  return '<div><div class="clr-popup"><div class="clr-popup__head"><span class="clr-row" style="gap:8px">' + C.Logo(22) + '<b class="clr-body-sm">Cognitive Load Router</b></span>' + B({ label: 'Settings', icon: 'settings', variant: 'ghost', iconOnly: true, size: 'sm' }) + '</div>' + body + '<div class="clr-popup__foot">' + foot + '</div></div></div>';
+}
+root.innerHTML = '<div class="clr-preview" style="gap:32px;padding:32px;align-items:flex-start">' + popup({ state: C.sample.state }) + popup({ state: { load: .58, context: 'deep_focus', confidence: .82 }, focus: true }) + popup({ kind: 'unpaired' }) + '</div>';
+</script>
+</body>
+</html>

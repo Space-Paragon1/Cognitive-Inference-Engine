@@ -1,0 +1,19 @@
+<!-- @dsCard group="Controls" height=640 subtitle="Settings sliders with default marks, reset, and the threshold constraint" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Slider</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="align-items:flex-start;gap:24px">' +
+  '<div class="clr-card clr-stack" style="width:420px;gap:24px">' +
+  C.Slider({ label: 'Short break', value: 7, def: 5, min: 1, max: 15, unit: ' min' }) +
+  C.Slider({ label: 'Session gap', value: 10, def: 10, min: 2, max: 60, unit: ' min', help: 'Idle longer than this starts a new session.' }) + '</div>' +
+  '<div class="clr-card clr-stack" style="width:420px;gap:20px"><h3 class="clr-card__title">Load thresholds</h3>' +
+  '<div class="clr-zones clr-num" aria-hidden="true"><span style="flex:70;background:var(--surface-sunken);color:var(--ink-muted)">Normal &lt; 70%</span><span data-ctx="shallow_work" style="flex:15;background:var(--c-soft);color:var(--c)">High</span><span data-ctx="fatigue" style="flex:15;background:var(--c-soft);color:var(--c)">Fatigue</span></div>' +
+  C.Slider({ label: 'High load', value: 70, def: 70, min: 50, max: 95, unit: '%', help: 'Above this, easier tasks move up and Pomodoros shorten to 15 min.' }) +
+  C.Slider({ label: 'Fatigue', value: 85, def: 85, min: 60, max: 99, unit: '%', blockBelow: 71, help: 'Always above high load. Drag high load up and fatigue moves with it.' }) + '</div></div>';
+</script>
+</body>
+</html>

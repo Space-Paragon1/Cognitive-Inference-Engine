@@ -1,0 +1,17 @@
+<!-- @dsCard group="Navigation" height=720 subtitle="Add task: bottom sheet on mobile, dialog on desktop" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>BottomSheet</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+var body = '<div class="clr-stack" style="gap:16px">' + C.TextField({ label: 'Title', value: 'Read chapter 5 of the systems text', focus: true }) +
+  '<div class="clr-field"><span class="clr-field__label">Difficulty</span>' + C.Segmented({ options: ['Easy', 'Medium', 'Hard', 'Review'], value: 'Medium' }).replace('class="clr-seg"', 'class="clr-seg" style="display:flex"').replace(/<button type="button"/g, '<button type="button" style="flex:1"') + '</div>' +
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' + C.TextField({ label: 'Estimate', value: '30 min' }) + C.TextField({ label: 'Tags', value: 'cs201' }) + '</div></div>';
+root.innerHTML = '<div class="clr-preview" style="align-items:flex-start;gap:24px"><div style="position:relative;width:390px;height:660px;border-radius:24px;overflow:hidden;border:1px solid var(--line);background:var(--bg)"><div class="clr-scrim"></div>' +
+  C.BottomSheet({ title: 'Add a task', body: body, actions: C.Button({ label: 'Cancel', variant: 'secondary' }) + C.Button({ label: 'Add task', variant: 'primary' }) }) + '</div>' +
+  '<div class="clr-dialog" role="dialog" aria-label="Add a task"><div class="clr-sheet__head"><h2 class="clr-h2">Add a task</h2>' + C.Button({ label: 'Close', icon: 'x', variant: 'ghost', iconOnly: true }) + '</div>' + body + '<div class="clr-row" style="justify-content:flex-end">' + C.Button({ label: 'Cancel', variant: 'ghost' }) + C.Button({ label: 'Add task', variant: 'primary' }) + '</div></div></div>';
+</script>
+</body>
+</html>

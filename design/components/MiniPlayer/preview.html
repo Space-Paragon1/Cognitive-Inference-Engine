@@ -1,0 +1,15 @@
+<!-- @dsCard group="Focus and timer" height=230 subtitle="The running timer, visible from every screen" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>MiniPlayer</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;gap:16px;max-width:400px">' +
+  '<p class="clr-spec" style="margin:0">Mobile · docked 8 px above the tab bar</p>' + C.MiniPlayer({}) +
+  C.MiniPlayer({ phase: 'short_break', remaining: 196, total: 300 }) +
+  C.MiniPlayer({ label: 'Focus mode · blocking 3 sites', remaining: 1860, total: 3000 }) + '</div>';
+</script>
+</body>
+</html>

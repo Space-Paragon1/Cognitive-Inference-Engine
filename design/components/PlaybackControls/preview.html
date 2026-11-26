@@ -1,0 +1,13 @@
+<!-- @dsCard group="History" height=200 subtitle="TimelineReplay transport: jump, step, play, speed" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>PlaybackControls</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;align-items:stretch;max-width:720px"><div class="clr-card">' + C.PlaybackControls({ playing: true }) + '</div>' +
+  '<p class="clr-spec" style="margin:0">Keys: Space play/pause · ← → step one event · Shift+← → jump 1 min · Home / End · 1, 2, 3, 4 pick speed.</p></div>';
+</script>
+</body>
+</html>

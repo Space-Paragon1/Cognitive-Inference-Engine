@@ -1,0 +1,23 @@
+<!-- @dsCard group="Coaching" height=640 subtitle="Every directive type, plus the All clear empty state" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>DirectiveCard</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+var D = [
+  { type: 'suppress_notifications', reason: 'Protecting your deep-focus window.', meta: 'since 9:42 pm', action: 'Pause' },
+  { type: 'block_distracting_tabs', reason: 'Cutting extraneous load while you are in the zone.', meta: '3 sites', action: 'Edit' },
+  { type: 'recommend_break', reason: 'Load has been above 85% for 12 minutes. Five minutes away will help.', action: 'Start break' },
+  { type: 'suggest_task', reason: '“Reply to group project thread” fits how you are doing right now.', action: 'Open' },
+  { type: 'shorten_focus_interval', reason: 'Next Pomodoro is 15 min because your load is high (78%).' },
+  { type: 'delay_hard_tasks', reason: 'Linear Algebra moved down until your load settles.', action: 'Undo' },
+  { type: 'schedule_hard_task', reason: 'Load is low (34%) and steady. A good window for the problem set.', action: 'Start' },
+  { type: 'allow_notifications', reason: 'You are between sessions, so messages can come through.' }
+];
+root.innerHTML = '<div class="clr-preview" style="align-items:flex-start"><div class="clr-feed" style="width:520px">' + D.map(C.DirectiveCard).join('') + '</div>' +
+  '<div style="width:360px">' + C.DirectivesFeed({ items: [] }) + '</div></div>';
+</script>
+</body>
+</html>

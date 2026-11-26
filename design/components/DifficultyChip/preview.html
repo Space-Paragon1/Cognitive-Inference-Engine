@@ -1,0 +1,12 @@
+<!-- @dsCard group="Tasks" height=110 subtitle="Shape, not colour: 1, 2 or 3 bars, or a book for review" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>DifficultyChip</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="gap:12px">' + ['easy', 'medium', 'hard', 'review'].map(function (d) { return C.DifficultyChip(d); }).join('') + '</div>';
+</script>
+</body>
+</html>

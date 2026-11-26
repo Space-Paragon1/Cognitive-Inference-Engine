@@ -1,0 +1,13 @@
+<!-- @dsCard group="Controls" height=280 subtitle="Switch with a check in the thumb, so state is not colour alone" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Toggle</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="align-items:flex-start;gap:32px"><div class="clr-row" style="gap:20px">' + C.Toggle({ on: true, label: 'On' }) + C.Toggle({ on: false, label: 'Off' }) + C.Toggle({ on: true, label: 'Disabled on', disabled: true }) + C.Toggle({ on: false, label: 'Disabled off', disabled: true }) + '</div>' +
+  '<div class="clr-card" style="width:420px;padding:4px 20px">' + C.Toggle({ row: true, on: true, label: 'Block distracting tabs', desc: 'During focus mode only. You can always get 5 minutes through.' }) + '<hr class="clr-divider" style="margin:0">' + C.Toggle({ row: true, on: false, label: 'Break reminders', desc: 'A gentle nudge when a break is due.' }) + '</div></div>';
+</script>
+</body>
+</html>

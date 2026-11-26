@@ -1,0 +1,40 @@
+<!-- @dsCard group="Screens" page width=1520 height=1900 subtitle="Sign in, create account, forgot password, set new password" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ScreenAuth</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+var aside = '<div class="clr-auth__aside"><div class="clr-row" style="gap:12px">' + C.Logo(40) + '<span class="clr-h2">Cognitive Load Router</span></div>' +
+  '<h2 class="clr-h1" style="font-size:40px;line-height:46px;max-width:460px">A calm coach for how you study.</h2>' +
+  '<p class="clr-body-lg clr-muted clr-p" style="max-width:440px">CLR notices when your focus is deep, scattered or worn out, then protects it, times your breaks and reorders your tasks to match.</p>' +
+  '<div class="clr-stack" style="gap:14px;margin-top:8px">' + [['eye-off', 'Never reads what you type', 'Only rhythm and timing. No keystroke content, no page text.'], ['gauge', 'High load is information', 'Not a grade. It tells CLR when to make things easier.'], ['smartphone', 'Laptop and phone', 'Timers and nudges follow you to Android.']].map(function (x) { return '<div class="clr-promise">' + I(x[0], 20, 'style="color:var(--accent)"') + '<span><b>' + x[1] + '</b>' + x[2] + '</span></div>'; }).join('') + '</div>' +
+  '<div style="position:absolute;right:-60px;bottom:-60px;opacity:.9">' + C.LoadGauge({ size: 300, ticks: false, foot: false }) + '</div></div>';
+var signin = '<div class="clr-auth"><div class="clr-auth__panel"><form class="clr-auth__form" onsubmit="return false"><div><h1 class="clr-h1">Welcome back</h1><p class="clr-p clr-muted" style="margin-top:6px">Sign in to pick up where you left off.</p></div>' +
+  C.TextField({ label: 'Email', icon: 'mail', value: 'sam@uni.edu', type: 'email' }) +
+  C.TextField({ label: 'Password', icon: 'lock', type: 'password', value: 'wrongpass', trailing: 'eye', error: 'That email and password do not match. Check both and try again.', aside: '<a class="clr-link" href="#">Forgot password?</a>' }) +
+  B({ label: 'Sign in', loading: true, loadingLabel: 'Signing in…', block: true, size: 'lg' }) +
+  '<p class="clr-p clr-muted" style="text-align:center">New here? <a class="clr-link" href="#">Create an account</a></p></form></div>' + aside + '</div>';
+var create = '<div class="clr-stack" style="gap:18px;padding-top:12px"><div class="clr-row" style="gap:10px">' + C.Logo(32) + '</div><div><h1 class="clr-h1">Create your account</h1><p class="clr-p clr-muted" style="margin-top:6px">Takes a minute. Your data stays yours.</p></div>' +
+  C.TextField({ label: 'Email', icon: 'mail', value: 'sam@uni', error: 'Add the rest of your email, like sam@uni.edu.' }) +
+  C.TextField({ label: 'Password', icon: 'lock', type: 'password', value: 'short', trailing: 'eye', error: 'Use at least 8 characters.', extra: '<span class="clr-strength" aria-hidden="true"><span class="is-on" style="background:var(--critical)"></span><span></span><span></span><span></span></span>' }) +
+  '<div class="clr-check"><span class="clr-check__box is-on">' + I('check', 14, 'stroke-width="3"') + '</span><span>I agree to the <a class="clr-link" href="#">terms</a> and <a class="clr-link" href="#">privacy policy</a>.</span></div>' +
+  B({ label: 'Create account', block: true, size: 'lg' }) + '<p class="clr-p clr-muted" style="text-align:center">Have an account? <a class="clr-link" href="#">Sign in</a></p></div>';
+var forgot = '<div class="clr-stack" style="gap:18px;padding-top:12px"><div><h1 class="clr-h1">Reset your password</h1><p class="clr-p clr-muted" style="margin-top:6px">We will email you a link to set a new one.</p></div>' +
+  C.TextField({ label: 'Email', icon: 'mail', value: 'sam@uni.edu' }) + B({ label: 'Send reset link', block: true, size: 'lg', variant: 'secondary', disabled: true }) +
+  '<div class="clr-card" data-tone="positive" style="display:grid;justify-items:center;text-align:center;gap:10px;padding:24px"><span class="clr-empty__art" style="width:56px;height:56px;margin:0"><span>' + I('mail', 24) + '</span></span><p class="clr-h3">Check your inbox</p><p class="clr-p clr-muted clr-body-sm">If that email is registered, a link has been sent. It works for 30 minutes.</p>' + B({ label: 'Resend in 0:42', variant: 'ghost', size: 'sm', disabled: true }) + '</div>' +
+  '<a class="clr-link" href="#" style="text-align:center">Back to sign in</a></div>';
+var reset = '<div class="clr-stack" style="gap:18px;padding-top:12px"><div><h1 class="clr-h1">Set a new password</h1><p class="clr-p clr-muted" style="margin-top:6px">For sam@uni.edu</p></div>' +
+  C.TextField({ label: 'New password', icon: 'lock', type: 'password', value: 'correcthorsebattery', trailing: 'eye-off', valid: 'Strong. 12+ characters.', extra: '<span class="clr-strength" aria-hidden="true"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span></span>' }) +
+  C.TextField({ label: 'Confirm password', icon: 'lock', type: 'password', value: 'correcthorsebattery', valid: 'Passwords match.' }) +
+  B({ label: 'Save password', loading: true, loadingLabel: 'Saving…', block: true, size: 'lg' }) +
+  C.Banner({ tone: 'critical', icon: 'alert-circle', title: 'If the link has expired,', body: 'request a new one. Reset links last 30 minutes.' }) + '</div>';
+var ph = function (c) { return C.Phone({ notop: true, nonav: true, content: c, bodyStyle: 'padding:8px 8px 0' }); };
+root.innerHTML = C.Board({ sections: [
+  { title: 'Sign in · desktop 1440', note: 'Error after a failed attempt, button in its loading state. Errors sit under the field they belong to and are announced (role="alert").', html: C.Desk({ bare: true, content: signin }) },
+  { title: 'Mobile 390', note: 'Create account with inline validation · Forgot password with the neutral confirmation · Set new password from the email link', phones: [ph(create), ph(forgot), ph(reset)] }
+] });
+</script>
+</body>
+</html>

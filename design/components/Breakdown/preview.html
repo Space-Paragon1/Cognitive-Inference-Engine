@@ -1,0 +1,16 @@
+<!-- @dsCard group="Live state" height=300 subtitle="Intrinsic, extraneous, germane with plain-English lines" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Breakdown</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="align-items:stretch"><div class="clr-card" style="width:400px"><div class="clr-card__head"><h3 class="clr-card__title">What makes up your load</h3><button class="clr-btn clr-btn--ghost clr-btn--icon clr-btn--sm" aria-label="What do these mean?">' + C.icon('help', 18) + '</button></div><div id="full"></div></div>' +
+  '<div class="clr-card" style="width:300px"><p class="clr-spec">Compact · popup, mobile hero</p><div id="compact"></div></div></div>';
+function draw(b) { document.getElementById('full').innerHTML = C.Breakdown(b); document.getElementById('compact').innerHTML = C.Breakdown(Object.assign({ compact: true }, b)); }
+draw(C.sample.state.breakdown);
+C.simulate(function (s) { draw(s.breakdown); });
+</script>
+</body>
+</html>

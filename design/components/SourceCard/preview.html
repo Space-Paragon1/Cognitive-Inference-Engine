@@ -1,0 +1,13 @@
+<!-- @dsCard group="Onboarding" height=470 subtitle="Not connected, waiting with a pairing code, connected" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>SourceCard</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+root.innerHTML = '<div class="clr-preview" style="display:grid;grid-template-columns:repeat(3,340px);gap:16px">' +
+  C.SourceCard({ kind: 'lms', state: 'idle', optional: true }) + C.SourceCard({ kind: 'vscode', state: 'waiting', code: 'K7Q-4M2' }) + C.SourceCard({ kind: 'browser', state: 'connected', lastSeen: '12s', recommended: false }) + '</div>';
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!-- @dsCard group="Screens" page width=1520 height=2500 subtitle="Focus mode, adaptive Pomodoro, and the restful break screen" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ScreenFocus</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+var sites = ['youtube.com', 'reddit.com', 'instagram.com'].map(function (s) { return '<span class="clr-tag" style="height:28px;font-size:13px">' + I('shield', 12) + s + '</span>'; }).join('');
+var focusActive = '<div class="clr-card clr-stack" style="gap:18px"><div class="clr-card__head" style="margin:0"><h3 class="clr-card__title">' + I('shield', 18, 'style="color:var(--accent)"') + 'Focus mode</h3>' + C.Badge('On', 'positive', 'check') + '</div>' +
+  '<div class="clr-row" style="align-items:baseline;gap:8px"><span class="clr-num" style="font-size:44px;line-height:48px;font-weight:600;letter-spacing:-.03em">31:00</span><span class="clr-muted clr-num">elapsed of 50:00</span></div>' +
+  '<div class="clr-breakdown__bar" style="height:8px;margin:0"><span style="width:62%;background:var(--accent)"></span></div>' +
+  '<div class="clr-row" style="justify-content:space-between"><span class="clr-muted clr-body-sm">Ends at 10:31 pm · 19 min to go</span><span class="clr-muted clr-body-sm">Notifications silenced</span></div>' +
+  '<div><p class="clr-overline" style="margin-bottom:8px">Blocking</p><div class="clr-row" style="gap:6px">' + sites + B({ label: 'Edit list', variant: 'ghost', size: 'sm', icon: 'pen-line' }) + '</div></div>' +
+  C.Toggle({ row: true, on: true, label: 'Block distracting tabs', desc: 'You can always let yourself through for 5 minutes.' }) +
+  '<div class="clr-row">' + B({ label: 'Stop focus', variant: 'secondary', icon: 'square' }) + B({ label: 'Add 10 min', variant: 'ghost', icon: 'plus' }) + '</div></div>';
+var pomo = '<div class="clr-card" style="display:grid;justify-items:center;gap:18px;padding:28px"><div class="clr-card__head" style="width:100%;margin:0"><h3 class="clr-card__title">' + I('timer', 18, 'style="color:var(--accent)"') + 'Adaptive Pomodoro</h3><span class="clr-card__meta">Long break after 4</span></div>' + C.Timer(C.sample.pomodoro) + '</div>';
+var sessions = '<div class="clr-card"><div class="clr-card__head"><h3 class="clr-card__title">Today’s sessions</h3><span class="clr-card__meta clr-num">3 · 1 h 48 m</span></div><table class="clr-table"><tr><th>Started</th><th>Type</th><th class="num">Length</th><th>Mostly</th></tr>' +
+  [['6:10 pm', 'Pomodoro × 2', '50 min', 'deep_focus'], ['7:40 pm', 'Focus mode', '33 min', 'shallow_work'], ['9:42 pm', 'Pomodoro', 'running', 'deep_focus']].map(function (r) { return '<tr><td class="clr-num is-strong">' + r[0] + '</td><td>' + r[1] + '</td><td class="num">' + r[2] + '</td><td>' + C.ContextPill({ context: r[3], size: 'sm' }) + '</td></tr>'; }).join('') + '</table></div>';
+var desk = '<div class="clr-grid" style="align-items:start"><div class="clr-span-6">' + pomo + '</div><div class="clr-span-6 clr-stack" style="gap:24px">' + focusActive + sessions + '</div></div>';
+var breakDesk = '<div class="clr-rest" style="height:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:0 120px;gap:80px">' +
+  '<div style="position:relative;width:420px;height:420px;justify-self:center"><div class="clr-breath" style="position:absolute;inset:0"><div class="clr-breath__disc"></div></div><div style="position:absolute;inset:0;display:grid;place-items:center">' + C.Timer({ phase: 'short_break', remaining: 252, total: 300, sessions: 3, why: false, controls: false, size: 300 }) + '</div></div>' +
+  '<div class="clr-stack" style="gap:20px;max-width:480px"><p class="clr-overline" style="color:var(--rest-ink-muted)">Short break · 3 of 4 done</p><h1 class="clr-h1" style="font-size:40px;line-height:46px;color:var(--rest-ink)">Step away for a few minutes.</h1>' +
+  '<div class="clr-stack" style="gap:12px">' + [['wind', 'Breathe with the circle: in as it grows, out as it shrinks.'], ['eye', 'Look at something 6 metres away for 20 seconds.'], ['user', 'Stand up and roll your shoulders.']].map(function (x) { return '<div class="clr-promise" style="color:var(--rest-ink-muted)">' + I(x[0], 20, 'style="color:var(--rest-accent)"') + '<span>' + x[1] + '</span></div>'; }).join('') + '</div>' +
+  '<p class="clr-p clr-body-sm" style="color:var(--rest-ink-muted)">Next: 25 min focus. Your load has eased to 48%.</p><div class="clr-row">' + B({ label: 'I’m back early', variant: 'rest' }) + B({ label: 'Skip break', variant: 'rest-ghost' }) + '</div></div></div>';
+var setup = '<div class="clr-card clr-stack" style="gap:16px"><h3 class="clr-card__title">' + I('timer', 18, 'style="color:var(--accent)"') + 'Pomodoro</h3><div class="clr-row" style="align-items:baseline;gap:8px"><span class="clr-num" style="font-size:48px;line-height:52px;font-weight:500;letter-spacing:-.03em">25:00</span><span class="clr-muted">suggested</span></div>' +
+  '<div class="clr-lengths clr-num"><div><b>10</b>fatigued</div><div><b>15</b>high</div><div class="is-on"><b>25</b>normal</div><div><b>35</b>low</div></div>' +
+  '<div class="clr-why" style="max-width:none">' + I('info', 18) + '<span><b>25 min</b> because your load is in your normal range (62%). It updates when each session starts.</span></div>' + B({ label: 'Start Pomodoro', icon: 'play', block: true, size: 'lg' }) + '</div>' +
+  '<div class="clr-card clr-stack" style="gap:14px"><h3 class="clr-card__title">' + I('shield', 18, 'style="color:var(--accent)"') + 'Focus mode</h3><div class="clr-field"><span class="clr-field__label">Duration</span>' + C.Segmented({ options: ['25 m', '50 m', '90 m', 'Custom'], value: '50 m' }).replace('class="clr-seg"', 'class="clr-seg" style="display:flex"').replace(/<button type="button"/g, '<button type="button" style="flex:1"') + '</div>' +
+  C.Toggle({ row: true, on: true, label: 'Block distracting tabs', desc: '3 sites on your list' }) + B({ label: 'Start focus', variant: 'secondary', block: true }) + '</div>';
+var running = '<div style="display:grid;justify-items:center;padding:12px 0 4px">' + C.Timer(Object.assign({ size: 250 }, C.sample.pomodoro)) + '</div><div class="clr-card" style="padding:14px 16px"><div class="clr-row" style="justify-content:space-between"><span class="clr-row" style="gap:8px">' + C.ContextPill({ context: 'deep_focus', size: 'sm' }) + '<span class="clr-body-sm clr-muted">Notifications silenced</span></span>' + B({ label: 'Edit', variant: 'ghost', size: 'sm' }) + '</div></div>';
+var brk = '<div class="clr-rest" style="min-height:820px;margin:-4px -16px 0;padding:24px 20px;display:grid;justify-items:center;align-content:start;gap:18px;text-align:center">' +
+  '<p class="clr-overline" style="color:var(--rest-ink-muted)">Short break · 3 of 4 done</p><div style="position:relative;width:300px;height:300px"><div class="clr-breath" style="position:absolute;inset:0"><div class="clr-breath__disc"></div></div><div style="position:absolute;inset:0;display:grid;place-items:center">' + C.Timer({ phase: 'short_break', remaining: 252, total: 300, sessions: 3, why: false, controls: false, size: 230 }) + '</div></div>' +
+  '<h2 class="clr-h2" style="color:var(--rest-ink)">Step away for a few minutes.</h2><p class="clr-p" style="color:var(--rest-ink-muted);max-width:300px">Breathe with the circle. Look at something far away. Your load has eased to 48%.</p>' +
+  '<div class="clr-stack" style="width:100%;gap:8px;margin-top:6px">' + B({ label: 'I’m back early', variant: 'rest', block: true, size: 'lg' }) + B({ label: 'Skip break', variant: 'rest-ghost', block: true }) + '</div></div>';
+root.innerHTML = C.Board({ sections: [
+  { title: 'Focus · desktop 1440', note: 'Pomodoro running (11:24 of 25:00, 2 done) beside an active focus-mode session.', html: C.Desk({ active: 'focus', title: 'Focus', sub: 'Protect your attention, or work in adaptive Pomodoros', content: desk, actions: C.ConnectionStatus({ status: 'live' }) }) },
+  { title: 'Break · desktop 1440', note: 'The whole canvas switches to the rest palette. No sidebar, no numbers but the countdown. The breathing disc stops under reduced motion.', html: C.Desk({ bare: true, content: breakDesk, style: 'height:640px' }) },
+  { title: 'Mobile 390', note: 'Set up (idle) · Focus phase running · Short break, full-bleed rest screen', phones: [C.Phone({ tab: 'focus', title: 'Focus', content: setup }), C.Phone({ tab: 'focus', title: 'Focus', content: running }), C.Phone({ notop: true, nonav: true, content: brk, statusBg: 'var(--rest-surface)', statusInk: 'var(--rest-ink)', gestureBg: 'var(--rest-surface)' })] }
+] });
+</script>
+</body>
+</html>

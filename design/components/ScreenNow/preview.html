@@ -1,0 +1,22 @@
+<!-- @dsCard group="Screens" page width=1520 height=1900 subtitle="Home: live gauge, breakdown, directives, next task, quick actions, today" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ScreenNow</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root'), I = C.icon, B = C.Button;
+var desk = '<div class="clr-grid" style="align-items:start">' +
+  '<div class="clr-span-8 clr-stack" style="gap:24px">' + C.HeroCard() + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">' + C.QuickActions() + C.TodayCard({ legend: true }) + '</div></div>' +
+  '<div class="clr-span-4 clr-stack" style="gap:24px">' + C.DirectivesFeed() + C.UpNext() + '</div></div>';
+var m1 = C.HeroMobile() + C.QuickActions({ grid: true });
+var m2 = '<div class="clr-card"><div class="clr-card__head"><h3 class="clr-card__title">What makes up your load</h3></div>' + C.Breakdown() + '</div>' + C.DirectivesFeed() + C.UpNext();
+var m3 = C.UpNext() + C.TodayCard({ legend: true });
+root.innerHTML = C.Board({ sections: [
+  { title: 'Now · desktop 1440', note: 'Default state: load 62%, deep focus, confidence 80%, live with 2 of 3 sources.', html: C.Desk({ active: 'now', title: 'Good evening', sub: 'Tuesday 25 November · 1 h 48 m of focus so far', content: desk }) },
+  { title: 'Mobile 390', note: 'Top of the screen · scrolled to the breakdown and directives · scrolled to Today, with a Pomodoro running in the mini-player', phones: [
+    C.Phone({ tab: 'now', content: m1 }), C.Phone({ tab: 'now', content: m2, scroll: 8 }), C.Phone({ tab: 'now', content: m3, mini: true })] }
+] });
+</script>
+</body>
+</html>

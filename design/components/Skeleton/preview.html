@@ -1,0 +1,15 @@
+<!-- @dsCard group="Feedback" height=420 subtitle="Loading placeholders that match the real layout" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Skeleton</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+var S = C.Skel;
+root.innerHTML = '<div class="clr-preview" style="align-items:flex-start;gap:20px"><div class="clr-card" style="width:560px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center" aria-busy="true" aria-label="Loading your current load">' +
+  '<div style="width:200px;height:200px;border-radius:50%;border:12px solid var(--skeleton)"></div><div class="clr-stack" style="gap:14px">' + S(140, 26) + S('90%', 14) + S('70%', 14) + '<div style="height:8px"></div>' + S('100%', 8, 4) + S('100%', 8, 4) + S('100%', 8, 4) + '</div></div>' +
+  '<div class="clr-stack" style="width:360px">' + [1, 2, 3].map(function () { return '<div class="clr-directive" style="grid-template-columns:40px 1fr">' + S(40, 40, 12) + '<div class="clr-stack" style="gap:8px">' + S('60%', 14) + S('90%', 12) + '</div></div>'; }).join('') + '</div></div>';
+</script>
+</body>
+</html>

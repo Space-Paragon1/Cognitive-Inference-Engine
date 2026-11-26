@@ -1,0 +1,18 @@
+<!-- @dsCard group="Data display" height=300 subtitle="StatsCard tiles and the context-distribution bar" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>StatTile</title></head>
+<body>
+<div id="root"></div>
+<script>
+var C = window.CLR, root = document.getElementById('root');
+var t = C.sample.today;
+root.innerHTML = '<div class="clr-preview" style="flex-direction:column;align-items:stretch;max-width:760px">' +
+  '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">' +
+  C.StatTile({ label: 'Focus time', icon: 'timer', value: '1<small>h</small> 48<small>m</small>', sub: '22 min more than yesterday', trend: 'up' }) +
+  C.StatTile({ label: 'Average load', icon: 'gauge', value: '54', unit: '%', sub: 'Steady. Your week is 51%' }) +
+  C.StatTile({ label: 'Sessions', icon: 'history', value: '3', sub: 'Longest 52 min' }) + '</div>' +
+  '<div class="clr-card"><div class="clr-card__head" style="margin-bottom:12px"><h3 class="clr-card__title">How today was spent</h3><span class="clr-card__meta">By time in each context</span></div>' + C.ContextBar({ dist: t.dist }) + '</div></div>';
+</script>
+</body>
+</html>
