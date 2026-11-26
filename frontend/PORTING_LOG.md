@@ -69,8 +69,8 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Settings
 
 ### 7. Small surfaces
-- [ ] ExtensionPopup (live/focus off, focus on, not paired)
-- [ ] BlockedOverlay (shadow root, 3 passes per session, pass bar, End focus mode, Esc inert)
+- [x] ExtensionPopup (live/focus off, focus on, not paired)
+- [x] BlockedOverlay (shadow root, 3 passes per session, pass bar, End focus mode, Esc inert)
 - [ ] VSCodeStatusBar
 
 ### 8. Final QA
@@ -191,6 +191,17 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Focus's "Couldn't reach the timer" banner** hides while offline, where the offline banner already explains it.
 - **Overload toggle copy** reads the live fatigue line ("When load stays above 85%. At most every 5 min.") so it matches the alert.
 - **Chart threshold labels** sit outside the band between the two lines (High below its line, Fatigue above), so they no longer collide on phone-height charts.
+- **Extension design copies.** Chrome extensions can't import from the app, so `plugins/browser-extension/scripts/sync-design.mjs` inlines `design/tokens.css` into the popup (between `clr-tokens` markers), writes the same tokens as a string for the overlay's shadow root (`clr-tokens.js`, with `:root` turned into `:host`), writes the Lucide icons the extension uses as SVG strings (`clr-icons.js`) and copies the Geist fonts. Run it after changing tokens.
+- **Popup theme** follows the browser's colour scheme unless the student picked one in the app: the content script reads `clr_theme` from the dashboard's own page and saves it in `chrome.storage` as `appTheme`. `popup/theme.js` sets it in `<head>`, so there's no flash.
+- **Popup focus toggle** starts 25 minutes with tab blocking on, the same default as the app's Focus mode card. The popup has no duration picker in the design.
+- **Popup settings** (the header's gear) hold what the old popup had in the open: the engine address (editable before pairing) and, once paired, the account and "Unpair this browser".
+- **Popup states beyond the three designed ones**: "Offline" (engine unreachable: grey ring, "Can't reach CLR at host", focus toggle disabled with "Available when CLR is back", footer "Retrying every few seconds"), "Waiting for activity" (no reading yet), low confidence (dotted ring, outlined pill, "rough"), and "This browser was disconnected" when the token is refused.
+- **"Sent 4s ago"** is the time of the last batch the engine accepted; the background worker stores it as `lastSentAt`.
+- **Focus card caption** says "Blocking distracting sites · notifications silenced". The engine silences notifications when focus starts; it has no count of blocked sites.
+- **Blocked-tab overlay** sits in a closed shadow root on `<html>`, makes `<body>` inert, pauses any video or audio, and keeps key presses from reaching the page (Esc does nothing, Tab cycles). It uses system fonts: pages can't load the extension's Geist without exposing it as a web-accessible resource.
+- **A pass covers one site** (the hostname without `www.`) for 5 minutes, and a focus session allows 3 in all. The engine has no session id, so the background worker recognises a session by its start time (now minus `elapsed_minutes`); a start more than 90 s from the stored one is a new session and resets the count. Restarting focus (for example "Add 10 min" in the app) therefore counts as a new session.
+- **"Back to work"** closes the tab, or goes back when it's the window's only tab, or opens the dashboard if there's nowhere to go back to. "Back to work now" on the pass bar ends the pass and does the same.
+- **Which sites are blocked** stays the existing allowlist heuristic in `content.js` (study sites, localhost, the dashboard and the engine stay open).
 
 ## Needs backend
 
@@ -205,6 +216,8 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Blocked sites.** There is no endpoint to list or edit the blocked-sites list, so "Edit" on the Distracting tabs blocked directive and the Settings list are not wired.
 - **Hourly focus data** for "Your best hours". It is estimated from sessions (`heatGrid` in `src/lib/insights.ts`, `// TODO(backend)`) and marked Preview.
 - **Weekly reflection.** The design calls for an AI-written reflection plus feedback ("Not helpful"). Both need endpoints; the card is written from rules and marked Preview, and the feedback only hides the card on this device (`// TODO(backend)` in `components/Analytics/WeeklyReflection.tsx`).
+- **Focus sessions and passes.** `GET /actions/focus` has no session id or start time, so the extension infers sessions from `elapsed_minutes` (see Decisions). A `session_id` and `started_at` would make the 3-pass limit exact, and recording passes on the engine would let the app show them.
+- **The blocked-sites list for the extension.** Blocking uses a fixed allowlist in `content.js` until the engine can serve the student's list (also needed by Settings, above).
 - **Daily stats time zone.** `GET /timeline/stats/daily` keys days by date; the app matches them to the student's local Monday-to-Sunday week. If the engine buckets days in UTC, sessions near midnight can land on the neighbouring day.
 - **Export my data.** No export endpoint; the app stitches one together from what it can read, and the timeline part is limited to the last 30 days (`src/api/privacy.ts`, `// TODO(backend)`).
 - **Delete my data and account.** No endpoint; `deleteMyData()` in `src/api/privacy.ts` is a stub that throws `NotAvailableError`, and the sheet says nothing was removed.
