@@ -36,7 +36,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Timer
 - [x] MiniPlayer
 - [x] PlaybackControls
-- [ ] SourceCard
+- [x] SourceCard
 - [ ] ChartStyle (Recharts styling)
 
 ### 4. App shell
