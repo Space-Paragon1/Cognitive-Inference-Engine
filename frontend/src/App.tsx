@@ -14,6 +14,7 @@ import { PrefsProvider } from "./live/PrefsState";
 import { SettingsProvider } from "./live/SettingsState";
 import { TasksProvider } from "./live/TasksState";
 import { TimerProvider } from "./live/TimerState";
+import { FocusScreen } from "./screens/Focus/FocusScreen";
 import { NowScreen } from "./screens/Now/NowScreen";
 import { Placeholder } from "./screens/Placeholder";
 import type { Route } from "./types/ui";
@@ -90,7 +91,7 @@ function Screen({ route }: { route: Route; sub: string | null }) {
     case "now":
       return <NowScreen />;
     case "focus":
-      return <Placeholder title="Focus" />;
+      return <FocusScreen />;
     case "tasks":
       return <Placeholder title="Tasks" />;
     case "history":

@@ -50,7 +50,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 
 ### 5. Screens
 - [x] Now
-- [ ] Focus
+- [x] Focus
 - [ ] Tasks
 - [ ] History
 - [ ] Insights

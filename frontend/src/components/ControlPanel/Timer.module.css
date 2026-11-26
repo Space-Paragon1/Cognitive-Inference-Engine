@@ -264,3 +264,6 @@
     transform: scale(0.92);
   }
 }
+.whyWide {
+  max-width: none;
+}

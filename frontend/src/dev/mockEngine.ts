@@ -413,3 +413,10 @@ class MockSocket extends EventTarget {
 (window as unknown as { WebSocket: unknown }).WebSocket = MockSocket;
 
 console.info(`[mock engine] scenario "${scenario}". Change with ?mock=live|high|fatigue|stuck|low|lowconf|nodata|empty|reconnecting|offline|error`);
+
+/** Console helpers for QA: clrMock.finishPhase() ends the current Pomodoro phase now. */
+(window as unknown as { clrMock: unknown }).clrMock = {
+  finishPhase() {
+    if (pomo.phase !== "idle") pomo = { ...pomo, start: now() - pomo.duration - 1 };
+  },
+};

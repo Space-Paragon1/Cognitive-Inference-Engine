@@ -169,3 +169,13 @@ export function BreathingDisc({ size = 160 }: { size?: number }) {
     </div>
   );
 }
+
+/** The "why this length" line on its own (the idle Pomodoro setup). */
+export function WhyLine({ children }: { children: ReactNode }) {
+  return (
+    <div className={[styles.why, styles.whyWide].join(" ")}>
+      <Info size={18} aria-hidden="true" />
+      <span>{children}</span>
+    </div>
+  );
+}

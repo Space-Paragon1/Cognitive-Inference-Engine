@@ -42,6 +42,9 @@ interface TimerApi {
   paused: boolean;
   /** Minutes added locally with "Add 10 min" (the engine restarts the session). */
   focusAdded: number;
+  /** Seconds since focus mode started, and its full length including added time. */
+  focusElapsed: number;
+  focusTotal: number;
   error: boolean;
   startPomodoro: () => Promise<void>;
   stopPomodoro: () => Promise<void>;
@@ -51,6 +54,8 @@ interface TimerApi {
   startFocus: (minutes: number, blockTabs: boolean) => Promise<void>;
   stopFocus: () => Promise<void>;
   addFocusMinutes: (minutes: number) => Promise<void>;
+  /** Turn tab blocking on or off mid-session (restarts focus with the time left). */
+  setFocusBlocking: (on: boolean) => Promise<void>;
   onPhaseChange: (fn: (c: PhaseChange) => void) => () => void;
 }
 
@@ -90,6 +95,8 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [loadAtStart, setLoadAtStart] = useState<number | null>(null);
   const [confidenceAtStart, setConfidenceAtStart] = useState(1);
   const [focusAdded, setFocusAdded] = useState(0);
+  // When this focus session really started (ms) and its full length (s), across "Add 10 min" restarts.
+  const origin = useRef<{ at: number; total: number } | null>(null);
   const [error, setError] = useState(false);
   const listeners = useRef(new Set<(c: PhaseChange) => void>());
   const prevPhase = useRef<PomodoroPhase | null>(null);
@@ -101,7 +108,12 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       setFocus(f);
       setPolledAt(Date.now());
       setError(false);
-      if (!f.active) setFocusAdded(0);
+      if (!f.active) {
+        setFocusAdded(0);
+        origin.current = null;
+      } else if (!origin.current) {
+        origin.current = { at: Date.now() - f.elapsed_minutes * 60000, total: f.duration_minutes * 60 };
+      }
     } catch {
       setError(true);
     }
@@ -142,6 +154,8 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const focusRemaining = focus?.active
     ? Math.max(0, (focus.duration_minutes - focus.elapsed_minutes) * 60 - elapsed)
     : 0;
+  const focusTotal = focus?.active ? origin.current?.total ?? focus.duration_minutes * 60 : 0;
+  const focusElapsed = focus?.active ? Math.max(0, focusTotal - focusRemaining) : 0;
 
   const startPomodoro = useCallback(async () => {
     haptic("light");
@@ -169,11 +183,16 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setPausedRemaining(null);
   }, []);
 
-  // TODO(backend): no skip endpoint either. Skip stops the current phase.
+  // During a break, "start" begins the next focus phase and keeps the count, so
+  // skipping a break is fully backed. TODO(backend): there is no way to end a
+  // focus phase early and go to its break, so skipping focus stops the Pomodoro.
   const skip = useCallback(async () => {
-    await apiStopPomodoro();
+    const phase = pomodoro?.phase;
+    if (phase === "short_break" || phase === "long_break") await apiStartPomodoro();
+    else await apiStopPomodoro();
+    setPaused(false);
     await refresh();
-  }, [refresh]);
+  }, [pomodoro?.phase, refresh]);
 
   const startFocus = useCallback(
     async (minutes: number, blockTabs: boolean) => {
@@ -181,6 +200,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       setFocusAdded(0);
       rememberFocusChoice(minutes, blockTabs);
       await apiStartFocus(minutes, blockTabs);
+      origin.current = { at: Date.now(), total: minutes * 60 };
       await refresh();
     },
     [refresh]
@@ -198,8 +218,23 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     async (minutes: number) => {
       if (!focus?.active) return;
       const left = Math.max(1, Math.ceil(focusRemaining / 60));
+      const keep = origin.current;
       await apiStartFocus(left + minutes, focus.block_tabs);
+      origin.current = keep ? { at: keep.at, total: keep.total + minutes * 60 } : null;
       setFocusAdded((a) => a + minutes);
+      await refresh();
+    },
+    [focus, focusRemaining, refresh]
+  );
+
+  const setFocusBlocking = useCallback(
+    async (on: boolean) => {
+      if (!focus?.active) return;
+      const left = Math.max(1, Math.ceil(focusRemaining / 60));
+      const keep = origin.current;
+      rememberFocusChoice(lastFocusChoice().minutes, on);
+      await apiStartFocus(left, on);
+      origin.current = keep;
       await refresh();
     },
     [focus, focusRemaining, refresh]
@@ -222,6 +257,8 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       confidenceAtStart,
       paused,
       focusAdded,
+      focusElapsed,
+      focusTotal,
       error,
       startPomodoro,
       stopPomodoro,
@@ -231,9 +268,10 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       startFocus,
       stopFocus,
       addFocusMinutes,
+      setFocusBlocking,
       onPhaseChange,
     }),
-    [pomodoro, focus, pomodoroRemaining, focusRemaining, loadAtStart, confidenceAtStart, paused, focusAdded, error, startPomodoro, stopPomodoro, pause, resume, skip, startFocus, stopFocus, addFocusMinutes, onPhaseChange]
+    [pomodoro, focus, pomodoroRemaining, focusRemaining, loadAtStart, confidenceAtStart, paused, focusAdded, focusElapsed, focusTotal, error, startPomodoro, stopPomodoro, pause, resume, skip, startFocus, stopFocus, addFocusMinutes, setFocusBlocking, onPhaseChange]
   );
   return <TimerContext.Provider value={api}>{children}</TimerContext.Provider>;
 }
@@ -260,7 +298,7 @@ export function useRunningTimer() {
     return {
       phase: "focus_mode" as const,
       remainingSeconds: t.focusRemaining,
-      totalSeconds: t.focus.duration_minutes * 60,
+      totalSeconds: t.focusTotal,
       paused: false,
       toggle: undefined,
     };

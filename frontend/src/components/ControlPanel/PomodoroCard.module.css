@@ -1,0 +1,30 @@
+.accent {
+  color: var(--accent);
+}
+.setup {
+  display: grid;
+  gap: 16px;
+}
+.suggested {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+.big {
+  font-size: 48px;
+  line-height: 52px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.muted {
+  color: var(--ink-muted);
+}
+.running {
+  padding: 28px;
+}
+.center {
+  display: grid;
+  justify-items: center;
+}

@@ -5,7 +5,7 @@ import { useDirectives } from "../../live/DirectivesState";
 import { useGaugeState, useSources } from "../../live/LiveState";
 import { usePrefs } from "../../live/PrefsState";
 import { useTasks } from "../../live/TasksState";
-import { useRunningTimer } from "../../live/TimerState";
+import { useRunningTimer, useTimer } from "../../live/TimerState";
 import { useDirectiveCards } from "../../live/useDirectiveCards";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { mobileTab, navigate, parentRoute } from "../../lib/router";
@@ -38,6 +38,9 @@ export function AppShell({ route, children }: Props) {
   const [bellOpen, setBellOpen] = useState(false);
   const { unseen, markSeen } = useDirectives();
   const timer = useRunningTimer();
+  const { pomodoro } = useTimer();
+  // A break on the Focus screen takes over the whole canvas: no sidebar or tab bar.
+  const immersive = route === "focus" && (pomodoro?.phase === "short_break" || pomodoro?.phase === "long_break");
   const showMini = mobile && timer != null && route !== "focus";
 
   const parent = parentRoute(route, mobile);
@@ -60,7 +63,7 @@ export function AppShell({ route, children }: Props) {
         <a className={styles.skip} href="#main">
           Skip to content
         </a>
-        {!mobile && <ShellSidebar route={route} collapsed={layout === "rail"} />}
+        {!mobile && !immersive && <ShellSidebar route={route} collapsed={layout === "rail"} />}
         <div className={styles.main}>{children}</div>
         {showMini && timer && (
           <div className={styles.mini}>
@@ -74,7 +77,7 @@ export function AppShell({ route, children }: Props) {
             />
           </div>
         )}
-        {mobile && <TabBar active={mobileTab(route)} onNavigate={(r) => navigate(r)} />}
+        {mobile && !immersive && <TabBar active={mobileTab(route)} onNavigate={(r) => navigate(r)} />}
       </div>
       {mobile && <NotificationsSheet open={bellOpen} onClose={() => setBellOpen(false)} />}
     </ShellContext.Provider>
