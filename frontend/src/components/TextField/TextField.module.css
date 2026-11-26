@@ -1,0 +1,129 @@
+/* Ported from .clr-field, .clr-input and .clr-strength in design/components/bundle.css */
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.labelRow {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+.labelRow :is(a, button) {
+  font-size: 13px;
+}
+.wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.lead {
+  position: absolute;
+  left: 14px;
+  color: var(--ink-subtle);
+  pointer-events: none;
+}
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+}
+.input::placeholder {
+  color: var(--ink-subtle);
+}
+.input:hover {
+  border-color: var(--ink-subtle);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 0 4px var(--accent-soft);
+}
+.hasLead {
+  padding-left: 42px;
+}
+.hasTrail {
+  padding-right: 48px;
+}
+.textarea {
+  height: auto;
+  min-height: 88px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 22px;
+}
+.trail {
+  position: absolute;
+  right: 2px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--ink-subtle);
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+}
+.trail:hover {
+  color: var(--ink);
+}
+.help {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-subtle);
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.help > svg {
+  margin-top: 2px;
+}
+.error .input {
+  border-color: var(--critical);
+}
+.error .input:focus {
+  box-shadow:
+    0 0 0 1px var(--critical),
+    0 0 0 4px var(--critical-soft);
+}
+.error .help {
+  color: var(--critical);
+}
+.valid .help {
+  color: var(--positive);
+}
+.strength {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.strength span {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-sunken);
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+.strength .on {
+  background: var(--positive);
+}
+@media (max-width: 767px) {
+  .input {
+    font-size: 16px;
+  }
+}
