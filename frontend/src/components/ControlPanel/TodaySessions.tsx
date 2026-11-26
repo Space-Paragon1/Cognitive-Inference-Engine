@@ -1,16 +1,14 @@
-import { CircleAlert, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getSessions } from "../../api/client";
 import { startOfToday } from "../../live/useToday";
 import { asContext } from "../../lib/domain";
 import { clock, minutes } from "../../lib/format";
 import type { SessionSummary } from "../../types";
-import { Button } from "../Button";
 import { Card } from "../Card";
 import { ContextPill } from "../ContextPill";
-import { EmptyState } from "../EmptyState";
 import { SkeletonLines, SkeletonRegion } from "../Skeleton";
 import styles from "./TodaySessions.module.css";
+import { LoadError } from "../LoadError";
 
 /** Today's sessions table under the timers. */
 export function TodaySessions() {
@@ -33,18 +31,7 @@ export function TodaySessions() {
   return (
     <Card title="Today’s sessions" titleId="sessions-title" meta={rows?.length ? <span className={styles.num}>{rows.length} · {minutes(total)}</span> : undefined}>
       {error && !rows ? (
-        <EmptyState
-          compact
-          icon={CircleAlert}
-          tone="critical"
-          title="Couldn't load today's sessions"
-          body="Your data is safe. Try again in a moment."
-          actions={
-            <Button variant="secondary" size="sm" icon={RefreshCw} onClick={load}>
-              Try again
-            </Button>
-          }
-        />
+        <LoadError compact title="Couldn't load today's sessions" body="Your data is safe. Try again in a moment." offlineWhat="Today's sessions load" onRetry={load} />
       ) : (
         <SkeletonRegion loading={rows == null} label="Loading sessions" fallback={<SkeletonLines count={3} height={18} />}>
           {rows && rows.length === 0 ? (

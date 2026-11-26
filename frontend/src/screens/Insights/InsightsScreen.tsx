@@ -2,7 +2,7 @@
    mix, the weekly reflection, day by day and the best hours (handoff.md:
    KPI 3 × 4 | Daily 4 · Mix 4 · Reflection 4 | Table 7 · Heatmap 5). */
 import { useMemo, useState } from "react";
-import { Activity, CalendarDays, ChevronLeft, ChevronRight, Gauge, History as HistoryIcon, RefreshCw, Target, Timer } from "lucide-react";
+import { Activity, CalendarDays, ChevronLeft, ChevronRight, Gauge, History as HistoryIcon, Target, Timer } from "lucide-react";
 import { hasData, useLive } from "../../live/LiveState";
 import { useSettings } from "../../live/SettingsState";
 import { useWeek } from "../../live/useWeek";
@@ -21,6 +21,7 @@ import { CHART_HEIGHT } from "../../components/ChartStyle";
 import { Cell, ConnectionBanner, Grid, Page, useShell } from "../../components/Shell";
 import { InsightsSwitch } from "../History/InsightsSwitch";
 import styles from "./InsightsScreen.module.css";
+import { LoadError } from "../../components/LoadError";
 
 function tiles(k: Kpis | null, days: DayRow[], bestHours: string | null, th: { high: number; fatigue: number }, thisWeek: boolean, compact: boolean): StatTileProps[] {
   const empty = !k || !days.some((d) => d.sessions);
@@ -117,16 +118,11 @@ export function InsightsScreen() {
   } else if (week.error || !view) {
     body = (
       <Card>
-        <EmptyState
-          tone="critical"
-          icon={RefreshCw}
+        <LoadError
           title="Something went wrong on our side"
           body="Your data is safe. We could not load your insights just now."
-          actions={
-            <Button variant="secondary" onClick={week.retry}>
-              Try again
-            </Button>
-          }
+          offlineWhat="Your insights load"
+          onRetry={week.retry}
         />
       </Card>
     );

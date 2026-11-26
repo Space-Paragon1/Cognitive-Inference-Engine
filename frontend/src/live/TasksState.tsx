@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from "react";
 import { addTask, getTasks, removeTask } from "../api/client";
 import type { Task } from "../types";
+import { useAuth } from "../auth/AuthContext";
 
 type Op = { kind: "add"; task: Task } | { kind: "remove"; id: string };
 
@@ -56,6 +57,30 @@ function writeDone(tasks: Task[]) {
 }
 const POLL_MS = 5000;
 
+/* The last list and any edits not yet sent stay on this device, so the list opens
+   offline and queued edits survive a restart. Cleared on sign out (AuthContext). */
+export const TASKS_CACHE_PREFIX = "clr_tasks_";
+const cacheKey = (user: number | undefined) => `${TASKS_CACHE_PREFIX}${user ?? "anon"}`;
+interface TaskCache {
+  tasks: Task[];
+  ops: Op[];
+  recommended: number | null;
+}
+function readCache(user: number | undefined): TaskCache | null {
+  try {
+    return JSON.parse(localStorage.getItem(cacheKey(user)) ?? "null") as TaskCache | null;
+  } catch {
+    return null;
+  }
+}
+function writeCache(user: number | undefined, c: TaskCache) {
+  try {
+    localStorage.setItem(cacheKey(user), JSON.stringify(c));
+  } catch {
+    /* storage blocked or full: the list still works for this visit */
+  }
+}
+
 function newId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
@@ -75,11 +100,13 @@ function applyOps(server: Task[], ops: Op[]): Task[] {
 }
 
 export function TasksProvider({ children }: { children: ReactNode }) {
-  const [server, setServer] = useState<Task[]>([]);
-  const [recommendedMinutes, setRecommended] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const userId = useAuth().user?.id;
+  const [cache] = useState(() => readCache(userId));
+  const [server, setServer] = useState<Task[]>(cache?.tasks ?? []);
+  const [recommendedMinutes, setRecommended] = useState<number | null>(cache?.recommended ?? null);
+  const [loading, setLoading] = useState(cache == null);
   const [loadError, setLoadError] = useState(false);
-  const [ops, setOps] = useState<Op[]>([]);
+  const [ops, setOps] = useState<Op[]>(cache?.ops ?? []);
   const [saveError, setSaveError] = useState(false);
   const [doneToday, setDoneToday] = useState<Task[]>(readDone);
   const opsRef = useRef<Op[]>([]);
@@ -123,7 +150,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   }, [reload]);
 
   useEffect(() => {
-    reload();
+    if (opsRef.current.length) flush();
+    else reload();
     const poll = window.setInterval(() => {
       if (!opsRef.current.length) reload();
     }, POLL_MS);
@@ -143,6 +171,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     },
     [flush]
   );
+
+  useEffect(() => {
+    if (!loading) writeCache(userId, { tasks: server, ops, recommended: recommendedMinutes });
+  }, [userId, server, ops, recommendedMinutes, loading]);
 
   const tasks = useMemo(() => applyOps(server, ops), [server, ops]);
   const tasksRef = useRef(tasks);

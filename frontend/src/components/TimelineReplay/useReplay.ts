@@ -6,9 +6,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PlaybackControlsProps, PlaybackSpeed } from "../../types/ui";
 import { tickAt } from "../../lib/history";
 import type { ReplayTick } from "../../lib/history";
+import { onAccountReset } from "../../lib/accountReset";
 
 const SPEED_KEY = "clr_replay_speed";
 const remembered = new Map<number, number>();
+onAccountReset(() => remembered.clear());
 
 /** Put the playhead of `session` at unix time `t` before its replay opens. */
 export function rememberReplayTime(session: number, t: number) {

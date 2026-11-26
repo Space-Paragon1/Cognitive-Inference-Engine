@@ -1,17 +1,17 @@
 /* Recent sessions: date and start, length, average load and the dominant context as
    a mini ring. On desktop a row selects the replay; on phones it opens the session. */
 import { useState } from "react";
-import { ChevronRight, History as HistoryIcon, RefreshCw } from "lucide-react";
+import { ChevronRight, History as HistoryIcon } from "lucide-react";
 import type { SessionSummary } from "../../types";
 import { asContext, CTX } from "../../lib/domain";
 import { clock, minutes, pct } from "../../lib/format";
 import { dayLabel, isRunning } from "../../lib/history";
-import { Button } from "../Button";
 import { Card } from "../Card";
 import { EmptyState } from "../EmptyState";
 import { LoadGauge } from "../LoadGauge";
 import { SkeletonRow } from "../Skeleton";
 import styles from "./SessionList.module.css";
+import { LoadError } from "../LoadError";
 
 interface Props {
   sessions: SessionSummary[] | null;
@@ -48,18 +48,7 @@ export function SessionList({ sessions, loading, error, onRetry, selected, onSel
   if (error && !sessions) {
     return (
       <Card title={title} meta={meta} titleId="sessions-title">
-        <EmptyState
-          compact
-          tone="critical"
-          icon={RefreshCw}
-          title="Couldn't load your sessions"
-          body="Your data is safe. Try again in a moment."
-          actions={
-            <Button variant="secondary" size="sm" onClick={onRetry}>
-              Try again
-            </Button>
-          }
-        />
+        <LoadError compact title="Couldn't load your sessions" body="Your data is safe. Try again in a moment." offlineWhat="Your sessions load" onRetry={onRetry} />
       </Card>
     );
   }

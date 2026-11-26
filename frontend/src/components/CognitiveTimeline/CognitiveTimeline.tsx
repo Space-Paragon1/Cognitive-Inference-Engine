@@ -2,7 +2,7 @@
    Segments take their context's colour, low-confidence stretches are dashed, and a
    soft fill in the current context sits under the line. It pauses with the socket. */
 import { useMemo } from "react";
-import { Activity } from "lucide-react";
+import { Activity, WifiOff } from "lucide-react";
 import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { TooltipProps } from "recharts";
 import { hasData, shallowEqual, useLive } from "../../live/LiveState";
@@ -54,6 +54,20 @@ export function CognitiveTimeline({ height = "md", titleId = "live-chart-title" 
   }
 
   if (!chart || (noData && points.length < 2)) {
+    // Not connected to the engine is not the same as no source sending.
+    if (paused) {
+      return (
+        <Card title="Live · last 5 min" titleId={titleId} meta={meta}>
+          <EmptyState
+            compact
+            tone="neutral"
+            icon={status === "offline" ? WifiOff : Activity}
+            title="Live load is paused"
+            body={status === "offline" ? "The chart picks up when you are back online." : "The chart picks up as soon as CLR reconnects."}
+          />
+        </Card>
+      );
+    }
     return (
       <Card title="Live · last 5 min" titleId={titleId} meta={meta}>
         <EmptyState

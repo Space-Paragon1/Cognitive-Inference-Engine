@@ -2,11 +2,10 @@
    the transport, and the session's numbers. The screen owns the replay state so the
    event log below can follow the playhead. */
 import { useId } from "react";
-import { History as HistoryIcon, RefreshCw } from "lucide-react";
+import { History as HistoryIcon } from "lucide-react";
 import type { SessionSummary } from "../../types";
 import { asContext, CTX } from "../../lib/domain";
 import type { ReplayTick } from "../../lib/history";
-import { Button } from "../Button";
 import { Card } from "../Card";
 import { ContextPill } from "../ContextPill";
 import { EmptyState } from "../EmptyState";
@@ -18,6 +17,7 @@ import { SessionPicker } from "./SessionPicker";
 import { SessionStats } from "./SessionStats";
 import type { Replay } from "./useReplay";
 import styles from "./TimelineReplay.module.css";
+import { LoadError } from "../LoadError";
 
 interface Props {
   sessions: SessionSummary[];
@@ -36,16 +36,11 @@ interface Props {
 export function ReplayError({ onRetry, title = "Timeline replay" }: { onRetry: () => void; title?: string }) {
   return (
     <Card title={title} titleId="replay-title">
-      <EmptyState
-        tone="critical"
-        icon={RefreshCw}
+      <LoadError
         title="Something went wrong on our side"
         body="Your data is safe. We could not load your history just now."
-        actions={
-          <Button variant="secondary" onClick={onRetry}>
-            Try again
-          </Button>
-        }
+        offlineWhat="This session loads"
+        onRetry={onRetry}
       />
     </Card>
   );

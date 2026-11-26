@@ -3,12 +3,10 @@
    as their own pages (#/settings/privacy, #/settings/sources). */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ChevronRight, Lock, RefreshCw } from "lucide-react";
+import { ChevronRight, Lock } from "lucide-react";
 import { useSettings } from "../../live/SettingsState";
 import { navigate } from "../../lib/router";
-import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
-import { EmptyState } from "../../components/EmptyState";
 import { SkeletonRow } from "../../components/Skeleton";
 import { Cell, ConnectionBanner, Grid, Page, useShell } from "../../components/Shell";
 import {
@@ -26,6 +24,7 @@ import {
 } from "../../components/Settings";
 import type { SectionId } from "../../components/Settings";
 import styles from "./SettingsScreen.module.css";
+import { LoadError } from "../../components/LoadError";
 
 const OFFLINE = "Changes are kept on this device and save when you are back.";
 const isSection = (v: string | null): v is SectionId => SECTIONS.some((s) => s.id === v);
@@ -49,18 +48,7 @@ function EngineSections({ variant }: { variant: "card" | "group" }) {
   if (loadError && !settings) {
     return (
       <Card>
-        <EmptyState
-          compact
-          tone="critical"
-          icon={RefreshCw}
-          title="Couldn't load your settings"
-          body="Your settings are safe. Try again in a moment."
-          actions={
-            <Button variant="secondary" size="sm" onClick={reload}>
-              Try again
-            </Button>
-          }
-        />
+        <LoadError compact title="Couldn't load your settings" body="Your settings are safe. Try again in a moment." offlineWhat="Your settings load" onRetry={reload} />
       </Card>
     );
   }

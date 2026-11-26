@@ -87,7 +87,7 @@ export function thresholdProps(c: ChartColors, label: string, below = false) {
     strokeDasharray: "4 4",
     strokeWidth: 1,
     ifOverflow: "extendDomain" as const,
-    label: { value: label, position: below ? ("insideBottomRight" as const) : ("insideTopRight" as const), fill: c.inkSubtle, fontSize: 11, fontWeight: 500 },
+    label: { value: label, position: below ? ("insideTopRight" as const) : ("insideBottomRight" as const), fill: c.inkSubtle, fontSize: 11, fontWeight: 500 },
   };
 }
 

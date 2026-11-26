@@ -1,12 +1,11 @@
-import { CircleAlert, Gauge, History, RefreshCw, Timer } from "lucide-react";
+import { Gauge, History, Timer } from "lucide-react";
 import { useToday } from "../../live/useToday";
 import { clock, minutes, pctNum } from "../../lib/format";
-import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
-import { EmptyState } from "../../components/EmptyState";
 import { Skeleton, SkeletonRegion } from "../../components/Skeleton";
 import { ContextBar, StatTile } from "../../components/StatsCard/StatTile";
 import styles from "./TodayCard.module.css";
+import { LoadError } from "../../components/LoadError";
 
 /** Today at a glance: focus time, average load, sessions and the context mix. */
 export function TodayCard() {
@@ -17,19 +16,7 @@ export function TodayCard() {
   return (
     <Card title="Today at a glance" titleId="today-title" meta={meta}>
       {error && !today ? (
-        <EmptyState
-          compact
-          level={3}
-          icon={CircleAlert}
-          tone="critical"
-          title="Couldn't load today"
-          body="Your data is safe. Try again in a moment."
-          actions={
-            <Button variant="secondary" size="sm" icon={RefreshCw} onClick={retry}>
-              Try again
-            </Button>
-          }
-        />
+        <LoadError compact level={3} title="Couldn't load today" body="Your data is safe. Try again in a moment." offlineWhat="Today's numbers load" onRetry={retry} />
       ) : (
         <SkeletonRegion
           loading={loading}

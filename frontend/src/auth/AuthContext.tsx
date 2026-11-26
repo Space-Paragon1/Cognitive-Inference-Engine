@@ -9,6 +9,7 @@ import {
   setAuthToken,
 } from "../api/client";
 import type { AuthUser } from "../types";
+import { resetAccount } from "../lib/accountReset";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -61,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     clearAuthToken();
+    resetAccount();
     setUser(null);
   };
 

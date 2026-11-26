@@ -269,7 +269,7 @@ function StepNotify() {
       <div className={styles.toggles}>
         <Toggle row label="Break prompts" description="When a Pomodoro ends." checked={alerts.breaks} onChange={(v) => setAlerts({ breaks: v })} />
         <Toggle row label="Context changes" description="Entering deep focus, or getting stuck." checked={alerts.context} onChange={(v) => setAlerts({ context: v })} />
-        <Toggle row label="Overload warnings" description="When load stays above your fatigue line." checked={alerts.overload} onChange={(v) => setAlerts({ overload: v })} />
+        <Toggle row label="Overload warnings" description="When load stays above your fatigue line. At most every 5 min." checked={alerts.overload} onChange={(v) => setAlerts({ overload: v })} />
       </div>
     </div>
   );

@@ -25,7 +25,9 @@ export function NowScreen() {
   const { layout } = useShell();
   const mobile = layout === "mobile";
   const g = useGaugeState();
-  const noData = g.load == null && !g.loading;
+  // Without a connection CLR can't tell whether a source is sending, so the
+  // "connect a source" hero waits for the engine; offline shows the paused gauge.
+  const noData = g.load == null && !g.loading && g.status === "live";
   const { today } = useToday();
   const [allOpen, setAllOpen] = useState(false);
 
@@ -133,12 +135,19 @@ function AllDirectives() {
   return <DirectivesFeed directives={cards} bare limit={50} />;
 }
 
+/** No reading at all while the engine is out of reach: say so instead of "warming up". */
+function pausedText(g: { load: number | null; status: string }): string | null {
+  if (g.load != null || g.status === "live") return null;
+  return g.status === "offline" ? "Live load is paused while you are offline. Timers and tasks still work." : "Waiting for CLR to reconnect. Timers and tasks still work.";
+}
+
 /** Desktop hero: the 280px gauge, the context, its blurb, confidence and the breakdown. */
 function Hero({ size }: { size: number }) {
   const g = useGaugeState();
   const { thresholds } = useSettings();
   const ctx = CTX[g.context];
-  const Icon = ctx.icon;
+  const paused = pausedText(g);
+  const Icon = paused ? WifiOff : ctx.icon;
   return (
     <section className={styles.hero} data-ctx={g.context} aria-labelledby="hero-ctx">
       <LoadGauge
@@ -155,10 +164,10 @@ function Hero({ size }: { size: number }) {
           <p className={styles.overline}>Right now</p>
           <h2 id="hero-ctx" className={styles.ctxName}>
             <Icon size={24} aria-hidden="true" />
-            {ctx.label}
+            {paused ? "Live load paused" : ctx.label}
           </h2>
-          <p className={styles.blurb}>{ctx.blurb}</p>
-          <Confidence value={g.confidence} />
+          <p className={styles.blurb}>{paused ?? ctx.blurb}</p>
+          {!paused && <Confidence value={g.confidence} />}
         </div>
         <hr className={styles.divider} />
         <LiveBreakdown />
@@ -184,8 +193,8 @@ function MobileHero() {
         status={g.status}
         lastReadingAt={g.lastReadingAt}
       />
-      <p className={styles.mobileBlurb}>{ctx.blurb}</p>
-      <Confidence value={g.confidence} />
+      <p className={styles.mobileBlurb}>{pausedText(g) ?? ctx.blurb}</p>
+      {!pausedText(g) && <Confidence value={g.confidence} />}
       <ConnectionStatus status={g.status} sources={sources} lastSeenSeconds={seen} kinds={["browser", "vscode", "lms"]} />
     </section>
   );

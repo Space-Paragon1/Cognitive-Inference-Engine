@@ -61,12 +61,12 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Alerts (toasts, overload notification, haptics)
 
 ### 6. States pass
-- [ ] Now
-- [ ] Focus
-- [ ] Tasks
-- [ ] History
-- [ ] Insights
-- [ ] Settings
+- [x] Now
+- [x] Focus
+- [x] Tasks
+- [x] History
+- [x] Insights
+- [x] Settings
 
 ### 7. Small surfaces
 - [ ] ExtensionPopup (live/focus off, focus on, not paired)
@@ -183,6 +183,14 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **System notifications** carry no action buttons; tapping one opens CLR. Android action buttons would need registered action types and handlers for when the app is closed.
 - **Haptics** stay as handoff.md lists them (light on timer start and pause, medium on phase end and when a rest ends, none on context changes or alerts), and respect the Vibrate setting.
 - **Old hooks removed**: `useNotifications`, `useCognitiveState` and `useTimeline` (replaced by the live store, `lib/notify.ts` and the History hooks).
+- **States pass: offline means "paused", not "broken".** A shared `LoadError` shows a neutral "You are offline." with what loads when you are back (and "Timers and tasks still work.") when the socket is offline, and the critical "Couldn't load" copy only when the engine is reachable but failing. Insights, Settings, Today at a glance, Today's sessions, the session list and replay all use it.
+- **Now with no reading while offline or reconnecting** keeps the gauge (caption "paused" instead of "no data yet"), titles the context "Live load paused", drops the confidence row and says timers and tasks still work. The "Connect a source" hero shows only when the engine is live and still has no reading, since offline CLR can't tell whether a source is sending.
+- **The live chart** shows a "Live load is paused" empty state when it has no points and the socket is down, instead of "Connect a source".
+- **Tasks are cached per account** (`clr_tasks_<userId>` in localStorage, with queued changes and the recommended id), so an offline cold start shows the last list and flushes queued changes when it can. With nothing cached, offline shows "Your list loads when you are back online" and an engine failure shows "Couldn't load your tasks" with Try again.
+- **Signing out clears this device's account data**: the in-memory History, week and replay caches and the stored task cache, done-task undo list, rest timer and onboarding step (`lib/accountReset.ts`), so the next account starts clean.
+- **Focus's "Couldn't reach the timer" banner** hides while offline, where the offline banner already explains it.
+- **Overload toggle copy** reads the live fatigue line ("When load stays above 85%. At most every 5 min.") so it matches the alert.
+- **Chart threshold labels** sit outside the band between the two lines (High below its line, Fatigue above), so they no longer collide on phone-height charts.
 
 ## Needs backend
 

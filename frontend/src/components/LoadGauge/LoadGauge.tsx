@@ -129,7 +129,7 @@ function HeroGauge({
               <div className={styles.num}>
                 <span>–</span>
               </div>
-              <div className={styles.cap}>no data yet</div>
+              <div className={styles.cap}>{status === "offline" || status === "reconnecting" ? "paused" : "no data yet"}</div>
             </>
           ) : (
             <>

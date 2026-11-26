@@ -1,4 +1,4 @@
-import { useGaugeState } from "../../live/LiveState";
+import { useGaugeState, useLive } from "../../live/LiveState";
 import { usePrefs } from "../../live/PrefsState";
 import { useTimer } from "../../live/TimerState";
 import { BreakScreen, FocusModeCard, PomodoroCard, TodaySessions, isBreak } from "../../components/ControlPanel";
@@ -15,6 +15,7 @@ export function FocusScreen() {
   const t = useTimer();
   const g = useGaugeState();
   const { dnd } = usePrefs();
+  const offline = useLive((s) => s.status === "offline");
 
   if ((t.pomodoro && isBreak(t.pomodoro.phase)) || t.rest) return <BreakScreen mobile={mobile} />;
 
@@ -25,7 +26,8 @@ export function FocusScreen() {
         offlineBody="Your timer keeps running here. Changes reach the engine when you are back."
         reconnectingBody="Your timer keeps running. Live load will catch up."
       />
-      {t.error && !t.pomodoro && (
+      {/* Offline already says why; this is for an engine that is up but failing. */}
+      {t.error && !t.pomodoro && !offline && (
         <Banner tone="critical" title="Couldn't reach the timer." body="Check your connection. Starting a session will retry." />
       )}
     </>

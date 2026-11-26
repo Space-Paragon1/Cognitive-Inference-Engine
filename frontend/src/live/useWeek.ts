@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getDailyStats, getSessions } from "../api/client";
 import type { DailyStats, SessionSummary } from "../types";
 import { addDays, weekStart } from "../lib/insights";
+import { onAccountReset } from "../lib/accountReset";
 
 export interface WeekData {
   stats: DailyStats[];
@@ -15,6 +16,7 @@ export interface WeekData {
 }
 
 const cache = new Map<number, WeekData>();
+onAccountReset(() => cache.clear());
 
 export function useWeek(offset: number) {
   const start = weekStart(offset);

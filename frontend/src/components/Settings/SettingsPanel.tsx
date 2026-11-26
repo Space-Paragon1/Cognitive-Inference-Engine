@@ -183,7 +183,7 @@ export function NotificationSection({ variant }: { variant: Variant }) {
       <div className={styles.rows}>
         <Toggle row label="Break prompts" description="When a Pomodoro ends." checked={alerts.breaks} onChange={(v) => setAlerts({ breaks: v })} />
         <Toggle row label="Context changes" description="Deep focus, stuck, recovering." checked={alerts.context} onChange={(v) => setAlerts({ context: v })} />
-        <Toggle row label="Overload warnings" description={`Load above ${pct(thresholds.fatigue)} for 5 min.`} checked={alerts.overload} onChange={(v) => setAlerts({ overload: v })} />
+        <Toggle row label="Overload warnings" description={`When load stays above ${pct(thresholds.fatigue)}. At most every 5 min.`} checked={alerts.overload} onChange={(v) => setAlerts({ overload: v })} />
         <Toggle row label="Vibrate" description="Haptics on timer buttons and alerts." checked={vibrate} onChange={setVibrate} />
         {variant === "card" && (
           <div className={styles.themeRow}>

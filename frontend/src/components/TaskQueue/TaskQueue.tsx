@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
-import { ArrowUpDown, ChevronRight, CircleDashed, ListChecks, Mountain, Plus, Trash2 } from "lucide-react";
+import { ArrowUpDown, ChevronRight, CircleDashed, ListChecks, Mountain, Plus, RefreshCw, Trash2, WifiOff } from "lucide-react";
 import type { Task } from "../../types";
 import { useGaugeState } from "../../live/LiveState";
 import { useSettings } from "../../live/SettingsState";
+import { useLive } from "../../live/LiveState";
 import { useTasks } from "../../live/TasksState";
 import { useTimer } from "../../live/TimerState";
 import { useFlip } from "../../hooks/useFlip";
@@ -41,7 +42,8 @@ interface Props {
 
 /** The queue, reordered for the current load (throttled, FLIP-animated), with done today. */
 export function TaskQueue({ onAdd, bare = false, onWhy }: Props) {
-  const { tasks, loading, complete, restore, remove, doneToday } = useTasks();
+  const { tasks, loading, loadError, reload, complete, restore, remove, doneToday } = useTasks();
+  const offline = useLive((s) => s.status === "offline");
   const g = useGaugeState();
   const { thresholds } = useSettings();
   const timer = useTimer();
@@ -139,7 +141,34 @@ export function TaskQueue({ onAdd, bare = false, onWhy }: Props) {
         </div>
       }
     >
-      {ordered.length === 0 ? (
+      {ordered.length === 0 && loadError ? (
+        // The list couldn't load and nothing is cached: never claim it is empty.
+        offline ? (
+          <EmptyState
+            tone="neutral"
+            icon={WifiOff}
+            title="Your list loads when you are back online"
+            body="You can still add tasks. They are kept on this device and sync when you are back."
+            actions={
+              <Button icon={Plus} onClick={onAdd}>
+                Add a task
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            tone="critical"
+            icon={RefreshCw}
+            title="Couldn't load your tasks"
+            body="Your list is safe. Try again in a moment."
+            actions={
+              <Button variant="secondary" onClick={reload}>
+                Try again
+              </Button>
+            }
+          />
+        )
+      ) : ordered.length === 0 ? (
         <EmptyState
           icon={ListChecks}
           title="Nothing on your list"

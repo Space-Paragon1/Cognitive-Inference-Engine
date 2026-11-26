@@ -5,6 +5,7 @@ import { getSessions, getTimeline } from "../api/client";
 import type { SessionSummary, TimelineEntry } from "../types";
 import { toTicks } from "../lib/history";
 import type { ReplayTick } from "../lib/history";
+import { onAccountReset } from "../lib/accountReset";
 
 const DAYS = 14;
 const PAGE = 1000; // the engine's maximum page size
@@ -12,6 +13,10 @@ const MAX_PAGES = 30;
 
 let sessionCache: SessionSummary[] | null = null;
 const timelineCache = new Map<number, { entries: TimelineEntry[]; ticks: ReplayTick[]; at: number }>();
+onAccountReset(() => {
+  sessionCache = null;
+  timelineCache.clear();
+});
 
 /** Sessions from the last two weeks, newest first. Refreshed every minute. */
 export function useSessionList(refreshMs = 60000) {

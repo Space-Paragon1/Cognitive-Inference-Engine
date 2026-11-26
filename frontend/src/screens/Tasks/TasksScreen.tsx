@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useGaugeState } from "../../live/LiveState";
 import { useSettings } from "../../live/SettingsState";
 import { useTasks } from "../../live/TasksState";
@@ -17,7 +17,7 @@ export function TasksScreen() {
   const mobile = layout === "mobile";
   const g = useGaugeState();
   const { thresholds } = useSettings();
-  const { saveError, retry, queued, loadError, tasks, reload } = useTasks();
+  const { saveError, retry, queued } = useTasks();
   const formRef = useRef<AddTaskFormHandle>(null);
   const sheetFormRef = useRef<AddTaskFormHandle>(null);
   const [sheet, setSheet] = useState(false);
@@ -30,9 +30,6 @@ export function TasksScreen() {
     <>
       <ConnectionBanner offlineBody={`Edits are kept on this device and sync when you are back.${queued ? ` ${queued} waiting.` : ""}`} />
       {saveError && <Banner tone="critical" title="Couldn't save your task." body="Check your connection." action={{ label: "Retry", onClick: retry }} />}
-      {loadError && tasks.length === 0 && (
-        <Banner tone="critical" icon={RefreshCw} title="Couldn't load your tasks." body="Your list is safe. Try again in a moment." action={{ label: "Try again", onClick: reload }} />
-      )}
     </>
   );
 
