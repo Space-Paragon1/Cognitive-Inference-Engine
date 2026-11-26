@@ -1,0 +1,47 @@
+/* Ported from .clr-empty in design/components/bundle.css */
+.empty {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-10) var(--space-6);
+}
+.empty:not([data-ctx]):not([data-tone]) {
+  --c: var(--accent);
+  --c-soft: var(--accent-soft);
+}
+.compact {
+  padding: var(--space-5) var(--space-3);
+}
+.art {
+  width: 72px;
+  height: 72px;
+  margin-bottom: var(--space-2);
+  border-radius: 50%;
+  background: var(--c-soft);
+  color: var(--c);
+  display: grid;
+  place-items: center;
+}
+.compact .art {
+  width: 56px;
+  height: 56px;
+}
+.title {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.body {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-muted);
+  max-width: 340px;
+}
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+}

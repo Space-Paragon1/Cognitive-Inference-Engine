@@ -23,7 +23,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Skeleton
 - [x] Banner
 - [x] Toast
-- [ ] EmptyState
+- [x] EmptyState
 - [ ] BottomSheet
 
 ### 3. Live state and data
