@@ -60,11 +60,18 @@ export const shallowEqual = <T extends object>(a: T, b: T): boolean => {
   return ka.every((k) => Object.is(a[k], b[k]));
 };
 
-/** The common gauge slice: load (null before data), context, confidence, status. */
+/** False before the first reading, and while the engine has never heard from a source. */
+export function hasData(s: CognitiveState | null): s is CognitiveState {
+  if (!s) return false;
+  const noSources = s.sources != null && Object.keys(s.sources).length === 0;
+  return !(s.active === false && noSources);
+}
+
+/** The common gauge slice: load (null with no data yet), context, confidence, status. */
 export function useGaugeState() {
   return useLive(
     (s) => ({
-      load: s.state ? s.state.load_score : null,
+      load: hasData(s.state) ? s.state.load_score : null,
       context: s.state?.context ?? "unknown",
       confidence: s.state?.confidence ?? 0,
       status: s.status,

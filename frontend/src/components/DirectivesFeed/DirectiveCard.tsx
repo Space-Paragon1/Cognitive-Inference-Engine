@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { CircleCheck } from "lucide-react";
 import type { DirectiveCardProps, DirectivesFeedProps } from "../../types/ui";
 import { DIRECTIVES, toneAttrs } from "../../lib/domain";
@@ -56,6 +56,7 @@ export function DirectivesFeed({ directives, bare = false, limit = 4, onViewAll 
   const [items, setItems] = useState<Rendered[]>(directives);
   const list = useRef<HTMLUListElement>(null);
   const [announce, setAnnounce] = useState("");
+  const titleId = useId();
   const seen = useRef(new Set(directives.map((d) => d.type)));
 
   // Keep removed cards for one fade, then drop them.
@@ -107,9 +108,9 @@ export function DirectivesFeed({ directives, bare = false, limit = 4, onViewAll 
     );
 
   return (
-    <section className={bare ? undefined : styles.chrome} aria-labelledby="directives-title">
+    <section className={bare ? undefined : styles.chrome} aria-labelledby={titleId}>
       <div className={styles.head}>
-        <h3 id="directives-title" className={styles.cardTitle}>
+        <h3 id={titleId} className={styles.cardTitle}>
           What CLR is doing
         </h3>
         {active > 0 && <span className={styles.count}>{active} active</span>}

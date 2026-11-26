@@ -10,10 +10,19 @@ import "./mobile.css";
 import { AuthProvider } from "./auth/AuthContext";
 import App from "./App";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </React.StrictMode>
-);
+function boot() {
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </React.StrictMode>
+  );
+}
+
+// Dev-only mock engine (VITE_MOCK=1 npm run dev); dropped from production builds.
+if (import.meta.env.DEV && import.meta.env.VITE_MOCK === "1") {
+  import("./dev/mockEngine").then(boot);
+} else {
+  boot();
+}

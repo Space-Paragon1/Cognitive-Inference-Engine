@@ -59,3 +59,10 @@ export function weekday(isoDate: string): string {
   const [y, mo, d] = isoDate.split("-").map(Number);
   return new Date(y, mo - 1, d).toLocaleDateString("en-US", { weekday: "short" });
 }
+
+/** "Tuesday 25 November" */
+export function longDate(d = new Date()): string {
+  const day = d.toLocaleDateString("en-GB", { weekday: "long" });
+  const month = d.toLocaleDateString("en-GB", { month: "long" });
+  return `${day} ${d.getDate()} ${month}`;
+}

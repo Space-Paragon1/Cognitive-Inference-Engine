@@ -1,0 +1,37 @@
+/* Ported from .clr-card, .clr-card__head, .clr-card__title, .clr-card__meta in design/components/bundle.css */
+.card {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+.flush {
+  padding: 0;
+  overflow: hidden;
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  min-height: 28px;
+}
+.flush .head {
+  padding: var(--space-5) var(--space-5) 0;
+}
+.title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--text-title-3);
+}
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-subtle);
+}

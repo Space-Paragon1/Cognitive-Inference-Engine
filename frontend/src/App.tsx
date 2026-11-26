@@ -14,6 +14,7 @@ import { PrefsProvider } from "./live/PrefsState";
 import { SettingsProvider } from "./live/SettingsState";
 import { TasksProvider } from "./live/TasksState";
 import { TimerProvider } from "./live/TimerState";
+import { NowScreen } from "./screens/Now/NowScreen";
 import { Placeholder } from "./screens/Placeholder";
 import type { Route } from "./types/ui";
 import styles from "./App.module.css";
@@ -87,7 +88,7 @@ function SignedIn() {
 function Screen({ route }: { route: Route; sub: string | null }) {
   switch (route) {
     case "now":
-      return <Placeholder title="Now" />;
+      return <NowScreen />;
     case "focus":
       return <Placeholder title="Focus" />;
     case "tasks":

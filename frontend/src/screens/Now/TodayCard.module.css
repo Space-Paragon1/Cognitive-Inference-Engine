@@ -1,0 +1,11 @@
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.none {
+  margin: 0;
+  font: var(--text-body-sm);
+  color: var(--ink-subtle);
+}

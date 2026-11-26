@@ -49,7 +49,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Android back handling
 
 ### 5. Screens
-- [ ] Now
+- [x] Now
 - [ ] Focus
 - [ ] Tasks
 - [ ] History

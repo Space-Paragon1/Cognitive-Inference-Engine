@@ -51,8 +51,9 @@ export function DndButton() {
       disabled={dndBusy}
       aria-label="Do Not Disturb"
       onClick={async () => {
-        const ok = await setDnd(!dnd);
-        if (!ok) toast.show({ key: "dnd", title: "Couldn't change Do Not Disturb", body: "Check your connection and try again.", tone: "critical" });
+        const r = await setDnd(!dnd);
+        if (r === "failed") toast.show({ key: "dnd", title: "Couldn't change Do Not Disturb", body: "Check your connection and try again.", tone: "critical" });
+        else if (r === "app" && !dnd) toast.show({ key: "dnd", title: "Do Not Disturb is on", body: "CLR's alerts are paused. Your computer's own notifications weren't changed from here.", icon: BellOff });
       }}
     />
   );

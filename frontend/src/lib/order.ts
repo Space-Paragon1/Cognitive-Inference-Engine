@@ -51,3 +51,26 @@ export function whyLine(minutes: number, load: number | null, high: number, fati
   const rough = confidence < 0.5 ? " This is a rough estimate." : "";
   return `${minutes} min because your load is ${band} (${v}%).${rough}`;
 }
+
+/** The line under Up next: why this task comes first right now. */
+export function upNextWhy(load: number | null, high: number, confidence = 1): string {
+  if (load == null) return "Tasks still work without sources. They reorder once CLR can read your load.";
+  const v = `${Math.round(load * 100)}%`;
+  const rough = confidence < 0.5 ? " The order may shift as CLR learns how you work today." : "";
+  switch (orderRule(load, high)) {
+    case "high":
+      return `Easy and review work suits a high ${v}. Hard tasks wait until your load settles.${rough}`;
+    case "low":
+      return `Load is low (${v}), so hard work goes first while you are fresh.${rough}`;
+    default:
+      return `Medium work suits a steady ${v}. Hard tasks stay on deck for a lower-load window.${rough}`;
+  }
+}
+
+/** "Good morning" / "Good afternoon" / "Good evening". */
+export function greeting(d = new Date()): string {
+  const h = d.getHours();
+  if (h >= 5 && h < 12) return "Good morning";
+  if (h >= 12 && h < 17) return "Good afternoon";
+  return "Good evening";
+}

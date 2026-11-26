@@ -1,4 +1,6 @@
-/* Small per-device preferences: the theme and Do Not Disturb. */
+/* Small per-device preferences: the theme and Do Not Disturb.
+   Do Not Disturb always pauses CLR's own non-urgent alerts (context toasts and
+   notifications); the engine also silences the OS when it runs on this machine. */
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { setDnD as apiSetDnD } from "../api/client";
@@ -11,8 +13,9 @@ interface PrefsApi {
   toggleTheme: () => void;
   dnd: boolean;
   dndBusy: boolean;
-  /** Resolves false when the engine refused the change. */
-  setDnd: (on: boolean) => Promise<boolean>;
+  /** "os": the engine changed the computer's setting too; "app": only CLR's own alerts
+      are paused (a hosted engine can't reach the student's OS); "failed": nothing changed. */
+  setDnd: (on: boolean) => Promise<"os" | "app" | "failed">;
 }
 
 const THEME_KEY = "clr_theme";
@@ -52,16 +55,16 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
 
   const toggleTheme = useCallback(() => setTheme(theme === "dark" ? "light" : "dark"), [theme, setTheme]);
 
-  const setDnd = useCallback(async (on: boolean) => {
+  const setDnd = useCallback(async (on: boolean): Promise<"os" | "app" | "failed"> => {
     setDndBusy(true);
     setDndState(on);
     try {
-      await apiSetDnD(on);
+      const r = await apiSetDnD(on);
       write(DND_KEY, on ? "1" : "0");
-      return true;
+      return r.ok ? "os" : "app";
     } catch {
       setDndState(!on);
-      return false;
+      return "failed";
     } finally {
       setDndBusy(false);
     }
