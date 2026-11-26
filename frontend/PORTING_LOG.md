@@ -74,10 +74,10 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] VSCodeStatusBar
 
 ### 8. Final QA
-- [ ] Clean `npm run build`
-- [ ] Screens checked at 390 and 1440, both themes
-- [ ] Focus rings, 44px targets, gauge meter semantics, reduced motion
-- [ ] Old components and CSS removed
+- [x] Clean `npm run build`
+- [x] Screens checked at 390 and 1440, both themes
+- [x] Focus rings, 44px targets, gauge meter semantics, reduced motion
+- [x] Old components and CSS removed
 
 ## Decisions
 
@@ -205,6 +205,11 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **VS Code status bar data.** Live load comes from the engine WebSocket (`/state/ws`, which accepts the editor's device token) when VS Code's runtime has a global `WebSocket`, with the app's reconnect backoff (1, 2, 4, 8, 16, 30 s); older VS Code builds without one poll `GET /state` every 2 s instead. Either way the item renders at most every 2 s. No new dependency was added.
 - **VS Code states beyond the table**: "$(circle-large-outline) Warming up" with no number when the engine has no reading yet, "$(plug) Connect CLR" when the editor isn't paired, and "CLR offline" only after the engine has been unreachable for 5 s, so a blip keeps the last reading. A low-confidence reading gets "≈" before the number, like the app's load pill. A break shows "$(watch) 4:12 break".
 - **VS Code pairing prompt** now points to Settings → Connected sources, where the app shows pairing codes.
+- **History and Insights load on demand.** They carry all the charts, and Recharts was most of an 807 kB bundle (which also tripped Vite's 500 kB warning). The first screen now loads 345 kB; both chart screens are fetched in the background once the app is idle, so opening them stays instant. A spinner covers the first visit if they aren't there yet.
+- **Segmented control touch targets.** Options are 38px (30px small) to match the design, with an invisible extension to 44px, like the small icon buttons.
+- **Reduced motion** also turns off the button and quick-action press scale, the slider thumb grow and the done-tasks chevron turn. Colour fades stay, as handoff.md allows.
+- **No session dots on the break screen.** The design wants no numbers there but the countdown, and the overline already says "1 of 4 done". The dots also sat on the breathing disc's edge.
+- **Old StatsCard and DirectivesFeed files removed.** Their folders keep the handoff's names and now export the new `StatTile`/`ContextBar` and `DirectiveCard`/`DirectivesFeed` from an `index.ts`.
 
 ## Needs backend
 
@@ -231,3 +236,35 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Reset email address.** The reset form can't show which account it is for; the token lookup would need to return the email.
 - **Starting a break on demand.** "Take 5 minutes" runs a rest on this device (`// TODO(backend)` in `src/live/TimerState.tsx`); an endpoint would let the engine pause focus inference and the extensions show the break too.
 - **Choosing a break length per break.** The break prompt shows the length the engine picked; there is no way to take a long break early or a short one instead.
+
+## Verification
+
+Checked in the browser with the dev mock (`VITE_MOCK=1`):
+- Every screen at 390 and 1440, in dark and light, plus the tablet rail, against each `preview.html`.
+- The state matrix on every screen: loading, reconnecting, offline (including a cold start), no data yet, low confidence, error and empty lists.
+- Auth (sign in error, create, terms, forgot with resend countdown, expired reset link), onboarding, alerts (context toast, overload warning and the 5-minute rest, break sheet and toast), Android back order.
+- Keyboard focus rings, 44px touch targets on every phone screen (scripted audit), the gauge's `role="meter"` with `aria-valuenow` and `aria-valuetext`.
+- The extension popup (all states, both themes) and the blocked-tab overlay (focus, Esc, Tab cycling, keys kept from the page, a pass and its countdown bar, passes used up) in a harness that fakes `chrome.*` and the engine.
+- The VS Code status bar's text, background, tooltip and accessibility label for every state, run in Node against a stubbed `vscode` module and a fake WebSocket. `tsc` passes.
+
+Not verified:
+- On an Android device or emulator: haptics, system notifications, the hardware back button, safe-area insets and the keyboard covering inputs.
+- Reduced motion in a real browser setting (the CSS and the `usePrefersReducedMotion` paths were read, not toggled).
+- The extension loaded unpacked in Chrome against a real engine, and the status bar inside VS Code.
+- Against the real engine: everything above ran on the mock.
+
+## How to run and check
+
+Web:
+1. Engine: `python -m engine.main` from the repo root (see the root README for the virtualenv).
+2. App: `cd frontend && npm install && npm run dev`, then open http://localhost:5173.
+3. Without an engine: `VITE_MOCK=1 npm run dev`, then pick a scenario with `?mock=live|high|fatigue|stuck|low|lowconf|nodata|empty|reconnecting|offline|error` (add `&mockauth=out` for the sign-in page). In the console, `clrMock.finishPhase()` ends the current Pomodoro phase and `clrMock.band("stuck")` changes the context.
+
+Android:
+1. `cd frontend && npm run cap:android` (builds against the hosted engine, syncs, and opens Android Studio).
+2. Run on a device or emulator. Check haptics on timer start and phase end, the break notification with the app in the background, the back button (sheet, then sub-page, then Now, then exit) and the safe areas.
+
+Browser extension: in Chrome, `chrome://extensions` → Developer mode → Load unpacked → `plugins/browser-extension`. After changing `design/tokens.css`, run `node plugins/browser-extension/scripts/sync-design.mjs`.
+
+VS Code: `cd plugins/vscode-extension && npm install && npm run compile`, then press F5 in VS Code to start an Extension Development Host.
+

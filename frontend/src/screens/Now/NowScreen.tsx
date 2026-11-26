@@ -11,7 +11,7 @@ import { BottomSheet } from "../../components/BottomSheet";
 import { Breakdown } from "../../components/Breakdown";
 import { Card } from "../../components/Card";
 import { ConnectionStatus } from "../../components/ConnectionStatus";
-import { DirectivesFeed } from "../../components/DirectivesFeed/DirectiveCard";
+import { DirectivesFeed } from "../../components/DirectivesFeed";
 import { Confidence, LoadGauge } from "../../components/LoadGauge";
 import { Cell, ConnectionBanner, DndButton, Grid, Page, StartFocusButton, useShell } from "../../components/Shell";
 import { Skeleton, SkeletonLines, SkeletonRegion, SkeletonRow } from "../../components/Skeleton";

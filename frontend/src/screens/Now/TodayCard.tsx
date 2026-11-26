@@ -3,7 +3,7 @@ import { useToday } from "../../live/useToday";
 import { clock, minutes, pctNum } from "../../lib/format";
 import { Card } from "../../components/Card";
 import { Skeleton, SkeletonRegion } from "../../components/Skeleton";
-import { ContextBar, StatTile } from "../../components/StatsCard/StatTile";
+import { ContextBar, StatTile } from "../../components/StatsCard";
 import styles from "./TodayCard.module.css";
 import { LoadError } from "../../components/LoadError";
 

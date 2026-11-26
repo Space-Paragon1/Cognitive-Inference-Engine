@@ -32,6 +32,19 @@
 .option:hover {
   color: var(--ink);
 }
+/* Touch targets: the 38px option (30px small) plus the track's padding and an
+   invisible extension reach 44px without changing the look. */
+.option {
+  position: relative;
+}
+.option::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+.sm .option::after {
+  inset: -7px 0;
+}
 .option[aria-checked="true"] {
   background: var(--surface-raised);
   color: var(--ink);

@@ -134,3 +134,10 @@
 .hidden {
   visibility: hidden;
 }
+
+/* Colour changes stay; the press scale goes. */
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: none;
+  }
+}

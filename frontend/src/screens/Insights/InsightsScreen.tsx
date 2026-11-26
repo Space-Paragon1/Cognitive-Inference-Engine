@@ -16,7 +16,7 @@ import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { EmptyState } from "../../components/EmptyState";
 import { Skeleton } from "../../components/Skeleton";
-import { StatTile } from "../../components/StatsCard/StatTile";
+import { StatTile } from "../../components/StatsCard";
 import { CHART_HEIGHT } from "../../components/ChartStyle";
 import { Cell, ConnectionBanner, Grid, Page, useShell } from "../../components/Shell";
 import { InsightsSwitch } from "../History/InsightsSwitch";

@@ -92,3 +92,9 @@ button.row:active {
 .tile:disabled {
   opacity: 0.4;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  button.row:active {
+    transform: none;
+  }
+}

@@ -4,7 +4,7 @@ import type { SessionSummary } from "../../types";
 import { clock, pctNum } from "../../lib/format";
 import { WHILE } from "../../lib/history";
 import type { ReplayTick } from "../../lib/history";
-import { StatTile } from "../StatsCard/StatTile";
+import { StatTile } from "../StatsCard";
 import styles from "./SessionStats.module.css";
 
 interface Props {

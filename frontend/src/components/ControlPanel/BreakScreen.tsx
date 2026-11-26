@@ -50,7 +50,7 @@ export function BreakScreen({ mobile = false }: { mobile?: boolean }) {
           <BreathingDisc size={ring} />
         </div>
         <div className={styles.timer}>
-          <Timer phase={phase} remainingSeconds={remaining} totalSeconds={total} sessionsCompleted={p?.sessions_completed ?? 0} hideSessions={!pomodoroBreak} size={mobile ? 230 : 300} />
+          <Timer phase={phase} remainingSeconds={remaining} totalSeconds={total} sessionsCompleted={p?.sessions_completed ?? 0} hideSessions size={mobile ? 230 : 300} />
         </div>
       </div>
       <div className={styles.text}>

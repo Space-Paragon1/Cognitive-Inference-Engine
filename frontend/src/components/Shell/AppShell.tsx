@@ -13,7 +13,7 @@ import { countSending } from "../../lib/sources";
 import type { Route } from "../../types/ui";
 import { BottomSheet } from "../BottomSheet";
 import { MiniPlayer } from "../ControlPanel/MiniPlayer";
-import { DirectivesFeed } from "../DirectivesFeed/DirectiveCard";
+import { DirectivesFeed } from "../DirectivesFeed";
 import { Sidebar } from "../Sidebar";
 import { TabBar } from "../TabBar";
 import { ShellContext } from "./ShellContext";

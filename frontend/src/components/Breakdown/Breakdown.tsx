@@ -34,7 +34,7 @@ function Row({ k, value }: { k: (typeof KEYS)[number]; value: number | null }) {
   const shown = useTween(value == null ? null : Math.max(0, Math.min(1, value)));
   const v = shown == null ? null : Math.round(shown * 100);
   const target = value == null ? null : Math.round(value * 100);
-  const short = b.desc.split(":")[0].toLowerCase();
+  const short = b.desc.split(":")[0].replace(/\.$/, "").toLowerCase();
   return (
     <div className={styles.row} style={{ "--bar": b.token } as CSSProperties}>
       <span className={styles.name}>

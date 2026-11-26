@@ -158,3 +158,9 @@
   position: absolute;
   inset: -12px -6px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .input::-webkit-slider-thumb {
+    transition: none;
+  }
+}
