@@ -37,7 +37,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] MiniPlayer
 - [x] PlaybackControls
 - [x] SourceCard
-- [ ] ChartStyle (Recharts styling)
+- [x] ChartStyle (Recharts styling)
 
 ### 4. App shell
 - [ ] Routes renamed to `Route` names
