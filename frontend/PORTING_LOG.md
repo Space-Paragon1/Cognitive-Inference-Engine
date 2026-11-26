@@ -35,7 +35,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] TaskRow → TaskQueue
 - [x] Timer
 - [x] MiniPlayer
-- [ ] PlaybackControls
+- [x] PlaybackControls
 - [ ] SourceCard
 - [ ] ChartStyle (Recharts styling)
 
