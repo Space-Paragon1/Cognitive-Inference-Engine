@@ -33,7 +33,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] StatTile → StatsCard (+ ContextBar)
 - [x] DirectiveCard → DirectivesFeed
 - [x] TaskRow → TaskQueue
-- [ ] Timer
+- [x] Timer
 - [ ] MiniPlayer
 - [ ] PlaybackControls
 - [ ] SourceCard
