@@ -14,7 +14,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 
 ### 2. Primitives
 - [x] Button
-- [ ] Toggle
+- [x] Toggle
 - [ ] SegmentedControl (+ FilterChip)
 - [ ] TextField
 - [ ] Slider
