@@ -31,7 +31,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Breakdown
 - [x] ConnectionStatus
 - [x] StatTile → StatsCard (+ ContextBar)
-- [ ] DirectiveCard → DirectivesFeed
+- [x] DirectiveCard → DirectivesFeed
 - [ ] TaskRow → TaskQueue
 - [ ] Timer
 - [ ] MiniPlayer
