@@ -1,0 +1,128 @@
+/* Ported from .clr-scrim, .clr-sheet and .clr-dialog in design/components/bundle.css */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  animation: fadeIn var(--dur-base) var(--ease-standard);
+}
+.sheet {
+  position: relative;
+  width: 100%;
+  max-height: calc(100% - env(safe-area-inset-top) - var(--space-6));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom));
+  display: grid;
+  gap: var(--space-4);
+  animation: slideUp var(--dur-slow) var(--ease-out);
+}
+.grab {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  justify-self: center;
+  margin-bottom: 4px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.title {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+}
+.actions > * {
+  flex: 1;
+}
+.closing .scrim {
+  animation: fadeOut var(--dur-base) var(--ease-standard) forwards;
+}
+.closing .sheet {
+  animation: slideDown var(--dur-base) var(--ease-standard) forwards;
+}
+
+/* ≥768px: a centred dialog with the same contents. */
+@media (min-width: 768px) {
+  .layer {
+    align-items: center;
+    padding: var(--space-6);
+  }
+  .sheet {
+    width: 480px;
+    max-width: 100%;
+    max-height: calc(100% - var(--space-12));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    gap: 18px;
+    animation: dialogIn var(--dur-base) var(--ease-out);
+  }
+  .grab {
+    display: none;
+  }
+  .actions {
+    justify-content: flex-end;
+  }
+  .actions > * {
+    flex: none;
+  }
+  .closing .sheet {
+    animation: fadeOut var(--dur-fast) var(--ease-standard) forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes slideDown {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .closing .sheet {
+    animation-name: fadeIn;
+  }
+  .closing .sheet {
+    animation-name: fadeOut;
+  }
+}

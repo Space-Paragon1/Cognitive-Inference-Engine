@@ -24,7 +24,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Banner
 - [x] Toast
 - [x] EmptyState
-- [ ] BottomSheet
+- [x] BottomSheet
 
 ### 3. Live state and data
 - [ ] LoadGauge (hero, mini, pill; low confidence, no data, stale)
