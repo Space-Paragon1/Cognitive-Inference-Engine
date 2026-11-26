@@ -4,6 +4,8 @@
    on this machine. */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
 import { setDnD as apiSetDnD } from "../api/client";
 
 export type Theme = "light" | "dark";
@@ -68,7 +70,21 @@ export function readAlertPrefs(): AlertPrefs {
   }
 }
 
-const systemTheme = (): Theme => (window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark");
+// Android's WebView keeps the prefers-color-scheme it started with, so MainActivity
+// reports later changes to the phone's dark mode with a "clrsystemtheme" event.
+let nativeScheme: Theme | null = null;
+const systemTheme = (): Theme =>
+  nativeScheme ?? (window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark");
+
+/** Android draws the clock, the system icons and the gesture bar over the app, so their
+    colour follows the app's theme: dark icons on light, light icons on dark. Capacitor's
+    SystemBars and the status-bar plugin each keep a style of their own, so both are set. */
+function setSystemBars(theme: Theme) {
+  if (!Capacitor.isNativePlatform()) return;
+  const light = theme === "light";
+  SystemBars.setStyle({ style: light ? SystemBarsStyle.Light : SystemBarsStyle.Dark }).catch(() => {});
+  StatusBar.setStyle({ style: light ? Style.Light : Style.Dark }).catch(() => {});
+}
 
 const PrefsContext = createContext<PrefsApi | null>(null);
 
@@ -88,15 +104,32 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
     setThemeState(t);
   }, []);
 
+  useEffect(() => setSystemBars(theme), [theme]);
+
   // "System" follows the OS live.
   useEffect(() => {
     if (themeChoice !== "system" || !window.matchMedia) return;
     const mq = window.matchMedia("(prefers-color-scheme: light)");
-    const on = () => apply(mq.matches ? "light" : "dark");
+    const on = () => apply(systemTheme());
     on();
     mq.addEventListener?.("change", on);
     return () => mq.removeEventListener?.("change", on);
   }, [themeChoice, apply]);
+
+  // Android: the phone's dark mode changed while the app was open. Android also puts
+  // the status bar icons back to the phone's setting, so they're set again either way.
+  useEffect(() => {
+    const on = (e: Event) => {
+      const scheme = (e as Event & { scheme?: unknown }).scheme;
+      if (scheme !== "light" && scheme !== "dark") return;
+      nativeScheme = scheme;
+      const next = themeChoice === "system" ? scheme : theme;
+      apply(next);
+      setSystemBars(next);
+    };
+    window.addEventListener("clrsystemtheme", on);
+    return () => window.removeEventListener("clrsystemtheme", on);
+  }, [themeChoice, theme, apply]);
 
   const setThemeChoice = useCallback(
     (t: ThemeChoice) => {

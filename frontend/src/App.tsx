@@ -39,12 +39,14 @@ export default function App() {
       </div>
     );
   }
+  // Preferences are per device, not per account, and the theme (with the Android
+  // status bar that follows it) has to work on the sign-in screen too.
   return (
-    <ToastProvider>
-      {user ? (
-        <LiveStateProvider key={user.id}>
-          <SettingsProvider>
-            <PrefsProvider>
+    <PrefsProvider>
+      <ToastProvider>
+        {user ? (
+          <LiveStateProvider key={user.id}>
+            <SettingsProvider>
               <TimerProvider>
                 <TasksProvider>
                   <DirectivesProvider>
@@ -52,13 +54,13 @@ export default function App() {
                   </DirectivesProvider>
                 </TasksProvider>
               </TimerProvider>
-            </PrefsProvider>
-          </SettingsProvider>
-        </LiveStateProvider>
-      ) : (
-        <LoginPage />
-      )}
-    </ToastProvider>
+            </SettingsProvider>
+          </LiveStateProvider>
+        ) : (
+          <LoginPage />
+        )}
+      </ToastProvider>
+    </PrefsProvider>
   );
 }
 
