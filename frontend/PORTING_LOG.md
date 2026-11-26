@@ -40,13 +40,13 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] ChartStyle (Recharts styling)
 
 ### 4. App shell
-- [ ] Routes renamed to `Route` names
-- [ ] Desktop Sidebar (+ 72px rail at 768–1279)
-- [ ] Mobile top bar with load pill
-- [ ] TabBar with More
-- [ ] Timer row (sidebar) and MiniPlayer (mobile)
-- [ ] Breakpoints and 12-column grid
-- [ ] Android back handling
+- [x] Routes renamed to `Route` names
+- [x] Desktop Sidebar (+ 72px rail at 768–1279)
+- [x] Mobile top bar with load pill
+- [x] TabBar with More
+- [x] Timer row (sidebar) and MiniPlayer (mobile)
+- [x] Breakpoints and 12-column grid
+- [x] Android back handling
 
 ### 5. Screens
 - [ ] Now
@@ -95,5 +95,38 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Skeleton sweep** is 1.6 s linear (Skeleton README and handoff.md) rather than the 1.4 s in `bundle.css`. `SkeletonRegion` adds the 300 ms delay, `aria-busy` and the hidden loading message.
 - **BottomSheet** is 480px wide as a dialog (BottomSheet README), not the 520px `.clr-dialog`.
 - **Android back** uses `@capacitor/app` (installed, ^8.1.2): Capacitor core has no back handling, so without the plugin the hardware back button just closes the app. `src/lib/backStack.ts` keeps an ordered stack (open sheets first); App.tsx falls back to the route rules. Run `npx cap sync` (part of `npm run cap:sync`) so the native side picks the plugin up.
+- **Live state** lives in `src/live/store.ts` (one `LiveStore` per signed-in session) and is read with `useLive(selector)` (`src/live/LiveState.tsx`), built on `useSyncExternalStore` with a cached selector, so a component re-renders only when its slice changes. The store seeds from `GET /state` and `GET /timeline/load-history`, then follows the WebSocket. The HTTP seed counts as a reading, so a socket that opens but stays silent still turns Reconnecting after 4 s.
+- **Tweens** run in JS (`useTween`, a rAF loop, cubic ease-out over 600 ms) rather than as CSS transitions on `stroke-dasharray`, so the arc and the number move together, retarget from the current value, skip changes under 1 point, and jump under reduced motion. Colour changes stay CSS transitions (400 ms).
+- **Gauge extensions**: `status` and `lastReadingAt` (stale dimming and "Last reading 9:58 pm"; offline also greys the arc), `showPill`, `showNumber` for the mini ring, and `onClick` to make the pill a button that opens Now. The SVG mask uses the keyword `white` (a mask luminance, not a UI colour).
+- **Breakdown** takes the three values as optional and adds `empty` for "no data yet". The Rough badge sits in a small "Breakdown" header inside the component, because the hero card has no separate breakdown header.
+- **ConnectionStatus** shows all four sources by default (unlisted ones as not connected, per the contract) and takes an optional `kinds` list. `lastSeenSeconds` renders as "Last reading 12s ago" while stale.
+- **StatTile** splits a value such as "1 h 48 m" into numbers and small unit letters, matching the preview markup. The context bar is 10px tall (StatTile README) rather than the 12px in `bundle.css`.
+- **Task order** mirrors `engine/router/scheduler.py` in `src/lib/order.ts` (high-load threshold, then under 40%), so the UI's order matches the engine's. The Pomodoro length and why line use the engine's bands too (`>= 0.45` counts as normal), not the `< .4` low band in the preview script, so the explanation always matches the length the engine picks.
+- **Directive cards** take an extra `leaving` flag for the fade-out. The feed shows up to 4 with "View all N" (DirectiveCard README) and announces only new directives.
+- **TaskRow** swipe-to-complete uses pointer events on touch only (96px threshold), with a positive "Done" strip behind the row. The checkbox is a real `<input type="checkbox">`.
+- **Timer** adds `paused` and `whyNode`. Its `role="timer"` label is rounded to whole minutes, so it changes once a minute rather than every second. MiniPlayer adds `paused` and `compact` (the sidebar row).
+- **SourceCard** has no QR button. Drawing a QR code needs an encoder library, which is outside the packages this job installs; the code, Copy and the countdown cover pairing. It adds an expired state ("This code has expired. Get a new one." with New code), `primary`, `desc` and `connecting`.
+- **Charts** use `ChartFrame` (role="img" with the summary, legend, "View as table") and `useChartColors()`, which reads token values with `getComputedStyle` and re-reads them when `data-theme` changes.
+- **Folder mapping during the port**: new components sit next to the old ones in the mapped folders (`StatsCard/StatTile.tsx`, `DirectivesFeed/DirectiveCard.tsx`, `TaskQueue/TaskRow.tsx`, `ControlPanel/Timer.tsx` and `MiniPlayer.tsx`, `TimelineReplay/PlaybackControls.tsx`). The old `index.tsx` files stay until the shell and screens replace their call sites in phases 4 and 5. New shared pieces without an old folder get their own (`Breakdown`, `ConnectionStatus`, `SourceCard`, `ChartStyle`, the primitives).
+- **Routing** uses hash routes named after `Route` (`#/now`, `#/focus`, `#/settings/sources`) in `src/lib/router.ts`. Hash routes work from the Capacitor WebView's local files without server rewrites, and the browser's back button keeps working on the web.
+- **Layout switch** happens in JS (`useLayout()`: sidebar at 1280px and up, rail at 768–1279px, phone layout below), so only one main `<nav>` is ever in the page. Spacing (page padding 32/24/16px, gutter 24/20/16px) and the 12/8/4 columns are CSS. `Cell` defaults its tablet span to 4 for spans up to 4 and 8 otherwise, which gives the handoff's "8+4 stacks, 4+4+4 wraps".
+- **Page padding** follows the handoff table (32px on desktop) rather than the 40px in the screen mockups' frames. Content is capped at 1200px (`--content-max`).
+- **Rail**: icons only, each with a tooltip on hover and keyboard focus; the live card becomes the 44px ring; the Tasks count becomes a dot; the running timer becomes a ring with minutes left. The account keeps the avatar and theme button.
+- **Avatar initials** come from the email's local part ("sam.rivera@…" gives "SR"), since accounts have no name field.
+- **The mobile bell** opens a "What CLR is doing" sheet with every active directive. The design shows the bell but not its destination, and directives are the only notification-like content the app has.
+- **Start focus in the top bar** becomes "View focus" (opens Focus) while focus mode runs, so the primary button never restarts a running session.
+- **More on wider screens** redirects to Now: the sidebar already holds everything More lists.
+- **Expired sessions**: a WebSocket close with 4001 signs the student out and flags the sign-in page to say the session ended.
+- **Sources** count as sending when the engine heard from them in the last 2 minutes (`CognitiveState.sources`).
+- **Shared data providers** (`src/live/`): `SettingsState` (400 ms debounced saves, queued offline), `TimerState` (polls focus and Pomodoro every 2 s, counts down locally each second; remembers the last focus length, default 50 min), `TasksState` (polls every 5 s; adds and completions apply at once and queue while offline or after a failed save), `DirectivesState` (polls every 4 s, diffs by `action_type`, keeps each directive's "since" time), `PrefsState` (theme and Do Not Disturb).
+- **Directive reasons** are written in `src/lib/directives.ts` from voice.md's table, filled with live numbers and task titles ("Next Pomodoro is 15 min because your load is high (78%)").
+- **Skip link** ("Skip to content") added at the top of the shell; after each navigation, focus moves to the new page's `<h1>`.
 
 ## Needs backend
+
+- **Pomodoro pause, resume and skip.** The API has only `POST /actions/pomodoro/start` and `/stop`. The Timer shows Pause/Resume and Skip as the design asks. Until the engine has endpoints, pause is held locally in the Focus screen (`// TODO(backend)` in `ControlPanel`), and Skip stops the current phase.
+- **Pausing a directive.** The design's directive actions ("Pause" on Notifications silenced, "Edit" on Distracting tabs blocked, "Undo" on Hard tasks deferred) need endpoints to pause one directive, list and edit blocked sites, and override the deferral. Cards show only the actions the API can back: Start break and Open or Start (which open Focus and Tasks).
+- **User-facing directive reasons.** The engine's `reason` strings are written for developers ("Student is stuck — eliminate interruptions"). The UI writes its own reasons from `action_type`, `params` and the live state, in the voice.md wording (`src/lib/directives.ts`). The engine could send these strings itself.
+- **Do Not Disturb state.** There is `POST /actions/dnd` but no way to read the current value, so the app remembers the last value set on this device (`clr_dnd` in localStorage, `// TODO(backend)` in `src/live/PrefsState.tsx`).
+- **Extending a focus session.** "Add 10 min" restarts focus mode with the time left plus 10 minutes (`// TODO(backend)` in `src/live/TimerState.tsx`); an extend endpoint would keep the original start time.
+- **Completing a task.** The API can only delete a task, so "complete" deletes it and Undo adds it back with the same id. Completed tasks aren't kept anywhere, so nothing can report them later.

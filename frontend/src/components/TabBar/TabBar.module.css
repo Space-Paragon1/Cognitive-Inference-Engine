@@ -1,0 +1,51 @@
+/* Ported from .clr-tabbar in design/components/bundle.css */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  height: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+.tab {
+  flex: 1;
+  min-width: var(--touch-target);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--ink-subtle);
+  text-decoration: none;
+  font: var(--text-caption);
+  -webkit-tap-highlight-color: transparent;
+}
+.pill {
+  width: 56px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  transition: background-color var(--dur-base) var(--ease-standard);
+}
+.tab[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.tab[aria-current="page"] .pill {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.tab:focus-visible {
+  outline: none;
+}
+.tab:focus-visible .pill {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}

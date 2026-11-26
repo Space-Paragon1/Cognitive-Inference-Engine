@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import type { CognitiveState } from "../types";
+import { sendingSources } from "../lib/sources";
 import { LiveStore } from "./store";
 import type { LiveSnapshot } from "./store";
 
@@ -72,4 +73,9 @@ export function useGaugeState() {
     }),
     shallowEqual
   );
+}
+
+/** Which sources are sending right now (heard from in the last 2 minutes). */
+export function useSources() {
+  return useLive((s) => sendingSources(s.state?.sources), shallowEqual);
 }
