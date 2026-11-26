@@ -18,7 +18,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] SegmentedControl (+ FilterChip)
 - [x] TextField
 - [x] Slider
-- [ ] ContextPill
+- [x] ContextPill
 - [ ] DifficultyChip
 - [ ] Skeleton
 - [ ] Banner
