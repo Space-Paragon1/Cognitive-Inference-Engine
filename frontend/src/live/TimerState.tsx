@@ -63,12 +63,29 @@ interface TimerApi {
   /** Turn tab blocking on or off mid-session (restarts focus with the time left). */
   setFocusBlocking: (on: boolean) => Promise<void>;
   onPhaseChange: (fn: (c: PhaseChange) => void) => () => void;
+  /** A short rest outside the Pomodoro ("Take 5 minutes" on the overload alert). */
+  rest: { until: number; total: number } | null;
+  restRemaining: number;
+  startRest: (minutes: number) => void;
+  endRest: () => void;
 }
 
 const TimerContext = createContext<TimerApi | null>(null);
 const POLL_MS = 2000;
 const FOCUS_MIN_KEY = "clr_focus_minutes";
 const BLOCK_KEY = "clr_block_tabs";
+// TODO(backend): there is no endpoint to start a break outside a Pomodoro, so
+// "Take 5 minutes" runs a rest on this device only (it survives a reload).
+const REST_KEY = "clr_rest";
+
+function readRest(): { until: number; total: number } | null {
+  try {
+    const r = JSON.parse(sessionStorage.getItem(REST_KEY) ?? "null") as { until: number; total: number } | null;
+    return r && r.until > Date.now() ? r : null;
+  } catch {
+    return null;
+  }
+}
 
 /** The last focus length and block-tabs choice (Start focus reuses them; default 50 min, blocking on). */
 export function lastFocusChoice(): { minutes: number; blockTabs: boolean } {
@@ -96,6 +113,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [focus, setFocus] = useState<FocusState | null>(null);
   const [polledAt, setPolledAt] = useState(Date.now());
   const [now, setNow] = useState(Date.now());
+  const [rest, setRest] = useState(readRest);
   const [paused, setPaused] = useState(false);
   const [pausedRemaining, setPausedRemaining] = useState<number | null>(null);
   const [loadAtStart, setLoadAtStart] = useState<number | null>(null);
@@ -253,6 +271,35 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const startRest = useCallback((minutes: number) => {
+    haptic("light");
+    const r = { until: Date.now() + minutes * 60_000, total: minutes * 60 };
+    try {
+      sessionStorage.setItem(REST_KEY, JSON.stringify(r));
+    } catch {
+      /* storage blocked: the rest lasts while the app stays open */
+    }
+    setNow(Date.now());
+    setRest(r);
+  }, []);
+
+  const endRest = useCallback(() => {
+    try {
+      sessionStorage.removeItem(REST_KEY);
+    } catch {
+      /* storage blocked */
+    }
+    setRest(null);
+  }, []);
+
+  const restRemaining = rest ? Math.max(0, (rest.until - now) / 1000) : 0;
+  useEffect(() => {
+    if (rest && now >= rest.until) {
+      haptic("medium");
+      endRest();
+    }
+  }, [rest, now, endRest]);
+
   const api = useMemo<TimerApi>(
     () => ({
       pomodoro,
@@ -276,8 +323,12 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       addFocusMinutes,
       setFocusBlocking,
       onPhaseChange,
+      rest,
+      restRemaining,
+      startRest,
+      endRest,
     }),
-    [pomodoro, focus, pomodoroRemaining, focusRemaining, loadAtStart, confidenceAtStart, paused, focusAdded, focusElapsed, focusTotal, error, startPomodoro, stopPomodoro, pause, resume, skip, startFocus, stopFocus, addFocusMinutes, setFocusBlocking, onPhaseChange]
+    [pomodoro, focus, pomodoroRemaining, focusRemaining, loadAtStart, confidenceAtStart, paused, focusAdded, focusElapsed, focusTotal, error, startPomodoro, stopPomodoro, pause, resume, skip, startFocus, stopFocus, addFocusMinutes, setFocusBlocking, onPhaseChange, rest, restRemaining, startRest, endRest]
   );
   return <TimerContext.Provider value={api}>{children}</TimerContext.Provider>;
 }

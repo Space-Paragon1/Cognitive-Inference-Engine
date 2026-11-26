@@ -19,6 +19,8 @@ type Props = TimerProps & {
   paused?: boolean;
   /** Rich why line (bold length). Overrides `why`. */
   whyNode?: ReactNode;
+  /** No session dots (a rest outside the Pomodoro). */
+  hideSessions?: boolean;
 };
 
 function spokenLeft(seconds: number) {
@@ -32,6 +34,7 @@ export function Timer({
   remainingSeconds,
   totalSeconds,
   sessionsCompleted,
+  hideSessions = false,
   why,
   whyNode,
   size = 280,
@@ -80,7 +83,7 @@ export function Timer({
         </div>
       </div>
 
-      {!idle && <SessionDots done={sessionsCompleted} rest={brk} />}
+      {!idle && !hideSessions && <SessionDots done={sessionsCompleted} rest={brk} />}
 
       {idle ? (
         onStart && (

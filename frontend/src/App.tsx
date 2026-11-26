@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./auth/AuthContext";
 import { LoginPage, SESSION_EXPIRED_KEY } from "./components/LoginPage";
+import { Alerts } from "./components/Alerts";
 import { AppShell, useLayout } from "./components/Shell";
 import { Spinner } from "./components/Spinner";
 import { ToastProvider } from "./components/Toast";
@@ -99,10 +100,13 @@ function MainApp() {
   }, [mobile, route]);
 
   return (
-    <AppShell route={route} sub={sub}>
-      {/* On phones each History level (list, session, event log) is its own page. */}
-      <Screen key={mobile && route === "history" ? `${route}/${sub ?? ""}` : route} route={route} sub={sub} />
-    </AppShell>
+    <>
+      <AppShell route={route} sub={sub}>
+        {/* On phones each History level (list, session, event log) is its own page. */}
+        <Screen key={mobile && route === "history" ? `${route}/${sub ?? ""}` : route} route={route} sub={sub} />
+      </AppShell>
+      <Alerts />
+    </>
   );
 }
 

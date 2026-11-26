@@ -5,7 +5,7 @@ import { useTimer } from "../../live/TimerState";
 import { pomodoroMinutes } from "../../lib/order";
 import { Button } from "../Button";
 import { useToast } from "../Toast";
-import { BreathingDisc, Timer } from "./Timer";
+import { BreathingDisc, Timer, isBreak } from "./Timer";
 import styles from "./BreakScreen.module.css";
 
 const TIPS = [
@@ -21,27 +21,36 @@ export function BreakScreen({ mobile = false }: { mobile?: boolean }) {
   const { thresholds } = useSettings();
   const toast = useToast();
   const p = t.pomodoro;
-  if (!p) return null;
-  const long = p.phase === "long_break";
-  const done = p.sessions_completed % 4 || (p.sessions_completed > 0 ? 4 : 0);
+  // A Pomodoro break wins; otherwise a rest started from the overload alert.
+  const pomodoroBreak = p != null && isBreak(p.phase);
+  if (!pomodoroBreak && !t.rest) return null;
+  const phase = pomodoroBreak && p ? p.phase : "short_break";
+  const long = phase === "long_break";
+  const done = p ? p.sessions_completed % 4 || (p.sessions_completed > 0 ? 4 : 0) : 0;
   const next = g.load == null ? 25 : pomodoroMinutes(g.load, thresholds.high, thresholds.fatigue);
   const eased = g.load != null && t.loadAtStart != null && g.load < t.loadAtStart;
-  const nextLine = `Next: ${next} min focus.${eased && g.load != null ? ` Your load has eased to ${Math.round(g.load * 100)}%.` : ""}`;
-  const endBreak = () =>
+  const easedText = eased && g.load != null ? ` Your load has eased to ${Math.round(g.load * 100)}%.` : "";
+  const nextLine = pomodoroBreak ? `Next: ${next} min focus.${easedText}` : `Come back when the timer ends, or sooner if you feel ready.${easedText}`;
+  const remaining = pomodoroBreak ? t.pomodoroRemaining : t.restRemaining;
+  const total = pomodoroBreak && p ? p.duration_seconds : (t.rest?.total ?? 300);
+  const endBreak = () => {
+    if (!pomodoroBreak) return t.endRest();
     t.skip().catch(() => toast.show({ key: "skip", title: "Couldn't start the next session", body: "Check your connection and try again.", tone: "critical" }));
+  };
   const ring = mobile ? 300 : 420;
 
   return (
     <section className={[styles.rest, mobile && styles.mobile].filter(Boolean).join(" ")} aria-labelledby="break-title">
       <p className={styles.overline}>
-        {long ? "Long break" : "Short break"} · {done} of 4 done
+        {long ? "Long break" : "Short break"}
+        {pomodoroBreak ? ` · ${done} of 4 done` : ""}
       </p>
       <div className={styles.ringWrap} style={{ width: ring, height: ring }}>
         <div className={styles.disc}>
           <BreathingDisc size={ring} />
         </div>
         <div className={styles.timer}>
-          <Timer phase={p.phase} remainingSeconds={t.pomodoroRemaining} totalSeconds={p.duration_seconds} sessionsCompleted={p.sessions_completed} size={mobile ? 230 : 300} />
+          <Timer phase={phase} remainingSeconds={remaining} totalSeconds={total} sessionsCompleted={p?.sessions_completed ?? 0} hideSessions={!pomodoroBreak} size={mobile ? 230 : 300} />
         </div>
       </div>
       <div className={styles.text}>

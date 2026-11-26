@@ -48,7 +48,7 @@ const BAND: Record<string, { base: number; ctx: CognitiveContext; conf: number }
   low: { base: 0.3, ctx: "recovering", conf: 0.8 },
   lowconf: { base: 0.48, ctx: "shallow_work", conf: 0.35 },
 };
-const band = BAND[scenario] ?? BAND.live;
+let band = BAND[scenario] ?? BAND.live;
 const now = () => Date.now() / 1000;
 const t0 = now();
 
@@ -451,9 +451,13 @@ class MockSocket extends EventTarget {
 
 console.info(`[mock engine] scenario "${scenario}". Change with ?mock=live|high|fatigue|stuck|low|lowconf|nodata|empty|reconnecting|offline|error`);
 
-/** Console helpers for QA: clrMock.finishPhase() ends the current Pomodoro phase now. */
+/** Console helpers for QA: clrMock.finishPhase() ends the current Pomodoro phase now;
+    clrMock.band("stuck") moves the live readings to another band (context toasts). */
 (window as unknown as { clrMock: unknown }).clrMock = {
   finishPhase() {
     if (pomo.phase !== "idle") pomo = { ...pomo, start: now() - pomo.duration - 1 };
+  },
+  band(name: string) {
+    band = BAND[name] ?? band;
   },
 };

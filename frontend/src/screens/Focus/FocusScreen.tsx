@@ -16,7 +16,7 @@ export function FocusScreen() {
   const g = useGaugeState();
   const { dnd } = usePrefs();
 
-  if (t.pomodoro && isBreak(t.pomodoro.phase)) return <BreakScreen mobile={mobile} />;
+  if ((t.pomodoro && isBreak(t.pomodoro.phase)) || t.rest) return <BreakScreen mobile={mobile} />;
 
   const running = t.pomodoro != null && t.pomodoro.phase !== "idle";
   const banner = (

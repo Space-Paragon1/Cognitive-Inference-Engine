@@ -58,7 +58,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] More
 - [x] Auth (LoginPage, forgot and reset password)
 - [x] Onboarding
-- [ ] Alerts (toasts, overload notification, haptics)
+- [x] Alerts (toasts, overload notification, haptics)
 
 ### 6. States pass
 - [ ] Now
@@ -173,6 +173,17 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Onboarding source descriptions** (the VS Code install steps and so on) show only until that source is connected.
 - **Banner actions** wrap onto their own line when the text would get narrower than about 200px.
 
+- **Alerts** live in one component (`components/Alerts`) mounted beside the app shell. It listens to every reading (`useLiveTicks`) and to Pomodoro phase changes, so nothing re-mounts the gauge.
+- **Context toasts** fire once a new context has held for 3 readings, never for the first context after opening the app or for a change out of "Warming up", and not while confidence is under 50%. Only "Deep focus activated" has copy in voice.md; the others use the context's own blurb ("You seem stuck", "Signs of fatigue", "Shallow work", "Recovering"). While CLR is in the background the same change posts a quiet system notification.
+- **Overload** counts readings above the fatigue line (with confidence of 50% or more); after 3 in a row it shows the toast (role="alert", stays until acted on) and, in the background, a system notification; then it holds for 5 minutes. It doesn't fire during a break. The first warning says "Load is above your fatigue line (85%)" because 3 readings are 6 seconds, and voice.md's "for 6 minutes" is used once the stretch is a minute or longer.
+- **"Take 5 minutes"** starts a 5-minute rest on this device and opens the full-screen break (no session dots, "Come back when the timer ends, or sooner if you feel ready."). The engine has no way to start a break outside a Pomodoro.
+- **Break prompts**: when a focus phase ends, desktop shows a "Break time" toast (Start break opens Focus, Skip starts the next session) and phones show the bottom sheet with the length the engine chose. Neither shows on the Focus screen, which turns into the break by itself. When a break ends away from Focus, a short "Break is over" toast. In the background both are system notifications. Break prompts ignore Do Not Disturb ("mutes everything except the timer ending") but respect the Break prompts setting.
+- **Break length** in the sheet is shown, not picked: the engine sizes breaks from Settings and the session count, and has no per-break choice.
+- **Engine breaks start on their own** (the engine moves from focus to break when the time is up), so the copy says "Your 5-minute break has started" rather than voice.md's "starts when you are ready".
+- **System notifications** carry no action buttons; tapping one opens CLR. Android action buttons would need registered action types and handlers for when the app is closed.
+- **Haptics** stay as handoff.md lists them (light on timer start and pause, medium on phase end and when a rest ends, none on context changes or alerts), and respect the Vibrate setting.
+- **Old hooks removed**: `useNotifications`, `useCognitiveState` and `useTimeline` (replaced by the live store, `lib/notify.ts` and the History hooks).
+
 ## Needs backend
 
 - **Pomodoro pause, resume and skip.** The API has only `POST /actions/pomodoro/start` and `/stop`. The Timer shows Pause/Resume and Skip as the design asks. Until the engine has endpoints, pause is held locally in the Focus screen (`// TODO(backend)` in `ControlPanel`), and Skip stops the current phase.
@@ -193,3 +204,5 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Onboarded flag.** Whether a student has finished onboarding is kept per device (`src/lib/onboarding.ts`, `// TODO(backend)`); a flag on the user would make it follow the account.
 - **Terms and privacy policy.** No documents or URLs exist yet; the sign-up checkbox opens the in-app privacy summary.
 - **Reset email address.** The reset form can't show which account it is for; the token lookup would need to return the email.
+- **Starting a break on demand.** "Take 5 minutes" runs a rest on this device (`// TODO(backend)` in `src/live/TimerState.tsx`); an endpoint would let the engine pause focus inference and the extensions show the break too.
+- **Choosing a break length per break.** The break prompt shows the length the engine picked; there is no way to take a long break early or a short one instead.
