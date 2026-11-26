@@ -1,0 +1,165 @@
+/* Cognitive Load Router: app-wide base styles.
+   Tokens live in tokens.css (copied from design/tokens.css). Everything here reads
+   those tokens; components style themselves with CSS Modules. */
+
+/* ---------- Context and tone mapping: set data-ctx or data-tone on any element ---------- */
+:root,
+[data-ctx="unknown"] {
+  --c: var(--ctx-unknown);
+  --c-soft: var(--ctx-unknown-soft);
+  --c-chart: var(--ctx-unknown-chart);
+}
+[data-ctx="deep_focus"] {
+  --c: var(--ctx-deep-focus);
+  --c-soft: var(--ctx-deep-focus-soft);
+  --c-chart: var(--ctx-deep-focus-chart);
+}
+[data-ctx="shallow_work"] {
+  --c: var(--ctx-shallow-work);
+  --c-soft: var(--ctx-shallow-work-soft);
+  --c-chart: var(--ctx-shallow-work-chart);
+}
+[data-ctx="stuck"] {
+  --c: var(--ctx-stuck);
+  --c-soft: var(--ctx-stuck-soft);
+  --c-chart: var(--ctx-stuck-chart);
+}
+[data-ctx="fatigue"] {
+  --c: var(--ctx-fatigue);
+  --c-soft: var(--ctx-fatigue-soft);
+  --c-chart: var(--ctx-fatigue-chart);
+}
+[data-ctx="recovering"] {
+  --c: var(--ctx-recovering);
+  --c-soft: var(--ctx-recovering-soft);
+  --c-chart: var(--ctx-recovering-chart);
+}
+[data-tone="accent"] {
+  --c: var(--accent);
+  --c-soft: var(--accent-soft);
+}
+[data-tone="positive"] {
+  --c: var(--positive);
+  --c-soft: var(--positive-soft);
+}
+[data-tone="caution"] {
+  --c: var(--caution);
+  --c-soft: var(--caution-soft);
+}
+[data-tone="critical"] {
+  --c: var(--critical);
+  --c-soft: var(--critical-soft);
+}
+[data-tone="rest"] {
+  --c: var(--rest-accent);
+  --c-soft: var(--rest-surface-raised);
+}
+[data-tone="neutral"] {
+  --c: var(--ink-muted);
+  --c-soft: var(--surface-sunken);
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  color-scheme: dark;
+  background: var(--bg);
+}
+html[data-theme="light"] {
+  color-scheme: light;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 22px;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+figure {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+img,
+svg {
+  display: block;
+}
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+:where(button, a, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Inputs stay at 16px on phones so the WebView never zooms on focus. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* ---------- Shared utilities (kept tiny on purpose) ---------- */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Reduced motion ----------
+   Each CSS Module turns off its own loops and slides under prefers-reduced-motion
+   (fades stay, per handoff.md). JS tweens check usePrefersReducedMotion(). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
