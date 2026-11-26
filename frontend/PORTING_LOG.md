@@ -32,7 +32,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] ConnectionStatus
 - [x] StatTile → StatsCard (+ ContextBar)
 - [x] DirectiveCard → DirectivesFeed
-- [ ] TaskRow → TaskQueue
+- [x] TaskRow → TaskQueue
 - [ ] Timer
 - [ ] MiniPlayer
 - [ ] PlaybackControls
