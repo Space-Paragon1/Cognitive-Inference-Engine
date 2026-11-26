@@ -22,7 +22,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] DifficultyChip
 - [x] Skeleton
 - [x] Banner
-- [ ] Toast
+- [x] Toast
 - [ ] EmptyState
 - [ ] BottomSheet
 
