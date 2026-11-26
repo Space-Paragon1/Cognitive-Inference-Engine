@@ -19,6 +19,7 @@ import { NowScreen } from "./screens/Now/NowScreen";
 import { Placeholder } from "./screens/Placeholder";
 import { TasksScreen } from "./screens/Tasks/TasksScreen";
 import { HistoryScreen } from "./screens/History/HistoryScreen";
+import { InsightsScreen } from "./screens/Insights/InsightsScreen";
 import type { Route } from "./types/ui";
 import styles from "./App.module.css";
 
@@ -100,7 +101,7 @@ function Screen({ route, sub }: { route: Route; sub: string | null }) {
     case "history":
       return <HistoryScreen sub={sub} />;
     case "insights":
-      return <Placeholder title="Insights" />;
+      return <InsightsScreen />;
     case "settings":
       return <Placeholder title="Settings" />;
     case "more":

@@ -53,7 +53,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Focus
 - [x] Tasks
 - [x] History
-- [ ] Insights
+- [x] Insights
 - [ ] Settings
 - [ ] More
 - [ ] Auth (LoginPage, forgot and reset password)
@@ -138,6 +138,15 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Scrubber track** edge uses `--line-strong` instead of `--line` so the track meets 3:1 against the card (it was near invisible in dark mode).
 - **Replay offline**: sessions and every timeline opened this visit stay in memory, so replay keeps working offline; the History banner says so.
 
+- **Insights weeks** run Monday to Sunday. The week switcher sits in the top bar on desktop and in a row under the Week | History switch on phones; "Next week" is disabled on the current week. Each week is kept in memory for the visit.
+- **Total focus time** on the current week is compared with the same days of last week ("2.7 h more than this time last week"), not the whole of it.
+- **Daily bars** follow the ChartStyle README (non-best days in accent at 55%) rather than the preview's `--heat-2`.
+- **Best hours** are estimated from sessions: each session's minutes in each hour it covers, weighted by its deep-focus share. The card keeps the "Preview" badge and says "Estimated from your sessions." Hours run 7 am to 11 pm (8 am on phones), widened when focus happened outside them.
+- **Weekly reflection** is written from the week's numbers by rules (best two-hour window, strongest day, the day with the most "stuck" time or the highest load) and keeps the "Preview" badge. "Plan next week" opens Tasks; "Not helpful" hides it for that week, with Undo.
+- **Badge** primitive added (`components/Badge`) for "Preview", "Best" and similar labels, ported from `.clr-badge`.
+- **StatTile values** with no digits ("Wed") render at full size; only letters next to numbers are treated as units.
+- **Insights with no data**: the KPIs show "–" and one card below says either "Connect a source to see your load" (nothing sending) or "Nothing tracked this week yet", with "See last week".
+
 ## Needs backend
 
 - **Pomodoro pause, resume and skip.** The API has only `POST /actions/pomodoro/start` and `/stop`. The Timer shows Pause/Resume and Skip as the design asks. Until the engine has endpoints, pause is held locally in the Focus screen (`// TODO(backend)` in `ControlPanel`), and Skip stops the current phase.
@@ -149,3 +158,6 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Raw events in the timeline.** The engine writes only its own `inference_tick` rows to the timeline; source events (tab switches, compile errors, idle) are used for inference and dropped. The event log shows whatever non-tick rows exist (so it fills in as soon as the engine stores them) and, until then, the engine-derived rows (context changes, threshold crossings, start, peak, end).
 - **Session type.** Sessions don't say whether they were a Pomodoro or focus mode, so Today's sessions has no Type column.
 - **Blocked sites.** There is no endpoint to list or edit the blocked-sites list, so "Edit" on the Distracting tabs blocked directive and the Settings list are not wired.
+- **Hourly focus data** for "Your best hours". It is estimated from sessions (`heatGrid` in `src/lib/insights.ts`, `// TODO(backend)`) and marked Preview.
+- **Weekly reflection.** The design calls for an AI-written reflection plus feedback ("Not helpful"). Both need endpoints; the card is written from rules and marked Preview, and the feedback only hides the card on this device (`// TODO(backend)` in `components/Analytics/WeeklyReflection.tsx`).
+- **Daily stats time zone.** `GET /timeline/stats/daily` keys days by date; the app matches them to the student's local Monday-to-Sunday week. If the engine buckets days in UTC, sessions near midnight can land on the neighbouring day.

@@ -6,6 +6,8 @@ import styles from "./StatTile.module.css";
 
 /** Split "1 h 48 m" into numbers and small unit letters. */
 function renderValue(value: string) {
+  // Words with no number ("Wed") are the value itself, not units.
+  if (!/\d/.test(value)) return value;
   const parts = value.match(/[\d.,–-]+|[^\d.,–\s-]+|\s+/g) ?? [value];
   return parts.map((p, i) =>
     /^[^\d.,–\s-]+$/.test(p) ? <small key={i}>{p}</small> : /^\s+$/.test(p) ? <Fragment key={i}> </Fragment> : <Fragment key={i}>{p}</Fragment>
