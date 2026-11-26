@@ -31,6 +31,14 @@ class CognitiveStateOut(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0)
     breakdown: LoadBreakdown
     timestamp: float
+    estimator: str = Field("v1", description="ml | v1")
+    active: bool = Field(
+        False, description="True if any telemetry arrived inside the inference window"
+    )
+    sources: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Unix time each telemetry source (browser, ide, ...) was last heard from",
+    )
 
 
 # ── Actions ────────────────────────────────────────────────────────────────
@@ -139,6 +147,38 @@ class PomodoroStateOut(BaseModel):
     remaining_seconds: float
     sessions_completed: int
     duration_seconds: int
+
+# ── Devices ────────────────────────────────────────────────────────────────
+
+class PairingCodeOut(BaseModel):
+    code: str = Field(..., description="Show this to the user; e.g. K7QM-9TXR")
+    expires_at: float
+
+
+class DeviceClaimIn(BaseModel):
+    code: str = Field(..., min_length=4, max_length=32)
+    name: str = Field(..., min_length=1, max_length=128, description="e.g. 'Chrome on MacBook'")
+    kind: str = Field(..., description="browser | ide | desktop | lms | other")
+
+
+class DeviceOut(BaseModel):
+    id: int
+    name: str
+    kind: str
+    created_at: float
+    last_seen_at: Optional[float]
+
+
+class DeviceClaimOut(BaseModel):
+    device_token: str = Field(..., description="Store this; it is only shown once")
+    device: DeviceOut
+    user_email: str
+
+
+class WhoAmIOut(BaseModel):
+    user_email: str
+    device: Optional[DeviceOut] = None
+
 
 # ── Do Not Disturb ─────────────────────────────────────────────────────────
 

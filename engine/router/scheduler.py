@@ -11,9 +11,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
-from ..settings import get_settings
+from ..settings import SettingsProvider, defaults_provider
 
 
 class Difficulty(str, Enum):
@@ -36,13 +36,19 @@ class TaskScheduler:
     """
     Given the current load score and a list of pending tasks, returns
     a reordered queue optimized for cognitive state.
+
+    ``settings`` returns the user's settings dict (thresholds); it defaults to
+    the built-in defaults for callers with no user.
     """
+
+    def __init__(self, settings: Optional[SettingsProvider] = None):
+        self._settings = settings or defaults_provider
 
     def reorder(self, tasks: List[Task], load_score: float) -> List[Task]:
         if not tasks:
             return []
 
-        s = get_settings()
+        s = self._settings()
         high_threshold = s["high_load_threshold"]
 
         priority_order: List[Difficulty]
@@ -65,7 +71,7 @@ class TaskScheduler:
 
     def suggest_pomodoro_duration(self, load_score: float) -> int:
         """Return recommended focus interval in minutes based on load."""
-        s = get_settings()
+        s = self._settings()
         fatigue = s["fatigue_threshold"]
         high    = s["high_load_threshold"]
         if load_score >= fatigue:

@@ -192,8 +192,14 @@ def train(n_samples: int, output_path: Path) -> None:
         bar = "#" * int(imp * 40)
         print(f"  {name:<25} {bar}  {imp:.3f}")
 
+    import sklearn
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, output_path)
+    # Record the sklearn version so the engine can refuse an incompatible pickle.
+    joblib.dump(
+        {"model": model, "sklearn_version": sklearn.__version__, "features": FEATURE_COLS},
+        output_path,
+    )
     print(f"\nModel saved -> {output_path}")
     print("The MLLoadEstimator will auto-load it on next engine start.")
 

@@ -3,7 +3,9 @@
  *
  * Runs on Canvas, Blackboard, and Moodle pages.
  * Detects the LMS platform, observes navigation and interactions,
- * and sends telemetry to the local CLR engine.
+ * and hands events to the background worker, which sends them to the engine.
+ * (Content scripts can't call the engine directly: their requests are
+ * subject to the LMS page's CORS rules.)
  *
  * Supported LMS platforms:
  *   Canvas    (*.instructure.com)
@@ -11,7 +13,6 @@
  *   Moodle    (*.moodle.org, *.moodlecloud.com)
  */
 
-const API_BASE = "http://127.0.0.1:8765";
 const FLUSH_INTERVAL_MS = 5000;
 const IDLE_THRESHOLD_MS = 60_000; // 1 minute without interaction → LMS_IDLE
 
@@ -85,17 +86,13 @@ function enqueue(type, extraData = {}) {
   });
 }
 
-async function flush() {
+function flush() {
   if (!_buffer.length) return;
   const batch = _buffer.splice(0);
   try {
-    await fetch(`${API_BASE}/telemetry/batch`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(batch),
-    });
+    chrome.runtime.sendMessage({ type: "CLR_EVENTS", events: batch });
   } catch (_) {
-    // Engine offline — silently discard; never block the student
+    // Extension was reloaded/updated under this page — drop; never block the student
   }
 }
 
@@ -130,20 +127,25 @@ window.addEventListener("popstate", () => onPageChange(window.location.href, doc
 
 // ── Scroll telemetry ────────────────────────────────────────────────────────
 
-let _scrollBuffer = 0;
-let _scrollTimer = null;
+let _scrollDistance = 0;
+let _lastScrollY = window.scrollY;
+const SCROLL_REPORT_MS = 3000;
 
-window.addEventListener("scroll", (e) => {
-  _scrollBuffer += Math.abs(window.scrollY - (_scrollBuffer || 0));
+window.addEventListener("scroll", () => {
+  _scrollDistance += Math.abs(window.scrollY - _lastScrollY);
+  _lastScrollY = window.scrollY;
 }, { passive: true });
 
-// Emit a scroll event every 3 seconds if there was scroll activity
+// Every 3 seconds, report the distance scrolled and the average speed (px/s).
 setInterval(() => {
-  if (_scrollBuffer > 0) {
-    enqueue("LMS_SCROLL", { deltaY: Math.round(_scrollBuffer) });
-    _scrollBuffer = 0;
+  if (_scrollDistance > 0) {
+    enqueue("LMS_SCROLL", {
+      deltaY: Math.round(_scrollDistance),
+      velocity: Math.round(_scrollDistance / (SCROLL_REPORT_MS / 1000)),
+    });
+    _scrollDistance = 0;
   }
-}, 3000);
+}, SCROLL_REPORT_MS);
 
 // ── Idle detection ──────────────────────────────────────────────────────────
 

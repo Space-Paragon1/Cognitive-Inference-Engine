@@ -5,13 +5,13 @@ Works with both SQLite (local) and PostgreSQL (hosted).
 
 from __future__ import annotations
 
-import secrets
 import time
 from dataclasses import dataclass
 from typing import Optional
 
 from sqlalchemy.engine import Engine
 
+from ..auth.tokens import hash_secret, new_reset_token
 from .connection import password_reset_table, users_table
 
 
@@ -83,8 +83,11 @@ class UsersDB:
     # ------------------------------------------------------------------
 
     def create_reset_token(self, user_id: int, ttl_seconds: int = 3600) -> str:
-        """Create a single-use reset token valid for ttl_seconds. Returns the raw token."""
-        token = secrets.token_hex(32)
+        """
+        Create a single-use reset token valid for ttl_seconds.
+        Returns the raw token (to email); only its hash is stored.
+        """
+        token = new_reset_token()
         expires_at = time.time() + ttl_seconds
         # Delete any existing tokens for this user first
         with self._engine.begin() as conn:
@@ -96,7 +99,7 @@ class UsersDB:
             conn.execute(
                 password_reset_table.insert().values(
                     user_id=user_id,
-                    token=token,
+                    token=hash_secret(token),
                     expires_at=expires_at,
                     used=False,
                 )
@@ -108,7 +111,7 @@ class UsersDB:
         with self._engine.connect() as conn:
             row = conn.execute(
                 password_reset_table.select().where(
-                    password_reset_table.c.token == token
+                    password_reset_table.c.token == hash_secret(token)
                 )
             ).fetchone()
         if row is None:
@@ -123,6 +126,6 @@ class UsersDB:
         with self._engine.begin() as conn:
             conn.execute(
                 password_reset_table.update()
-                .where(password_reset_table.c.token == token)
+                .where(password_reset_table.c.token == hash_secret(token))
                 .values(used=True)
             )

@@ -10,6 +10,7 @@ from enum import Enum
 from typing import Optional
 
 from ..router.scheduler import TaskScheduler
+from ..settings import SettingsProvider, defaults_provider
 
 
 class PomodoroPhase(str, Enum):
@@ -40,8 +41,9 @@ class PomodoroState:
 
 class AdaptivePomodoro:
 
-    def __init__(self):
-        self._scheduler = TaskScheduler()
+    def __init__(self, settings: Optional[SettingsProvider] = None):
+        self._settings = settings or defaults_provider
+        self._scheduler = TaskScheduler(self._settings)
         self.state = PomodoroState()
 
     def start_work(self, load_score: float) -> PomodoroState:
@@ -55,8 +57,7 @@ class AdaptivePomodoro:
         return self.state
 
     def start_break(self, long: bool = False) -> PomodoroState:
-        from ..settings import get_settings
-        s = get_settings()
+        s = self._settings()
         duration_s = s["long_break_seconds"] if long else s["short_break_seconds"]
         self.state = PomodoroState(
             phase=PomodoroPhase.LONG_BREAK if long else PomodoroPhase.SHORT_BREAK,
@@ -70,6 +71,10 @@ class AdaptivePomodoro:
         """Return to idle without incrementing session count."""
         self.state = PomodoroState()
         return self.state
+
+    @property
+    def is_busy(self) -> bool:
+        return self.state.phase != PomodoroPhase.IDLE
 
     def tick(self, load_score: float) -> PomodoroState:
         if self.state.is_complete():

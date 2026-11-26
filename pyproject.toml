@@ -14,11 +14,14 @@ dependencies = [
     "fastapi>=0.111.0",
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.7.0",
+    "email-validator>=2.1.0",
     "websockets>=12.0",
     "numpy>=1.26.0",
-    "scikit-learn>=1.4.0",
+    # Pinned to the minor version the bundled model (data/load_estimator.joblib)
+    # was trained with. Retrain with scripts/train_estimator.py when bumping.
+    "scikit-learn>=1.9,<1.10",
+    "joblib>=1.3",
     "psutil>=5.9.0",
-    "pygetwindow>=0.0.9",
     "python-jose[cryptography]>=3.3.0",
     "argon2-cffi>=21.3.0",
     "sqlalchemy>=2.0.0",
@@ -27,11 +30,9 @@ dependencies = [
     "python-multipart>=0.0.9",
 ]
 
-[project.optional-dependencies.desktop]
-# Windows-only extras for the desktop agent (not needed on the server)
-dependencies = ["pygetwindow>=0.0.9"]
-
 [project.optional-dependencies]
+# Windows-only extras for the desktop agent (not needed on the server)
+desktop = ["pygetwindow>=0.0.9"]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",

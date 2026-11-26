@@ -1,19 +1,34 @@
 /**
- * Content Script — captures scroll events and focus blocking.
+ * Content Script — captures scroll speed and enforces focus-mode blocking.
  */
 
 // ── Scroll telemetry ───────────────────────────────────────────────────────
+// Each scroll burst (scrolling with pauses under 500 ms) is reported once with
+// the distance moved and the average speed in px/s.
 
 let scrollDebounceTimer = null;
+let lastScrollY = window.scrollY;
+let burstDistance = 0;
+let burstStart = 0;
 
 window.addEventListener("scroll", () => {
+  const now = performance.now();
+  if (burstDistance === 0) burstStart = now;
+  burstDistance += Math.abs(window.scrollY - lastScrollY);
+  lastScrollY = window.scrollY;
+
   clearTimeout(scrollDebounceTimer);
   scrollDebounceTimer = setTimeout(() => {
-    chrome.runtime.sendMessage({
-      type: "PAGE_SCROLL",
-      deltaY: window.scrollY,
-      url: window.location.href,
-    });
+    const seconds = Math.max((performance.now() - burstStart) / 1000, 0.25);
+    if (burstDistance > 0) {
+      chrome.runtime.sendMessage({
+        type: "PAGE_SCROLL",
+        deltaY: Math.round(burstDistance),
+        velocity: Math.round(burstDistance / seconds),
+        url: window.location.href,
+      });
+    }
+    burstDistance = 0;
   }, 500);
 }, { passive: true });
 

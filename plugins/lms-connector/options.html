@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CLR LMS Connector</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      max-width: 420px; padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f0f1e; color: #e0e0f0;
+    }
+    h1 { font-size: 15px; margin-bottom: 8px; }
+    p { font-size: 13px; opacity: .7; line-height: 1.45; margin-bottom: 10px; }
+    label { display: block; font-size: 11px; opacity: .6; margin: 12px 0 4px; }
+    input {
+      width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #2a2a4a;
+      background: #15152b; color: #e0e0f0; font-size: 13px;
+    }
+    input.code { font-family: ui-monospace, Menlo, monospace; letter-spacing: .15em; text-transform: uppercase; }
+    button {
+      margin-top: 14px; padding: 8px 16px; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 600; cursor: pointer; background: #4a4af0; color: #fff;
+    }
+    button.secondary { background: #2a2a4a; }
+    button:disabled { opacity: .5; }
+    .status { font-size: 13px; margin-top: 12px; }
+    .error { color: #f0905a; font-size: 12px; margin-top: 10px; min-height: 16px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>CLR LMS Connector</h1>
+
+  <section id="connected" class="hidden">
+    <p class="status" id="connectedLine"></p>
+    <button class="secondary" id="disconnectBtn">Disconnect</button>
+  </section>
+
+  <section id="connect" class="hidden">
+    <p>Open the Cognitive Load Router dashboard → Settings → <b>Connect a device</b>,
+       then enter the code here.</p>
+    <label for="engineUrl">Engine URL</label>
+    <input id="engineUrl" type="url" spellcheck="false" />
+    <label for="pairCode">Pairing code</label>
+    <input id="pairCode" class="code" maxlength="12" spellcheck="false" placeholder="XXXX-XXXX" />
+    <button id="connectBtn">Connect</button>
+  </section>
+
+  <div class="error" id="error"></div>
+
+  <script src="clr-client.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

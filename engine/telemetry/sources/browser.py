@@ -52,6 +52,8 @@ def parse_browser_event(payload: Dict[str, Any]) -> TelemetryEvent | None:
 
     elif internal_type == "scroll":
         metadata["delta_y"] = data.get("deltaY", 0)
+        if "velocity" in data:
+            metadata["velocity"] = data["velocity"]   # px/s over the scroll burst
         metadata["url"] = data.get("url", "")
 
     elif internal_type == "navigation":
@@ -85,7 +87,7 @@ _ACADEMIC_DOMAINS = {
 def _is_academic_url(url: str) -> bool:
     try:
         from urllib.parse import urlparse
-        host = urlparse(url).netloc.lower().lstrip("www.")
+        host = urlparse(url).netloc.lower().removeprefix("www.")
         return any(host == d or host.endswith("." + d) for d in _ACADEMIC_DOMAINS)
     except Exception:
         return False

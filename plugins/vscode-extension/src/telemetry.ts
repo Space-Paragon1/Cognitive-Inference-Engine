@@ -1,20 +1,25 @@
 /**
- * Telemetry client — buffers IdeEvents and flushes them to the CLR API.
+ * Telemetry client — buffers IdeEvents and flushes them to the CLR API
+ * with this device's token.
  */
 
-import * as https from "https";
-import * as http from "http";
+import { engineRequest } from "./engineClient";
 import { IdeEvent } from "./events";
+
+const MAX_BUFFER = 500; // engine limit per batch
 
 export class TelemetryClient {
   private buffer: IdeEvent[] = [];
   private flushTimer: NodeJS.Timeout | null = null;
-  private enabled: boolean = true;
+  private enabled = true;
+  private flushing = false;
 
   constructor(
     private engineUrl: string,
+    private getToken: () => Promise<string | undefined>,
+    private onUnauthorized: () => void,
     private flushIntervalMs: number = 5000,
-    private maxBufferSize: number = 50
+    private flushAt: number = 50
   ) {
     this.startFlushTimer();
   }
@@ -22,13 +27,17 @@ export class TelemetryClient {
   push(event: IdeEvent): void {
     if (!this.enabled) return;
     this.buffer.push(event);
-    if (this.buffer.length >= this.maxBufferSize) {
-      this.flush();
+    if (this.buffer.length > MAX_BUFFER) {
+      this.buffer.splice(0, this.buffer.length - MAX_BUFFER);
+    }
+    if (this.buffer.length >= this.flushAt) {
+      void this.flush();
     }
   }
 
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
+    if (!enabled) this.buffer = [];
   }
 
   setEngineUrl(url: string): void {
@@ -36,12 +45,31 @@ export class TelemetryClient {
   }
 
   async flush(): Promise<void> {
-    if (this.buffer.length === 0) return;
+    if (this.flushing || this.buffer.length === 0) return;
+    const token = await this.getToken();
+    if (!token) {
+      // Not connected: don't hold on to activity data for nobody.
+      this.buffer = [];
+      return;
+    }
+    this.flushing = true;
     const batch = this.buffer.splice(0, this.buffer.length);
     try {
-      await this.post("/telemetry/batch", batch);
+      const res = await engineRequest(this.engineUrl, "/telemetry/batch", {
+        method: "POST",
+        token,
+        body: batch,
+      });
+      if (res.status === 401) {
+        this.onUnauthorized();
+      } else if (res.status >= 500) {
+        this.requeue(batch);
+      }
+      // Other 4xx: the batch itself was bad — drop it.
     } catch {
-      // Engine not running — silently discard
+      this.requeue(batch); // engine unreachable — retry next flush
+    } finally {
+      this.flushing = false;
     }
   }
 
@@ -52,36 +80,11 @@ export class TelemetryClient {
     this.flush().catch(() => {});
   }
 
-  private startFlushTimer(): void {
-    this.flushTimer = setInterval(() => this.flush(), this.flushIntervalMs);
+  private requeue(batch: IdeEvent[]): void {
+    this.buffer = batch.concat(this.buffer).slice(-MAX_BUFFER);
   }
 
-  private post(path: string, body: unknown): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const data = JSON.stringify(body);
-      const url = new URL(path, this.engineUrl);
-      const lib = url.protocol === "https:" ? https : http;
-
-      const req = lib.request(
-        {
-          hostname: url.hostname,
-          port: url.port,
-          path: url.pathname,
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Content-Length": Buffer.byteLength(data),
-          },
-        },
-        (res) => {
-          res.resume();
-          res.on("end", resolve);
-        }
-      );
-      req.on("error", reject);
-      req.setTimeout(3000, () => req.destroy());
-      req.write(data);
-      req.end();
-    });
+  private startFlushTimer(): void {
+    this.flushTimer = setInterval(() => void this.flush(), this.flushIntervalMs);
   }
 }

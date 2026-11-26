@@ -3,7 +3,9 @@ import type {
   AuthUser,
   CognitiveState,
   DailyStats,
+  Device,
   FocusState,
+  PairingCode,
   PomodoroState,
   SessionSummary,
   Settings,
@@ -73,11 +75,16 @@ function getWsBaseUrl(): string {
   return `ws://${window.location.hostname}:8765`;
 }
 
+/**
+ * Open the live state stream. The token is sent as the first message rather
+ * than in the URL, so it never shows up in proxy or server logs.
+ */
 export function createStateWebSocket(onMessage: (s: CognitiveState) => void): WebSocket {
-  const token = getAuthToken();
-  const url = `${getWsBaseUrl()}/state/ws${token ? `?token=${token}` : ""}`;
-  const ws = new WebSocket(url);
-  ws.onmessage = (e) => onMessage(JSON.parse(e.data) as CognitiveState);
+  const ws = new WebSocket(`${getWsBaseUrl()}/state/ws`);
+  ws.addEventListener("open", () => {
+    ws.send(JSON.stringify({ type: "auth", token: getAuthToken() ?? "" }));
+  });
+  ws.addEventListener("message", (e) => onMessage(JSON.parse(e.data) as CognitiveState));
   return ws;
 }
 
@@ -205,12 +212,29 @@ export const getDirectives = () => get<ActiveActions>("/actions/directives");
 // ── Settings ────────────────────────────────────────────────────────────────
 
 export const getSettings = () => get<SettingsResponse>("/settings");
-export const putSettings = (patch: Partial<Settings>) =>
-  fetch(`${BASE}/settings`, {
+export async function putSettings(patch: Partial<Settings>): Promise<{ settings: Settings }> {
+  const res = await fetch(`${BASE}/settings`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(patch),
-  }).then((r) => r.json() as Promise<{ settings: Settings }>);
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { detail?: unknown };
+    throw new Error(typeof data.detail === "string" ? data.detail : `${res.status} ${res.statusText}`);
+  }
+  return res.json() as Promise<{ settings: Settings }>;
+}
+
+// ── Devices (plugin pairing) ────────────────────────────────────────────────
+
+export const createPairingCode = () => post<PairingCode>("/devices/pairing-code");
+export const listDevices = () => get<Device[]>("/devices");
+export const revokeDevice = (id: number) => del(`/devices/${id}`);
+
+/** The engine URL plugins should be pointed at (shown next to the pairing code). */
+export function engineUrlForPlugins(): string {
+  return API_ROOT || "http://127.0.0.1:8765";
+}
 
 // ── Do Not Disturb ──────────────────────────────────────────────────────────
 

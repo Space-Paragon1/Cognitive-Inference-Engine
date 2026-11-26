@@ -31,10 +31,19 @@ class FocusState:
 
 
 class FocusModeController:
+    """
+    One user's focus mode. ``control_os_notifications`` toggles Do Not Disturb
+    on the machine the engine runs on, which only makes sense when the engine
+    runs locally on the student's own computer (never on a hosted server).
+    """
 
-    def __init__(self):
-        self._notif = NotificationController()
+    def __init__(self, control_os_notifications: bool = True):
+        self._notif = NotificationController() if control_os_notifications else None
         self.state = FocusState()
+
+    @property
+    def is_busy(self) -> bool:
+        return self.state.active
 
     def activate(
         self, duration_minutes: int = 25, reason: str = "", block_tabs: bool = True
@@ -46,12 +55,14 @@ class FocusModeController:
             block_tabs=block_tabs,
             reason=reason,
         )
-        self._notif.suppress()
+        if self._notif:
+            self._notif.suppress()
         return self.state
 
     def deactivate(self) -> FocusState:
         self.state.active = False
-        self._notif.allow()
+        if self._notif:
+            self._notif.allow()
         return self.state
 
     def tick(self) -> FocusState:

@@ -1,38 +1,30 @@
 """
-Tests for the settings store (engine/settings.py) and the /settings API endpoints.
+Tests for the per-user settings store (engine/settings.py) and the /settings API.
 """
 
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import create_engine
 
-import engine.settings as settings_mod
 from engine.api.app import create_app
-from engine.auth.service import create_access_token, hash_password
-from engine.db.users import UsersDB
-from engine.settings import DEFAULTS, get_settings, update_settings
-
+from engine.db.connection import metadata, user_settings_table
+from engine.settings import DEFAULTS, SettingsStore
+from tests.conftest import make_user_token
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture()
-def tmp_settings_file(tmp_path: Path, monkeypatch):
-    """
-    Redirect the settings store to a fresh temp file for each test.
-    Also resets the in-memory cache so each test starts clean.
-    """
-    fake_file = tmp_path / "settings.json"
-    monkeypatch.setattr(settings_mod, "_FILE", fake_file)
-    monkeypatch.setattr(settings_mod, "_current", {})
-    yield fake_file
-    # Reset cache after test so other tests are not affected
-    monkeypatch.setattr(settings_mod, "_current", {})
+def store():
+    """A SettingsStore backed by a fresh in-memory SQLite database."""
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    metadata.create_all(engine)
+    return SettingsStore(engine)
 
 
 @pytest.fixture(scope="module")
@@ -43,12 +35,7 @@ def app():
 @pytest_asyncio.fixture(scope="module")
 async def client(app):
     async with app.router.lifespan_context(app):
-        users_db: UsersDB = app.state.users_db
-        email = "settings-test@example.com"
-        if users_db.get_by_email(email) is None:
-            users_db.create_user(email, hash_password("testpassword"))
-        user = users_db.get_by_email(email)
-        token = create_access_token(user.id)
+        token = make_user_token(app, "settings-test@example.com")
         async with AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://test",
@@ -60,17 +47,15 @@ async def client(app):
 # ── Unit tests: settings store ────────────────────────────────────────────────
 
 class TestSettingsDefaults:
-    def test_get_settings_returns_all_defaults(self, tmp_settings_file):
-        s = get_settings()
+    def test_new_user_gets_all_defaults(self, store):
+        s = store.get(1)
         for key, val in DEFAULTS.items():
-            assert key in s
             assert s[key] == val
 
-    def test_get_settings_returns_copy(self, tmp_settings_file):
-        s1 = get_settings()
+    def test_get_returns_copy(self, store):
+        s1 = store.get(1)
         s1["short_break_seconds"] = 9999
-        s2 = get_settings()
-        assert s2["short_break_seconds"] == DEFAULTS["short_break_seconds"]
+        assert store.get(1)["short_break_seconds"] == DEFAULTS["short_break_seconds"]
 
     def test_defaults_contain_expected_keys(self):
         expected = {
@@ -84,54 +69,62 @@ class TestSettingsDefaults:
 
 
 class TestUpdateSettings:
-    def test_update_single_key(self, tmp_settings_file):
-        update_settings({"short_break_seconds": 420})
-        assert get_settings()["short_break_seconds"] == 420
+    def test_update_single_key(self, store):
+        store.update(1, {"short_break_seconds": 420})
+        assert store.get(1)["short_break_seconds"] == 420
 
-    def test_update_persists_to_disk(self, tmp_settings_file):
-        update_settings({"session_gap_minutes": 15})
-        saved = json.loads(tmp_settings_file.read_text())
-        assert saved["session_gap_minutes"] == 15
+    def test_update_persists_to_database(self, store):
+        store.update(1, {"session_gap_minutes": 15})
+        # A second store on the same database has no cache, so it reads the row.
+        fresh = SettingsStore(store._engine)
+        assert fresh.get(1)["session_gap_minutes"] == 15
 
-    def test_unknown_keys_are_ignored(self, tmp_settings_file):
-        update_settings({"unknown_key": "surprise", "short_break_seconds": 120})
-        s = get_settings()
+    def test_users_are_isolated(self, store):
+        store.update(1, {"session_gap_minutes": 15})
+        store.update(2, {"session_gap_minutes": 30})
+        assert store.get(1)["session_gap_minutes"] == 15
+        assert store.get(2)["session_gap_minutes"] == 30
+        assert store.get(3)["session_gap_minutes"] == DEFAULTS["session_gap_minutes"]
+
+    def test_unknown_keys_are_ignored(self, store):
+        store.update(1, {"unknown_key": "surprise", "short_break_seconds": 120})
+        s = store.get(1)
         assert "unknown_key" not in s
         assert s["short_break_seconds"] == 120
 
-    def test_update_coerces_type(self, tmp_settings_file):
-        # Pass a float where int is expected — should coerce
-        update_settings({"short_break_seconds": 300.9})
-        assert isinstance(get_settings()["short_break_seconds"], int)
-        assert get_settings()["short_break_seconds"] == 300
+    def test_update_coerces_type(self, store):
+        store.update(1, {"short_break_seconds": 300.9})
+        assert isinstance(store.get(1)["short_break_seconds"], int)
+        assert store.get(1)["short_break_seconds"] == 300
 
-    def test_update_returns_full_settings(self, tmp_settings_file):
-        result = update_settings({"short_break_seconds": 180})
+    def test_update_returns_full_settings(self, store):
+        result = store.update(1, {"short_break_seconds": 180})
         assert "long_break_seconds" in result
         assert "high_load_threshold" in result
         assert result["short_break_seconds"] == 180
 
-    def test_partial_update_preserves_other_keys(self, tmp_settings_file):
-        update_settings({"high_load_threshold": 0.80})
-        s = get_settings()
+    def test_partial_update_preserves_other_keys(self, store):
+        store.update(1, {"high_load_threshold": 0.80})
+        s = store.get(1)
         assert s["high_load_threshold"] == 0.80
         assert s["fatigue_threshold"] == DEFAULTS["fatigue_threshold"]
 
-    def test_load_from_existing_file(self, tmp_settings_file):
-        # Pre-populate the file before any get_settings() call
-        tmp_settings_file.write_text(json.dumps({"short_break_seconds": 600}))
-        settings_mod._current.clear()
-        s = get_settings()
-        assert s["short_break_seconds"] == 600
-        # Keys not in file fall back to defaults
-        assert s["long_break_seconds"] == DEFAULTS["long_break_seconds"]
-
-    def test_malformed_file_falls_back_to_defaults(self, tmp_settings_file):
-        tmp_settings_file.write_text("not valid json{{")
-        settings_mod._current.clear()
-        s = get_settings()
+    def test_malformed_row_falls_back_to_defaults(self, store):
+        with store._engine.begin() as conn:
+            conn.execute(
+                user_settings_table.insert().values(
+                    user_id=7, settings_json="not valid json{{", updated_at=0.0
+                )
+            )
+        s = store.get(7)
         for key, val in DEFAULTS.items():
             assert s[key] == val
+
+    def test_stored_row_is_json(self, store):
+        store.update(1, {"short_break_seconds": 600})
+        with store._engine.connect() as conn:
+            row = conn.execute(user_settings_table.select()).fetchone()
+        assert json.loads(row.settings_json)["short_break_seconds"] == 600
 
 
 # ── API integration tests: GET /settings ─────────────────────────────────────
@@ -247,3 +240,18 @@ class TestSettingsPutEndpoint:
         await client.put("/settings", json={"session_gap_minutes": 12})
         r = await client.get("/settings")
         assert r.json()["settings"]["session_gap_minutes"] == 12
+
+    async def test_fatigue_must_exceed_high_load(self, client):
+        r = await client.put("/settings", json={
+            "high_load_threshold": 0.80,
+            "fatigue_threshold": 0.75,
+        })
+        assert r.status_code == 422
+
+
+class TestSettingsPerUser:
+    async def test_other_users_settings_are_not_visible(self, app, client):
+        await client.put("/settings", json={"session_gap_minutes": 33})
+        other = make_user_token(app, "settings-other@example.com")
+        r = await client.get("/settings", headers={"Authorization": f"Bearer {other}"})
+        assert r.json()["settings"]["session_gap_minutes"] == DEFAULTS["session_gap_minutes"]

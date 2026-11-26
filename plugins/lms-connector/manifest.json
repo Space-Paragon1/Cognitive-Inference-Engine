@@ -1,11 +1,16 @@
 {
   "manifest_version": 3,
   "name": "CLR LMS Connector",
-  "version": "0.1.0",
-  "description": "Sends Canvas / Blackboard / Moodle interactions to the Cognitive Load Router engine.",
-  "permissions": ["storage", "idle"],
+  "version": "0.2.0",
+  "description": "Sends Canvas / Blackboard / Moodle interactions to your Cognitive Load Router engine.",
+  "permissions": [
+    "storage",
+    "idle",
+    "alarms"
+  ],
   "host_permissions": [
-    "http://127.0.0.1:8765/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*",
     "*://*.instructure.com/*",
     "*://*.canvas.com/*",
     "*://*.blackboard.com/*",
@@ -21,11 +26,21 @@
         "*://*.moodle.org/*",
         "*://*.moodlecloud.com/*"
       ],
-      "js": ["content.js"],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
   "background": {
     "service_worker": "background.js"
+  },
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
   }
 }

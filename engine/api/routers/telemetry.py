@@ -1,26 +1,27 @@
 """
-/telemetry — ingest events from browser extension, IDE extension, desktop agent, and LMS connector.
+/telemetry — ingest events from the browser extension, IDE extension,
+desktop agent, and LMS connector.
+
+Plugins authenticate with a device token (see /devices); the signed-in
+dashboard may also post with its user JWT.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 
 from ...api.schemas import TelemetryEventIn
-from ...auth.service import get_current_user
+from ...runtime import UserEngine
 from ...telemetry.sources.browser import parse_browser_event
 from ...telemetry.sources.desktop import parse_desktop_event
 from ...telemetry.sources.ide import parse_ide_event
 from ...telemetry.sources.lms import parse_lms_event
+from ..deps import principal_engine
 
-router = APIRouter(
-    prefix="/telemetry", tags=["telemetry"], dependencies=[Depends(get_current_user)]
-)
+router = APIRouter(prefix="/telemetry", tags=["telemetry"])
 
-
-def _get_aggregator(request: Request):
-    """Dependency — resolved by the app lifespan state."""
-    return request.app.state.aggregator
+_KNOWN_SOURCES = {"browser", "ide", "desktop", "lms"}
+MAX_BATCH_SIZE = 500
 
 
 def _to_payload(event: TelemetryEventIn) -> dict:
@@ -46,10 +47,9 @@ def _parse_event(source: str, payload: dict):
 @router.post("/event", status_code=status.HTTP_202_ACCEPTED)
 async def ingest_event(
     event: TelemetryEventIn,
-    aggregator=Depends(_get_aggregator),
+    engine: UserEngine = Depends(principal_engine),
 ):
     """Accept a single telemetry event from any plugin source."""
-    _KNOWN_SOURCES = {"browser", "ide", "desktop", "lms"}
     if event.source not in _KNOWN_SOURCES:
         raise HTTPException(status_code=400, detail=f"Unknown source: {event.source!r}")
 
@@ -57,20 +57,20 @@ async def ingest_event(
     if parsed is None:
         raise HTTPException(status_code=422, detail=f"Unrecognised event type: {event.type!r}")
 
-    await aggregator.push_event_async(parsed)
+    await engine.aggregator.push_event_async(parsed)
     return {"status": "accepted"}
 
 
 @router.post("/batch", status_code=status.HTTP_202_ACCEPTED)
 async def ingest_batch(
-    events: list[TelemetryEventIn],
-    aggregator=Depends(_get_aggregator),
+    events: list[TelemetryEventIn] = Body(..., max_length=MAX_BATCH_SIZE),
+    engine: UserEngine = Depends(principal_engine),
 ):
     """Accept a batch of events (used by plugins that buffer locally)."""
     accepted = 0
     for event in events:
         parsed = _parse_event(event.source, _to_payload(event))
         if parsed:
-            await aggregator.push_event_async(parsed)
+            await engine.aggregator.push_event_async(parsed)
             accepted += 1
     return {"accepted": accepted, "total": len(events)}

@@ -126,6 +126,7 @@ def parse_lms_event(payload: Dict[str, Any]) -> TelemetryEvent | None:
             timestamp=timestamp,
             metadata={
                 "delta_y": data.get("deltaY", 0),
+                **({"velocity": data["velocity"]} if "velocity" in data else {}),
                 "lms": lms_platform,
                 "course": course,
                 "lms_event": raw_type,

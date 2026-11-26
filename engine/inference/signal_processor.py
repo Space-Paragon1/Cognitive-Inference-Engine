@@ -5,16 +5,16 @@ into feature vectors suitable for the load estimator.
 
 from __future__ import annotations
 
+import bisect
 import math
 import time
-from collections import deque
 from dataclasses import dataclass, field
-from typing import Deque, Dict, List
+from typing import Dict, List, Optional
 
 
 @dataclass
 class TelemetryEvent:
-    source: str          # "browser" | "ide" | "desktop"
+    source: str          # "browser" | "ide" | "desktop" | "lms"
     event_type: str      # e.g. "tab_switch", "compile_error", "window_change"
     timestamp: float = field(default_factory=time.time)
     metadata: Dict = field(default_factory=dict)
@@ -27,48 +27,98 @@ class SignalFeatures:
     compile_error_rate: float = 0.0       # errors / min
     window_change_rate: float = 0.0       # changes / min
     typing_burst_score: float = 0.0       # 0-1, variance in typing cadence
-    idle_fraction: float = 0.0            # fraction of window spent idle
+    idle_fraction: float = 0.0            # fraction of window time spent idle
     scroll_velocity_norm: float = 0.0     # normalized scroll speed
     session_duration_min: float = 0.0
     task_switch_entropy: float = 0.0      # Shannon entropy of app usage distribution
     timestamp: float = field(default_factory=time.time)
 
 
+# Scroll speeds at or above this many px/s count as "maximum" scroll velocity.
+_MAX_SCROLL_PX_S = 3000.0
+
+
 class SignalProcessor:
     """
     Maintains a sliding window of telemetry events and derives
     normalized feature vectors on demand.
+
+    ``idle_gap_s``     — a silence longer than this (no events from any
+                         source) counts as idle time.
+    ``session_gap_s``  — a silence longer than this starts a new session, so
+                         ``session_duration_min`` measures the current sitting
+                         rather than the time since the engine started.
     """
 
-    def __init__(self, window_seconds: int = 300):
+    def __init__(
+        self,
+        window_seconds: int = 300,
+        idle_gap_s: float = 60.0,
+        session_gap_s: float = 600.0,
+    ):
         self.window_seconds = window_seconds
-        self._events: Deque[TelemetryEvent] = deque()
+        self.idle_gap_s = idle_gap_s
+        self.session_gap_s = session_gap_s
+        # Kept sorted by timestamp: plugins flush batches independently, so
+        # events from different sources can arrive out of order.
+        self._events: List[TelemetryEvent] = []
         self._session_start: float = time.time()
+        self._last_event_ts: Optional[float] = None
+        self._source_last_seen: Dict[str, float] = {}
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
     def push(self, event: TelemetryEvent) -> None:
-        self._events.append(event)
+        now = time.time()
+        # Never trust client clocks to be in the future; a future timestamp
+        # would otherwise sit in the window forever.
+        if event.timestamp > now:
+            event.timestamp = now
+
+        if self._last_event_ts is None or event.timestamp - self._last_event_ts > self.session_gap_s:
+            self._session_start = event.timestamp
+        elif event.timestamp < self._session_start:
+            # A late-arriving event from earlier in the same sitting.
+            self._session_start = event.timestamp
+        if self._last_event_ts is None or event.timestamp > self._last_event_ts:
+            self._last_event_ts = event.timestamp
+        prev = self._source_last_seen.get(event.source, 0.0)
+        self._source_last_seen[event.source] = max(prev, event.timestamp)
+
+        bisect.insort(self._events, event, key=lambda e: e.timestamp)
         self._evict_stale()
+
+    def has_recent_activity(self) -> bool:
+        """True if any event is inside the current window."""
+        self._evict_stale()
+        return bool(self._events)
+
+    def source_last_seen(self) -> Dict[str, float]:
+        return dict(self._source_last_seen)
 
     def extract_features(self) -> SignalFeatures:
         self._evict_stale()
         events = list(self._events)
+        if not events:
+            # Nothing observed in the window: report "no data", not "idle".
+            return SignalFeatures()
+
+        now = time.time()
         window_min = self.window_seconds / 60.0
-        elapsed_min = max((time.time() - self._session_start) / 60.0, 0.0)
+        elapsed_min = max((now - self._session_start) / 60.0, 0.0)
         # Use observed session span up to the configured window; floor to 1 minute.
         rate_window_min = max(min(window_min, elapsed_min), 1.0)
 
         return SignalFeatures(
-            tab_switch_rate=self._rate(events, "tab_switch") / rate_window_min,
-            compile_error_rate=self._rate(events, "compile_error") / rate_window_min,
-            window_change_rate=self._rate(events, "window_change") / rate_window_min,
+            tab_switch_rate=self._count(events, "tab_switch") / rate_window_min,
+            compile_error_rate=self._count(events, "compile_error") / rate_window_min,
+            window_change_rate=self._count(events, "window_change") / rate_window_min,
             typing_burst_score=self._typing_burst(events),
-            idle_fraction=self._idle_fraction(events),
+            idle_fraction=self._idle_fraction(events, now),
             scroll_velocity_norm=self._scroll_velocity(events),
-            session_duration_min=(time.time() - self._session_start) / 60.0,
+            session_duration_min=elapsed_min,
             task_switch_entropy=self._app_entropy(events),
         )
 
@@ -81,11 +131,12 @@ class SignalProcessor:
 
     def _evict_stale(self) -> None:
         cutoff = time.time() - self.window_seconds
-        while self._events and self._events[0].timestamp < cutoff:
-            self._events.popleft()
+        idx = bisect.bisect_left(self._events, cutoff, key=lambda e: e.timestamp)
+        if idx:
+            del self._events[:idx]
 
     @staticmethod
-    def _rate(events: List[TelemetryEvent], event_type: str) -> float:
+    def _count(events: List[TelemetryEvent], event_type: str) -> float:
         return sum(1 for e in events if e.event_type == event_type)
 
     @staticmethod
@@ -104,26 +155,52 @@ class SignalProcessor:
         # coefficient of variation, capped at 1
         return min(math.sqrt(variance) / mean, 1.0)
 
-    @staticmethod
-    def _idle_fraction(events: List[TelemetryEvent]) -> float:
-        idle_events = [e for e in events if e.event_type == "idle_start"]
-        if not idle_events:
+    def _idle_fraction(self, events: List[TelemetryEvent], now: float) -> float:
+        """
+        Fraction of the observed window (since the window start or the session
+        start, whichever is later) spent idle. Time counts as idle when either
+        a source reported ``idle_start`` and nothing has happened since, or
+        when no source sent anything for longer than ``idle_gap_s``.
+        """
+        window_start = max(now - self.window_seconds, self._session_start)
+        span = now - window_start
+        if span <= 0:
             return 0.0
-        # simple approximation: count idle periods over total window
-        return min(len(idle_events) / max(len(events), 1), 1.0)
+
+        idle = 0.0
+        cursor = window_start
+        flagged_idle = False
+        for e in events:
+            ts = max(e.timestamp, cursor)
+            gap = ts - cursor
+            if flagged_idle or gap > self.idle_gap_s:
+                idle += gap
+            flagged_idle = e.event_type == "idle_start"
+            cursor = ts
+        tail = now - cursor
+        if flagged_idle or tail > self.idle_gap_s:
+            idle += tail
+        return min(idle / span, 1.0)
 
     @staticmethod
     def _scroll_velocity(events: List[TelemetryEvent]) -> float:
-        velocities = [
-            abs(e.metadata.get("delta_y", 0))
-            for e in events
-            if e.event_type == "scroll" and "delta_y" in e.metadata
-        ]
-        if not velocities:
+        """
+        Average scroll speed, normalised to 0-1. Plugins send ``velocity``
+        (px/s); older payloads only carry ``delta_y`` (px moved in a burst),
+        which is treated as roughly one second of scrolling.
+        """
+        speeds = []
+        for e in events:
+            if e.event_type != "scroll":
+                continue
+            if "velocity" in e.metadata:
+                speeds.append(abs(float(e.metadata["velocity"] or 0)))
+            elif "delta_y" in e.metadata:
+                speeds.append(abs(float(e.metadata["delta_y"] or 0)))
+        if not speeds:
             return 0.0
-        avg = sum(velocities) / len(velocities)
-        # normalize: assume 3000 px/s is max observed
-        return min(avg / 3000.0, 1.0)
+        avg = sum(speeds) / len(speeds)
+        return min(avg / _MAX_SCROLL_PX_S, 1.0)
 
     @staticmethod
     def _app_entropy(events: List[TelemetryEvent]) -> float:

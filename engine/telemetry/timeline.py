@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from sqlalchemy import and_, select
+from sqlalchemy import Integer, and_, cast, func, select
 from sqlalchemy.engine import Engine
 
 from ..db.connection import timeline_table
@@ -126,10 +126,31 @@ class CognitiveTimeline:
             for row in rows
         ]
 
-    def recent_load_scores(self, window_s: int = 300) -> List[float]:
+    def recent_load_scores(
+        self, window_s: int = 300, user_id: Optional[int] = None
+    ) -> List[float]:
         since = time.time() - window_s
-        entries = self.query(since=since, limit=1000)
-        return [e.load_score for e in reversed(entries)]
+        entries = self.query(since=since, source="engine", limit=1000, user_id=user_id)
+        return [e.load_score for e in reversed(entries) if e.event_type == "inference_tick"]
+
+    # ------------------------------------------------------------------
+    # Retention
+    # ------------------------------------------------------------------
+
+    def downsample_before(self, cutoff_ts: float, bucket_s: int = 60) -> int:
+        """
+        Thin inference ticks older than ``cutoff_ts`` to one per ``bucket_s``
+        seconds per user (keeping the first tick in each bucket). Sessions and
+        daily stats still work on the thinned data because the session gap is
+        always much longer than the bucket. Returns the number of rows deleted.
+        """
+        t = timeline_table
+        old_ticks = and_(t.c.event_type == "inference_tick", t.c.timestamp < cutoff_ts)
+        bucket = cast(t.c.timestamp / bucket_s, Integer)
+        keep = select(func.min(t.c.id)).where(old_ticks).group_by(t.c.user_id, bucket)
+        with self._engine.begin() as conn:
+            result = conn.execute(t.delete().where(and_(old_ticks, t.c.id.not_in(keep))))
+        return result.rowcount or 0
 
     # ------------------------------------------------------------------
     # Read — session analytics

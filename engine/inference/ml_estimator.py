@@ -16,13 +16,18 @@ Drop-in replacement for LoadEstimator:
 
 from __future__ import annotations
 
+import logging
+import warnings
+from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
 from .load_estimator import LoadEstimate, LoadEstimator
 from .signal_processor import SignalFeatures
+
+log = logging.getLogger(__name__)
 
 _MODEL_PATH = Path(__file__).parent.parent.parent / "data" / "load_estimator.joblib"
 
@@ -57,19 +62,66 @@ def _normalise(features: SignalFeatures) -> np.ndarray:
     return np.array(row, dtype=np.float32).reshape(1, -1)
 
 
+def _sklearn_minor(version: str) -> str:
+    return ".".join(version.split(".")[:2])
+
+
+@lru_cache(maxsize=4)
+def load_bundled_model(model_path: Path) -> Optional[Any]:
+    """
+    Load the trained model once per process (every user's engine shares it).
+
+    New models are saved as {"model", "sklearn_version", "features"}. A model
+    pickled by a different scikit-learn minor version is rejected (it may load
+    but predict garbage), as is a legacy bare pickle that triggers sklearn's
+    InconsistentVersionWarning. In both cases the v1 heuristic is used.
+    """
+    if not model_path.exists():
+        return None
+    try:
+        import joblib
+        import sklearn
+        from sklearn.exceptions import InconsistentVersionWarning
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", InconsistentVersionWarning)
+            obj = joblib.load(model_path)
+    except Exception as e:  # includes InconsistentVersionWarning raised as error
+        log.warning(
+            "Could not load %s (%s). Using the v1 heuristic estimator; "
+            "retrain with: python scripts/train_estimator.py",
+            model_path, e,
+        )
+        return None
+
+    if isinstance(obj, dict):
+        trained_with = str(obj.get("sklearn_version", "?"))
+        if _sklearn_minor(trained_with) != _sklearn_minor(sklearn.__version__):
+            log.warning(
+                "Model was trained with scikit-learn %s but %s is installed. Using the "
+                "v1 heuristic estimator; retrain with: python scripts/train_estimator.py",
+                trained_with, sklearn.__version__,
+            )
+            return None
+        if list(obj.get("features", FEATURE_COLS)) != FEATURE_COLS:
+            log.warning("Model feature columns do not match; using the v1 heuristic.")
+            return None
+        return obj["model"]
+    return obj
+
+
 class MLLoadEstimator:
     """
     Wraps a trained sklearn model when available; transparently falls back to
-    the rule-based v1 estimator when no saved model is found.
+    the rule-based v1 estimator when no usable saved model is found.
     """
 
     def __init__(self, model_path: Optional[Path] = None):
         self._model_path = model_path or _MODEL_PATH
-        self._model = None
         self._v1 = LoadEstimator()
         self._history_size = 5
         self._history: list[float] = []
-        self._load_model()
+        self._model = load_bundled_model(self._model_path)
 
     # ------------------------------------------------------------------
     # Public API  (identical to LoadEstimator)
@@ -87,16 +139,6 @@ class MLLoadEstimator:
     # ------------------------------------------------------------------
     # Internal
     # ------------------------------------------------------------------
-
-    def _load_model(self) -> None:
-        if not self._model_path.exists():
-            return
-        try:
-            import joblib
-            self._model = joblib.load(self._model_path)
-        except Exception as e:
-            print(f"[MLLoadEstimator] Could not load model: {e} — using v1 fallback")
-            self._model = None
 
     def _predict_ml(self, features: SignalFeatures) -> LoadEstimate:
         X = _normalise(features)

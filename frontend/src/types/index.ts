@@ -18,6 +18,12 @@ export interface CognitiveState {
   confidence: number;
   breakdown: LoadBreakdown;
   timestamp: number;
+  /** "ml" when the trained model is in use, "v1" for the heuristic. */
+  estimator?: "ml" | "v1";
+  /** True when any telemetry arrived inside the inference window. */
+  active?: boolean;
+  /** Unix time each source (browser, ide, desktop, lms) was last heard from. */
+  sources?: Record<string, number>;
 }
 
 export interface TimelineEntry {
@@ -117,4 +123,17 @@ export interface AuthUser {
 export interface TokenResponse {
   access_token: string;
   token_type: string;
+}
+
+export interface PairingCode {
+  code: string;
+  expires_at: number;
+}
+
+export interface Device {
+  id: number;
+  name: string;
+  kind: "browser" | "ide" | "desktop" | "lms" | "other";
+  created_at: number;
+  last_seen_at: number | null;
 }

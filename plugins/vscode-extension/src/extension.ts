@@ -3,30 +3,106 @@
  * Registers listeners for IDE events and forwards them to the CLR engine.
  */
 
+import * as os from "os";
 import * as vscode from "vscode";
+import { engineRequest } from "./engineClient";
 import { makeEvent } from "./events";
 import { StatusBarController } from "./statusbar";
 import { TelemetryClient } from "./telemetry";
+
+// The device token lives in VS Code's SecretStorage (OS keychain), not in settings.
+const TOKEN_KEY = "clr.deviceToken";
 
 let client: TelemetryClient | null = null;
 let statusBar: StatusBarController | null = null;
 let lastKeystrokeTime = 0;
 let activeFile = "";
+let warnedUnauthorized = false;
+
+function currentEngineUrl(): string {
+  return vscode.workspace
+    .getConfiguration("clr")
+    .get<string>("engineUrl", "http://127.0.0.1:8765")
+    .replace(/\/+$/, "");
+}
 
 export function activate(context: vscode.ExtensionContext): void {
   const cfg = vscode.workspace.getConfiguration("clr");
-  const engineUrl = cfg.get<string>("engineUrl", "http://127.0.0.1:8765");
+  const engineUrl = currentEngineUrl();
+  const getToken = async () => context.secrets.get(TOKEN_KEY);
 
-  client = new TelemetryClient(engineUrl, 5000);
+  const onUnauthorized = () => {
+    statusBar?.refresh();
+    if (warnedUnauthorized) return;
+    warnedUnauthorized = true;
+    void vscode.window
+      .showWarningMessage(
+        "Cognitive Load Router: this editor was disconnected from your account.",
+        "Reconnect"
+      )
+      .then((choice) => {
+        if (choice === "Reconnect") void vscode.commands.executeCommand("clr.connect");
+      });
+  };
+
+  client = new TelemetryClient(engineUrl, getToken, onUnauthorized, 5000);
 
   if (!cfg.get<boolean>("telemetryEnabled", true)) {
     client.setEnabled(false);
   }
 
   // ── Status bar ─────────────────────────────────────────────────────────
-  statusBar = new StatusBarController(engineUrl);
+  statusBar = new StatusBarController(engineUrl, getToken);
   statusBar.start(5000);
   context.subscriptions.push({ dispose: () => statusBar?.dispose() });
+
+  // ── Connect / disconnect ───────────────────────────────────────────────
+  context.subscriptions.push(
+    vscode.commands.registerCommand("clr.connect", async () => {
+      const url = currentEngineUrl();
+      const code = await vscode.window.showInputBox({
+        title: "Connect to Cognitive Load Router",
+        prompt: `Open the dashboard → Settings → Connect a device, then enter the code. Engine: ${url}`,
+        placeHolder: "XXXX-XXXX",
+        ignoreFocusOut: true,
+      });
+      if (!code) return;
+      try {
+        const res = await engineRequest(url, "/devices/claim", {
+          method: "POST",
+          body: { code: code.trim(), name: `VS Code on ${os.hostname()}`, kind: "ide" },
+        });
+        const data = JSON.parse(res.body || "{}");
+        if (res.status !== 201) {
+          throw new Error(data.detail ?? `Pairing failed (HTTP ${res.status})`);
+        }
+        await context.secrets.store(TOKEN_KEY, data.device_token);
+        warnedUnauthorized = false;
+        statusBar?.refresh();
+        vscode.window.showInformationMessage(
+          `Cognitive Load Router: connected as ${data.user_email}.`
+        );
+      } catch (e) {
+        vscode.window.showErrorMessage(
+          `Cognitive Load Router: ${(e as Error).message || "could not reach the engine"}`
+        );
+      }
+    }),
+
+    vscode.commands.registerCommand("clr.disconnect", async () => {
+      const token = await getToken();
+      if (token) {
+        try {
+          await engineRequest(currentEngineUrl(), "/devices/self", { method: "DELETE", token });
+        } catch {
+          // engine unreachable — still forget the token locally
+        }
+      }
+      await context.secrets.delete(TOKEN_KEY);
+      statusBar?.refresh();
+      vscode.window.showInformationMessage("Cognitive Load Router: disconnected.");
+    })
+  );
 
   // ── Keystroke cadence ──────────────────────────────────────────────────
   context.subscriptions.push(
@@ -170,9 +246,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("clr.engineUrl")) {
-        const newUrl = vscode.workspace
-          .getConfiguration("clr")
-          .get<string>("engineUrl", "http://127.0.0.1:8765");
+        const newUrl = currentEngineUrl();
         client?.setEngineUrl(newUrl);
         statusBar?.setEngineUrl(newUrl);
       }

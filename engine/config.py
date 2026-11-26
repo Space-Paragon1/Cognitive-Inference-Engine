@@ -14,8 +14,15 @@ _ROOT = Path(__file__).parent.parent
 _CONFIG_FILE = _ROOT / "config.json"
 
 
+DEFAULT_JWT_SECRET = "dev-secret-change-in-production"
+
+
 @dataclass
 class Config:
+    # "development" (local, single machine) or "production" (hosted).
+    # Production is also assumed whenever a PostgreSQL database_url is set.
+    env: str = "development"
+
     # API
     api_host: str = "127.0.0.1"
     api_port: int = 8765
@@ -41,8 +48,16 @@ class Config:
     database_url: str = ""
 
     # Auth
-    jwt_secret: str = "dev-secret-change-in-production"
+    jwt_secret: str = DEFAULT_JWT_SECRET
     jwt_expire_days: int = 7
+
+    # Per-user engines with no telemetry or API use for this long are dropped
+    # from memory (their history and tasks stay in the database).
+    engine_idle_ttl_s: int = 1800
+
+    # Timeline retention: inference ticks older than this many days are thinned
+    # to one per minute. 0 disables the job.
+    timeline_downsample_after_days: int = 7
 
     # Action thresholds
     high_load_threshold: float = 0.75
@@ -52,6 +67,19 @@ class Config:
     def __post_init__(self):
         self.data_dir = Path(self.data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
+
+    @property
+    def is_production(self) -> bool:
+        return self.env.lower() == "production" or self.database_url.startswith("postgres")
+
+    def check_secrets(self) -> None:
+        """Refuse to run a hosted instance with the built-in JWT secret."""
+        if self.is_production and self.jwt_secret == DEFAULT_JWT_SECRET:
+            raise RuntimeError(
+                "CLR_JWT_SECRET is not set. Refusing to start in production with the "
+                "default secret (anyone could forge login tokens). Generate one with:\n"
+                "  python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
 
     @classmethod
     def load(cls) -> "Config":

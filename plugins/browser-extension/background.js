@@ -1,13 +1,16 @@
 /**
- * Background Service Worker — collects tab and idle events,
- * buffers them locally, and flushes to the CLR engine API.
+ * Background Service Worker — collects tab and idle events, buffers them,
+ * and flushes them to the CLR engine with this device's token.
  */
 
-const API_BASE = "http://127.0.0.1:8765";
+importScripts("clr-client.js");
+
 const FLUSH_INTERVAL_MS = 5000;
-const MAX_BUFFER_SIZE = 100;
+const FLUSH_AT = 100;          // flush early once this many events are queued
+const MAX_BUFFER_SIZE = 500;   // engine limit per batch; oldest events dropped beyond this
 
 let eventBuffer = [];
+let flushing = false;
 let lastTabId = null;
 let lastTabUrl = "";
 
@@ -19,10 +22,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     pushEvent({
       source: "browser",
       type: "TAB_SWITCH",
-      data: {
-        fromUrl: lastTabUrl,
-        toUrl: tab.url || "",
-      },
+      data: { fromUrl: lastTabUrl, toUrl: tab.url || "" },
     });
     lastTabId = activeInfo.tabId;
     lastTabUrl = tab.url || "";
@@ -31,11 +31,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete" && tabId === lastTabId) {
-    pushEvent({
-      source: "browser",
-      type: "NAVIGATION",
-      data: { url: tab.url || "" },
-    });
+    pushEvent({ source: "browser", type: "NAVIGATION", data: { url: tab.url || "" } });
     lastTabUrl = tab.url || "";
   }
 });
@@ -51,15 +47,17 @@ chrome.idle.onStateChanged.addListener((state) => {
   }
 });
 
-// ── Message from content script ───────────────────────────────────────────
+// ── Messages from the content script and popup ─────────────────────────────
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "PAGE_SCROLL") {
     pushEvent({
       source: "browser",
       type: "PAGE_SCROLL",
-      data: { deltaY: message.deltaY, url: message.url },
+      data: { deltaY: message.deltaY, velocity: message.velocity, url: message.url },
     });
+  } else if (message.type === "CLR_PAIRED") {
+    checkFocusMode();
   }
 });
 
@@ -68,36 +66,58 @@ chrome.runtime.onMessage.addListener((message) => {
 function pushEvent(event) {
   event.timestamp = Date.now() / 1000;
   eventBuffer.push(event);
-  if (eventBuffer.length >= MAX_BUFFER_SIZE) {
-    flush();
+  if (eventBuffer.length > MAX_BUFFER_SIZE) {
+    eventBuffer.splice(0, eventBuffer.length - MAX_BUFFER_SIZE);
   }
+  if (eventBuffer.length >= FLUSH_AT) flush();
 }
 
 async function flush() {
-  if (eventBuffer.length === 0) return;
+  if (flushing || eventBuffer.length === 0) return;
+  flushing = true;
   const batch = eventBuffer.splice(0, eventBuffer.length);
   try {
-    await fetch(`${API_BASE}/telemetry/batch`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(batch),
-    });
+    const res = await clrFetch("/telemetry/batch", { method: "POST", body: batch });
+    if (res === null) {
+      // Not paired yet: keep nothing (we don't collect for nobody).
+    } else if (!res.ok && res.status >= 500) {
+      requeue(batch);   // engine error — try again next flush
+    }
+    // 401/403/4xx: drop; the popup shows "reconnect" for 401.
   } catch (_) {
-    // Engine not running — silently drop; extension should not crash
+    requeue(batch);     // engine unreachable — retry later
+  } finally {
+    flushing = false;
   }
 }
 
-// ── State polling for focus mode (block tabs) ─────────────────────────────
+function requeue(batch) {
+  eventBuffer = batch.concat(eventBuffer).slice(-MAX_BUFFER_SIZE);
+}
+
+// ── Focus mode state (for tab blocking) ───────────────────────────────────
 
 async function checkFocusMode() {
   try {
-    const res = await fetch(`${API_BASE}/actions/focus`);
-    if (!res.ok) return;
+    const res = await clrFetch("/actions/focus");
+    if (!res || !res.ok) {
+      await chrome.storage.local.set({ focusActive: false });
+      return;
+    }
     const state = await res.json();
-    // Store state so content scripts can query it
-    chrome.storage.local.set({ focusActive: state.active, blockTabs: state.block_tabs });
+    // Content scripts read this to decide whether to show the blocking overlay.
+    await chrome.storage.local.set({ focusActive: state.active, blockTabs: state.block_tabs });
   } catch (_) {}
 }
 
+// setInterval runs while the worker is awake; the alarm wakes it at least
+// every 30 s (Chrome's minimum) so buffered events and focus state stay fresh.
 setInterval(flush, FLUSH_INTERVAL_MS);
 setInterval(checkFocusMode, 3000);
+chrome.alarms.create("clr-tick", { periodInMinutes: 0.5 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "clr-tick") {
+    flush();
+    checkFocusMode();
+  }
+});

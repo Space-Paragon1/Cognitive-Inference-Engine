@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from ..db.users import UserRecord, UsersDB
 from .email import send_password_reset
+from .ratelimit import client_ip, enforce
 from .schemas import (
     ForgotPasswordRequest,
     LoginRequest,
@@ -26,8 +27,11 @@ def _get_users_db(request: Request) -> UsersDB:
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, users_db: UsersDB = Depends(_get_users_db)):
+def register(
+    body: RegisterRequest, request: Request, users_db: UsersDB = Depends(_get_users_db)
+):
     """Create a new user account and return an access token."""
+    enforce(request, "register_ip", client_ip(request))
     if users_db.get_by_email(body.email):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -38,14 +42,20 @@ def register(body: RegisterRequest, users_db: UsersDB = Depends(_get_users_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, users_db: UsersDB = Depends(_get_users_db)):
+def login(body: LoginRequest, request: Request, users_db: UsersDB = Depends(_get_users_db)):
     """Authenticate and receive a JWT access token."""
+    email_key = body.email.lower().strip()
+    # Checked before the (deliberately slow) password hash, so brute force is
+    # capped per account and per address.
+    enforce(request, "login_ip", client_ip(request))
+    enforce(request, "login_email", email_key)
     user = users_db.get_by_email(body.email)
     if user is None or not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
+    request.app.state.rate_limiters["login_email"].reset(email_key)
     return TokenResponse(access_token=create_access_token(user.id))
 
 
@@ -60,11 +70,15 @@ def me(current_user: UserRecord = Depends(get_current_user)):
 
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
-def forgot_password(body: ForgotPasswordRequest, users_db: UsersDB = Depends(_get_users_db)):
+def forgot_password(
+    body: ForgotPasswordRequest, request: Request, users_db: UsersDB = Depends(_get_users_db)
+):
     """
     Send a password-reset email if the account exists.
     Always returns 200 to avoid user-enumeration.
     """
+    enforce(request, "forgot_ip", client_ip(request))
+    enforce(request, "forgot_email", body.email.lower().strip())
     user = users_db.get_by_email(body.email)
     if user:
         token = users_db.create_reset_token(user.id)
