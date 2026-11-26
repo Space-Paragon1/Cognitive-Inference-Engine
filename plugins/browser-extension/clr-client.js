@@ -65,7 +65,9 @@ async function clrPair(engineUrl, code, name, kind) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.detail || `Pairing failed (${res.status})`);
+    const err = new Error(data.detail || `Pairing failed (${res.status})`);
+    err.status = res.status;
+    throw err;
   }
   await chrome.storage.local.set({
     engineUrl: base,

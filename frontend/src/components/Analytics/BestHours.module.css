@@ -1,0 +1,85 @@
+/* Ported from .clr-heat, .clr-heat__cell and .clr-heat__scale in design/components/bundle.css */
+.heat {
+  display: grid;
+  gap: 2px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.hour {
+  text-align: left;
+  white-space: nowrap;
+  overflow: visible;
+}
+.day {
+  align-self: center;
+  font-size: 12px;
+}
+.cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  min-width: 0;
+}
+@media (max-width: 767px) {
+  .cell {
+    border-radius: 4px;
+  }
+}
+.peak {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.l0 {
+  background: var(--heat-0);
+}
+.l1 {
+  background: var(--heat-1);
+}
+.l2 {
+  background: var(--heat-2);
+}
+.l3 {
+  background: var(--heat-3);
+}
+.l4 {
+  background: var(--heat-4);
+}
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+.scale {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-subtle);
+}
+.scale i {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+.link {
+  min-height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  cursor: pointer;
+}
+.note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-subtle);
+}

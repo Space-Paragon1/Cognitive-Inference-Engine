@@ -1,0 +1,37 @@
+/* Ported from the reflection card in design/components/ScreenInsights/preview.html */
+section.card {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  background: var(--accent-soft);
+  border-color: transparent;
+}
+section.card > :first-child {
+  margin-bottom: 0;
+}
+.icon {
+  color: var(--accent);
+}
+.lead {
+  margin: 0;
+  font: var(--text-body-lg);
+  color: var(--ink);
+}
+.lead b {
+  font-weight: 600;
+}
+.more {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--ink-muted);
+}
+.sub {
+  margin: 0;
+  font: var(--text-body-sm);
+  color: var(--ink-subtle);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

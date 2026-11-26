@@ -1,0 +1,31 @@
+/* Ported from .clr-grid / .clr-span-* in design/components/bundle.css, with the
+   tablet and mobile columns from handoff.md. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+  align-items: start;
+}
+.cell {
+  grid-column: span var(--span, 12);
+  min-width: 0;
+  display: grid;
+  gap: var(--gutter);
+  align-content: start;
+}
+@media (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+  .cell {
+    grid-column: span var(--span-t, 8);
+  }
+}
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .cell {
+    grid-column: span var(--span-m, 4);
+  }
+}

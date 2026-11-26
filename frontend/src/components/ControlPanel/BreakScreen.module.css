@@ -1,0 +1,126 @@
+/* Ported from .clr-rest, .clr-breath and the break board in design/components/ScreenFocus */
+.rest {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "ring overline"
+    "ring text";
+  align-content: center;
+  align-items: center;
+  column-gap: 80px;
+  row-gap: 20px;
+  padding: calc(40px + env(safe-area-inset-top, 0px)) 120px calc(40px + env(safe-area-inset-bottom, 0px));
+  background: var(--rest-surface);
+  color: var(--rest-ink);
+}
+.overline {
+  grid-area: overline;
+  align-self: end;
+  margin: 0;
+  font: var(--text-overline);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rest-ink-muted);
+}
+.ringWrap {
+  grid-area: ring;
+  position: relative;
+  justify-self: center;
+  max-width: 100%;
+}
+.disc,
+.timer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.text {
+  grid-area: text;
+  align-self: start;
+  display: grid;
+  gap: 20px;
+  max-width: 480px;
+}
+.title {
+  margin: 0;
+  font-size: 40px;
+  line-height: 46px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--rest-ink);
+}
+.title:focus {
+  outline: none;
+}
+.tips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.tips li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--rest-ink-muted);
+}
+.tips svg {
+  color: var(--rest-accent);
+}
+.next,
+.muted {
+  margin: 0;
+  font: var(--text-body-sm);
+  color: var(--rest-ink-muted);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Phone: one centred column, full bleed. */
+.mobile {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "overline"
+    "ring"
+    "text";
+  justify-items: center;
+  align-content: start;
+  text-align: center;
+  row-gap: 18px;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px));
+}
+.mobile .overline {
+  align-self: auto;
+}
+.mobile .title {
+  font: var(--text-title-2);
+}
+.mobile .text {
+  justify-items: center;
+  max-width: 340px;
+  width: 100%;
+}
+.mobile .actions {
+  width: 100%;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+@media (max-width: 1100px) and (min-width: 768px) {
+  .rest:not(.mobile) {
+    padding-left: 48px;
+    padding-right: 48px;
+    column-gap: 40px;
+  }
+}

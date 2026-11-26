@@ -1,0 +1,14 @@
+.stack {
+  display: grid;
+  gap: 16px;
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.muted {
+  font: var(--text-body-sm);
+  color: var(--ink-muted);
+}

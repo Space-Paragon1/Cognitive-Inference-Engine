@@ -1,0 +1,92 @@
+/* Ported from the More tab in design/components/ScreenSettings/preview.html (.clr-list, .clr-avatar) */
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+.listCard {
+  padding: var(--space-1) var(--space-4);
+}
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.list > li + li {
+  border-top: 1px solid var(--line);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.icon {
+  flex: none;
+  color: var(--ink-muted);
+}
+.text {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+.text b {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.text small {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.chev {
+  flex: none;
+  color: var(--ink-subtle);
+}
+.themeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 56px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  border-bottom: 1px solid var(--line);
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  flex: none;
+}
+.help {
+  display: grid;
+  gap: var(--space-3);
+  font: var(--text-body);
+  color: var(--ink-muted);
+}
+.help p {
+  margin: 0;
+}

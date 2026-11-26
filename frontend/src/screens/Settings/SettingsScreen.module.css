@@ -1,0 +1,49 @@
+/* Ported from the Settings layouts in design/components/ScreenSettings/preview.html */
+.cards {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 860px;
+}
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+.linkCard {
+  padding: var(--space-1) var(--space-4);
+}
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.linkRow > svg:first-child {
+  color: var(--ink-muted);
+}
+.linkRow span {
+  flex: 1;
+  display: grid;
+}
+.linkRow b {
+  font-size: 15px;
+  font-weight: 500;
+}
+.linkRow small {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.chev {
+  color: var(--ink-subtle);
+}
+/* The nav cell runs the full height of the cards so the nav can stay pinned. */
+.navCell {
+  align-self: stretch;
+}

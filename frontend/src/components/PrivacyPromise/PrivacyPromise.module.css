@@ -1,0 +1,55 @@
+/* Ported from the privacy step in design/components/ScreenOnboarding/preview.html
+   (.clr-card, .clr-overline, .clr-promise) */
+.lists {
+  display: grid;
+  gap: var(--space-3);
+}
+@media (min-width: 768px) {
+  .lists:not(.flat) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.card {
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.flat .card {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.overline {
+  margin: 0 0 10px;
+  font: var(--text-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+}
+.card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+.card li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.card li svg {
+  margin-top: 1px;
+  color: var(--c);
+}
+.card li.never {
+  color: var(--ink);
+}
+.card li.never svg {
+  color: var(--ink-subtle);
+}

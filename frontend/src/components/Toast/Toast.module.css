@@ -1,0 +1,121 @@
+/* Ported from .clr-toast in design/components/bundle.css */
+.toast {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: var(--space-3);
+  align-items: start;
+  width: 380px;
+  max-width: 100%;
+  padding: 14px 8px 14px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+  animation: rise var(--dur-base) var(--ease-out);
+}
+.leaving {
+  animation: out var(--dur-fast) var(--ease-standard) forwards;
+}
+.icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c-soft);
+  color: var(--c);
+  display: grid;
+  place-items: center;
+}
+.title {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.body {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0 0 -10px;
+}
+.primary {
+  color: var(--accent);
+}
+.close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: none;
+  color: var(--ink-subtle);
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  margin-top: -6px;
+  position: relative;
+}
+.close::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+.close:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+
+/* Stack: bottom-right on desktop (24px in), top on mobile under the status bar. */
+.viewport {
+  position: fixed;
+  z-index: var(--z-toast);
+  right: var(--space-6);
+  bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-end;
+  pointer-events: none;
+}
+@media (max-width: 767px) {
+  .viewport {
+    top: calc(env(safe-area-inset-top) + var(--space-2));
+    bottom: auto;
+    left: var(--space-4);
+    right: var(--space-4);
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .toast {
+    width: 100%;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation-name: fadeIn;
+  }
+}

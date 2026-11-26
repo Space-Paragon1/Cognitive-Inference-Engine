@@ -1,0 +1,109 @@
+/* Ported from .clr-conn and .clr-sources in design/components/bundle.css */
+.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.conn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--c-soft);
+  color: var(--c);
+  white-space: nowrap;
+}
+.offline {
+  --c: var(--ink-muted);
+  --c-soft: var(--surface-sunken);
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  position: relative;
+}
+.dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: ping 2s var(--ease-out) infinite;
+}
+.ring {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 800ms linear infinite;
+}
+.seen {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-muted);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.source b {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--positive);
+}
+.off {
+  color: var(--ink-subtle);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.off b {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--ink-subtle);
+}
+@keyframes ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot::after {
+    animation: none;
+  }
+  .ring {
+    animation-duration: 2400ms;
+  }
+}

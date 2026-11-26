@@ -1,0 +1,103 @@
+/* Ported from .clr-hero and .clr-hero__ctx in design/components/bundle.css */
+.stack {
+  display: grid;
+  gap: 16px;
+}
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gutter);
+  align-items: start;
+}
+@media (max-width: 1023px) {
+  .pair {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 36px;
+  align-items: center;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.ctx {
+  display: grid;
+  gap: 10px;
+}
+.overline {
+  margin: 0;
+  font: var(--text-overline);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.ctxName {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--c);
+  transition: color var(--dur-slow) var(--ease-standard);
+}
+.blurb {
+  margin: 0;
+  color: var(--ink-muted);
+}
+.divider {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+  margin: 2px 0;
+}
+.stale {
+  opacity: 0.6;
+}
+
+.mobileHero {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 20px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.mobileBlurb {
+  margin: 0;
+  max-width: 300px;
+  color: var(--ink-muted);
+}
+
+.noSources {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  font: var(--text-label);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctxName {
+    transition: none;
+  }
+}

@@ -1,0 +1,100 @@
+/* Ported from .clr-quick, .clr-quick__btn and .clr-qgrid in design/components/bundle.css */
+.list {
+  display: grid;
+  gap: 10px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+button.row:hover {
+  background: var(--surface-hover);
+}
+button.row:active {
+  transform: scale(0.99);
+  transition-duration: var(--dur-instant);
+}
+.rowIcon,
+.tileIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--c-soft);
+  color: var(--c);
+  flex: none;
+}
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+.rowText b {
+  display: block;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.rowText small {
+  display: block;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chev {
+  color: var(--ink-subtle);
+}
+
+/* Mobile: 3-up grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  min-height: 92px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+}
+.tile b {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+}
+.tile:hover {
+  background: var(--surface-hover);
+}
+.tile[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.tile:disabled {
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.row:active {
+    transform: none;
+  }
+}

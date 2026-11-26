@@ -5,15 +5,19 @@ import {
   getMe,
   login as apiLogin,
   register as apiRegister,
+  resetPassword as apiResetPassword,
   setAuthToken,
 } from "../api/client";
 import type { AuthUser } from "../types";
+import { resetAccount } from "../lib/accountReset";
 
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
+  /** Set a new password from an emailed reset link, then sign in with it. */
+  resetPassword: (token: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -49,13 +53,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(me);
   };
 
+  const resetPassword = async (token: string, password: string) => {
+    const data = await apiResetPassword(token, password);
+    setAuthToken(data.access_token);
+    const me = await getMe();
+    setUser(me);
+  };
+
   const logout = () => {
     clearAuthToken();
+    resetAccount();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,0 +1,16 @@
+.boot {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--bg);
+}
+
+/* While History or Insights loads its charts (first visit only). */
+.screenLoading {
+  display: grid;
+  place-items: center;
+  min-height: 50vh;
+  color: var(--ink-subtle);
+}

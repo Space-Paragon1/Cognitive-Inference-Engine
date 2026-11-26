@@ -1,0 +1,16 @@
+.why {
+  margin: 10px 0 0;
+  font: var(--text-body-sm);
+  color: var(--ink-subtle);
+}
+.link {
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  min-height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+}

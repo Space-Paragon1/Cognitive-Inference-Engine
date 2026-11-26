@@ -1,0 +1,47 @@
+/* Ported from .clr-table in design/components/bundle.css */
+.scroll {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-subtle);
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.table td:first-child,
+.table th:first-child {
+  padding-left: 0;
+}
+.table tr:last-child td {
+  border-bottom: 0;
+}
+.table .right {
+  text-align: right;
+}
+.strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.none {
+  margin: 0;
+  font: var(--text-body-sm);
+  color: var(--ink-subtle);
+}

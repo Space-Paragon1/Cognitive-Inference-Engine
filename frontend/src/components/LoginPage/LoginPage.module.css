@@ -1,0 +1,271 @@
+/* Ported from .clr-auth, .clr-auth__panel, .clr-auth__form, .clr-auth__aside,
+   .clr-promise, .clr-check, .clr-link and the auth phones in
+   design/components/ScreenAuth/preview.html */
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  background: var(--bg);
+  color: var(--ink);
+}
+@media (min-width: 1024px) {
+  .page {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Form side */
+.panel {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding: calc(var(--space-6) + env(safe-area-inset-top)) var(--space-4) calc(var(--space-8) + env(safe-area-inset-bottom));
+}
+@media (min-width: 768px) {
+  .panel {
+    align-content: center;
+    padding: var(--space-16) var(--space-8);
+  }
+}
+.column {
+  width: 100%;
+  max-width: 400px;
+  display: grid;
+  gap: var(--space-5);
+}
+@media (min-width: 1024px) {
+  .column {
+    max-width: 380px;
+  }
+  .mobileLogo {
+    display: none;
+  }
+}
+.form {
+  display: grid;
+  gap: 18px;
+}
+.heading h1 {
+  margin: 0;
+  font: var(--text-title-1);
+  letter-spacing: -0.02em;
+}
+.heading h1:focus {
+  outline: none;
+}
+.heading p {
+  margin: 6px 0 0;
+  font: var(--text-body);
+  color: var(--ink-muted);
+}
+.switch {
+  margin: 0;
+  text-align: center;
+  font: var(--text-body);
+  color: var(--ink-muted);
+}
+
+/* Inline text links (.clr-link) */
+.link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  cursor: pointer;
+}
+.link:hover {
+  color: var(--accent-hover);
+}
+.linkBlock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 15px;
+}
+
+/* Terms checkbox (.clr-check) */
+.checkWrap {
+  display: grid;
+  gap: 6px;
+}
+.check {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.check input {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.box {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--line-strong);
+  display: grid;
+  place-items: center;
+  transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
+}
+.check input:checked + .box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+/* The tick, drawn with borders (no SVG filters, works in old WebViews). */
+.check input:checked + .box::after {
+  content: "";
+  width: 10px;
+  height: 5px;
+  margin-top: -2px;
+  border-left: 2.5px solid var(--on-accent);
+  border-bottom: 2.5px solid var(--on-accent);
+  transform: rotate(-45deg);
+}
+.check input:focus-visible + .box {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.check input[aria-invalid="true"] + .box {
+  border-color: var(--critical);
+}
+.checkError {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--critical);
+}
+
+/* "Check your inbox" */
+.sent {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: var(--space-6);
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.sentArt {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--c-soft);
+  color: var(--c);
+}
+.sentTitle {
+  margin: 0;
+  font: var(--text-title-3);
+}
+.sentBody {
+  margin: 0;
+  font: var(--text-body-sm);
+  color: var(--ink-muted);
+}
+
+.terms {
+  display: grid;
+  gap: var(--space-4);
+  font: var(--text-body);
+  color: var(--ink-muted);
+}
+.terms p {
+  margin: 0;
+}
+
+/* Brand panel */
+.aside {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .aside {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: var(--space-6);
+    padding: var(--space-16) 80px;
+    background: var(--surface);
+    border-left: 1px solid var(--line);
+  }
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: var(--text-title-2);
+}
+.tagline {
+  margin: 0;
+  max-width: 460px;
+  font: var(--text-title-1);
+  font-size: 40px;
+  line-height: 46px;
+  letter-spacing: -0.02em;
+}
+.pitch {
+  margin: 0;
+  max-width: 440px;
+  font: var(--text-body-lg);
+  color: var(--ink-muted);
+}
+.promises {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 14px;
+  max-width: 440px;
+  position: relative;
+  z-index: 1;
+}
+.promises li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.promises svg {
+  color: var(--accent);
+}
+.promises b {
+  display: block;
+  color: var(--ink);
+  font-weight: 600;
+}
+.art {
+  position: absolute;
+  right: -60px;
+  bottom: -60px;
+  opacity: 0.9;
+  pointer-events: none;
+}

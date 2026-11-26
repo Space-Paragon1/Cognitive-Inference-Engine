@@ -1,0 +1,139 @@
+/* Ported from .clr-feed and .clr-directive in design/components/bundle.css */
+.feed {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  container-type: inline-size;
+}
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+/* A soft accent wash for 4 s on a new directive, then a 400 ms fade. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent-soft);
+  opacity: 0;
+  pointer-events: none;
+}
+.isNew {
+  animation: rise var(--dur-base) var(--ease-out);
+}
+.isNew::before {
+  animation: wash 4400ms var(--ease-standard) forwards;
+}
+.leaving {
+  animation: out var(--dur-base) var(--ease-standard) forwards;
+}
+.card > * {
+  position: relative;
+}
+.icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--c-soft);
+  color: var(--c);
+  display: grid;
+  place-items: center;
+}
+.title {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.reason {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.meta {
+  font-size: 12px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  min-height: 28px;
+}
+.cardTitle {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.count {
+  font-size: 13px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.chrome {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+.more {
+  margin-top: var(--space-3);
+}
+
+@container (max-width: 460px) {
+  .card {
+    grid-template-columns: 40px 1fr;
+    row-gap: 0;
+    align-items: start;
+  }
+  .card > button {
+    grid-column: 2;
+    justify-self: start;
+    margin: 2px 0 -4px -12px;
+  }
+}
+@media (max-width: 767px) {
+  .chrome {
+    padding: var(--space-4);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes wash {
+  0%,
+  90.9% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes out {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .isNew,
+  .isNew::before {
+    animation: none;
+  }
+}

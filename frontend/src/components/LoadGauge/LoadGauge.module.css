@@ -1,0 +1,204 @@
+/* Ported from .clr-gauge, .clr-loadpill and .clr-confidence in design/components/bundle.css */
+.gauge {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  transition: opacity var(--dur-slow) var(--ease-standard);
+}
+.gauge > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.track {
+  stroke: var(--surface-sunken);
+}
+.halo {
+  stroke: var(--c-soft);
+  transition: stroke var(--dur-slow) var(--ease-standard);
+}
+.arc {
+  stroke: var(--c);
+  transition:
+    stroke var(--dur-slow) var(--ease-standard),
+    opacity var(--dur-slow) var(--ease-standard);
+}
+.dots {
+  stroke: var(--c);
+  opacity: 0;
+  transition:
+    stroke var(--dur-slow) var(--ease-standard),
+    opacity var(--dur-slow) var(--ease-standard);
+}
+.tick {
+  stroke: var(--chart-threshold);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.num {
+  font-size: calc(var(--g) * 0.26);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  display: flex;
+  align-items: flex-start;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+.num small {
+  font-size: 0.42em;
+  letter-spacing: 0;
+  margin: 0.12em 0 0 0.04em;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+.cap {
+  margin-top: calc(var(--g) * 0.03);
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--ink-subtle);
+}
+.foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--g) * 0.02);
+  display: flex;
+  justify-content: center;
+}
+
+/* Low confidence: dotted arc, muted number. */
+.uncertain .num {
+  color: var(--ink-muted);
+}
+.uncertain .arc,
+.uncertain .halo {
+  opacity: 0;
+}
+.uncertain .dots {
+  opacity: 1;
+}
+/* No data yet: empty track and a dash. */
+.empty .num {
+  color: var(--ink-subtle);
+}
+/* Offline: grey arc. */
+.offline .arc,
+.offline .dots {
+  stroke: var(--ctx-unknown);
+}
+.offline .halo {
+  stroke: var(--ctx-unknown-soft);
+}
+/* Stale (reconnecting or offline): keep the last value at 60%. */
+.stale {
+  opacity: 0.6;
+}
+.staleNote {
+  display: block;
+  margin-top: var(--space-2);
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.heroWrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Mini ring. */
+.mini .num {
+  font-size: calc(var(--g) * 0.3);
+  letter-spacing: -0.02em;
+}
+.miniUncertain {
+  stroke-dasharray: 1 6;
+  opacity: 0.8;
+}
+
+/* Top-bar pill. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  position: relative;
+  font-variant-numeric: tabular-nums;
+  transition: opacity var(--dur-slow) var(--ease-standard);
+}
+.pill::after {
+  content: "";
+  position: absolute;
+  inset: -6px 0;
+}
+.pill > svg {
+  color: var(--c);
+  transition: color var(--dur-slow) var(--ease-standard);
+}
+button.pill:hover {
+  background: var(--surface-hover);
+}
+
+/* Confidence bars. */
+.confidence {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.confBars {
+  display: inline-flex;
+  gap: 3px;
+}
+.confBars i {
+  width: 10px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.confBars i.on {
+  background: var(--ink-muted);
+  box-shadow: none;
+}
+.confValue {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gauge,
+  .arc,
+  .halo,
+  .dots,
+  .pill,
+  .pill > svg {
+    transition: none;
+  }
+}

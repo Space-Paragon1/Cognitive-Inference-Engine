@@ -1,0 +1,293 @@
+/* Ported from .clr-sidebar, .clr-brand, .clr-livecard, .clr-nav, .clr-account,
+   .clr-avatar and .clr-rail in design/components/bundle.css */
+.sidebar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  flex: none;
+  width: var(--sidebar-width);
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 16px 16px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding: 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+/* Live card */
+.live {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+}
+.live:hover {
+  background: var(--surface-hover);
+}
+.liveRing {
+  display: grid;
+  flex: none;
+}
+.liveText {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.liveCtx {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--c);
+  transition: color var(--dur-slow) var(--ease-standard);
+}
+.liveCtx[data-muted] {
+  color: var(--ink-muted);
+}
+.liveMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--positive);
+  flex: none;
+}
+.stale .liveCtx,
+.stale .liveRing {
+  opacity: 0.6;
+}
+
+/* Nav */
+.nav {
+  display: grid;
+  gap: 2px;
+}
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  color: var(--ink-muted);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+.navItem:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+.navItem[aria-current="page"] {
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-weight: 600;
+}
+.navItem[aria-current="page"] svg {
+  color: var(--accent);
+}
+.count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-subtle);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Foot: timer row and account */
+.foot {
+  margin-top: auto;
+  display: grid;
+  gap: 12px;
+}
+.account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.email {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  flex: none;
+}
+
+/* ---------- 72px rail (768–1279px) ---------- */
+.rail {
+  width: var(--rail-width);
+  padding: 16px 12px;
+  align-items: center;
+  overflow: visible;
+}
+.rail .brand {
+  padding: 0;
+  justify-content: center;
+  width: 48px;
+}
+.liveRail {
+  padding: 0;
+  border: 0;
+  background: none;
+  width: 48px;
+  height: 48px;
+  justify-content: center;
+  border-radius: 50%;
+}
+.liveRail:hover {
+  background: var(--surface-hover);
+}
+.rail .nav {
+  justify-items: center;
+}
+.rail .navItem {
+  width: 48px;
+  justify-content: center;
+  padding: 0;
+}
+.railCount {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.rail .foot {
+  justify-items: center;
+}
+.accountRail {
+  flex-direction: column;
+  padding: 8px 0 0;
+  gap: 8px;
+}
+
+/* Rail timer: a ring with minutes left */
+.railTimer {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: var(--ink);
+  text-decoration: none;
+  --c: var(--accent);
+}
+.railTimer:hover {
+  background: var(--surface-hover);
+}
+.railBreak {
+  --c: var(--rest-accent);
+  background: var(--rest-surface-raised);
+  color: var(--rest-ink);
+}
+.railBreak:hover {
+  background: var(--rest-surface-raised);
+}
+.railBreak .railTrack {
+  stroke: var(--rest-line);
+}
+.railTimer svg {
+  grid-area: 1 / 1;
+}
+.railTrack {
+  stroke: var(--surface-sunken);
+}
+.railArc {
+  stroke: var(--c);
+  transition: stroke-dasharray 1s linear;
+}
+.railTime {
+  grid-area: 1 / 1;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tooltips for rail items: hover or keyboard focus */
+.tip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-inverse);
+  color: var(--ink-inverse);
+  font: var(--text-caption);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+  z-index: var(--z-toast);
+}
+.rail a:hover > .tip,
+.rail a:focus-visible > .tip {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .railArc {
+    transition: none;
+  }
+  .liveCtx {
+    transition: none;
+  }
+}

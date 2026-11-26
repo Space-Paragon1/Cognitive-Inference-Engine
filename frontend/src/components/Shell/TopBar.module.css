@@ -1,0 +1,38 @@
+/* Ported from .clr-topbar in design/components/bundle.css */
+.topbar {
+  min-height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 12px var(--page-pad);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.title {
+  display: grid;
+  min-width: 0;
+}
+.title h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.title h1:focus {
+  outline: none;
+}
+.title p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-subtle);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}

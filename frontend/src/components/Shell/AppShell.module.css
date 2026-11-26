@@ -1,0 +1,58 @@
+/* App frame and breakpoints from handoff.md:
+   >= 1280 sidebar 248px · 1024–1279 rail, 12 cols · 768–1023 rail, 8 cols · < 768 top bar + tab bar, 4 cols */
+.shell {
+  --page-pad: 32px;
+  --gutter: 24px;
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+@media (max-width: 1023px) {
+  .shell {
+    --page-pad: 24px;
+    --gutter: 20px;
+  }
+}
+@media (max-width: 767px) {
+  .shell {
+    --page-pad: 16px;
+    --gutter: 16px;
+    display: block;
+    padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px));
+  }
+  .shell[data-mini] {
+    padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px) + var(--miniplayer-height) + 16px);
+  }
+}
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mini-player: 8px above the tab bar, 8px from the sides. */
+.mini {
+  position: fixed;
+  left: calc(8px + env(safe-area-inset-left, 0px));
+  right: calc(8px + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px) + 8px);
+  z-index: var(--z-miniplayer);
+}
+
+.skip {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: var(--z-toast);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font: var(--text-label);
+  transform: translateY(-200%);
+}
+.skip:focus {
+  transform: none;
+}

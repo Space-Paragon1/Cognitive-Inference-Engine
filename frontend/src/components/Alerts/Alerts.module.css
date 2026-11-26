@@ -1,0 +1,40 @@
+/* The break prompt sheet, ported from the ScreenAlerts preview (.clr-empty__art,
+   .clr-lengths). */
+.prompt {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+}
+.art {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--c-soft);
+  color: var(--c);
+}
+.body {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--ink-muted);
+}
+.length {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  min-width: 140px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--c-soft);
+  box-shadow: inset 0 0 0 1.5px var(--c);
+  font-size: 13px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.length b {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}

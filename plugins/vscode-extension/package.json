@@ -2,7 +2,7 @@
   "name": "cognitive-load-router",
   "displayName": "Cognitive Load Router",
   "description": "IDE telemetry plugin for the Cognitive Load Router",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "engines": {
     "vscode": "^1.85.0"
   },

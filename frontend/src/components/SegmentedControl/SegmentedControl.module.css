@@ -1,0 +1,105 @@
+/* Ported from .clr-seg and .clr-chip in design/components/bundle.css */
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+.block {
+  display: flex;
+  width: 100%;
+}
+.block .option {
+  flex: 1;
+}
+.option {
+  height: 38px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+.option:hover {
+  color: var(--ink);
+}
+/* Touch targets: the 38px option (30px small) plus the track's padding and an
+   invisible extension reach 44px without changing the look. */
+.option {
+  position: relative;
+}
+.option::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+.sm .option::after {
+  inset: -7px 0;
+}
+.option[aria-checked="true"] {
+  background: var(--surface-raised);
+  color: var(--ink);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 0 0 1px var(--line);
+}
+.sm .option {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Filter chips: multi-select, coloured by data-ctx. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+.chip::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+.chip > svg {
+  color: var(--c);
+}
+.chip[aria-pressed="true"] {
+  background: var(--c-soft);
+  border-color: var(--c);
+  color: var(--ink);
+}
+.chip:not([data-ctx])[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.count {
+  font-size: 12px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}

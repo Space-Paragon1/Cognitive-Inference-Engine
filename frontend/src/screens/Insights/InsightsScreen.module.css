@@ -1,0 +1,16 @@
+/* Ported from the mobile Insights pages in design/components/ScreenInsights/preview.html */
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+.weekRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.weekRow b {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
