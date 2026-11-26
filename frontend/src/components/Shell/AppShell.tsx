@@ -22,6 +22,7 @@ import styles from "./AppShell.module.css";
 
 interface Props {
   route: Route;
+  sub?: string | null;
   children: ReactNode;
 }
 
@@ -32,7 +33,7 @@ export function useLayout(): Layout {
 }
 
 /** Sidebar or rail on desktop and tablet; top bar, tab bar and mini-player on phones. */
-export function AppShell({ route, children }: Props) {
+export function AppShell({ route, sub = null, children }: Props) {
   const layout = useLayout();
   const mobile = layout === "mobile";
   const [bellOpen, setBellOpen] = useState(false);
@@ -43,11 +44,11 @@ export function AppShell({ route, children }: Props) {
   const immersive = route === "focus" && (pomodoro?.phase === "short_break" || pomodoro?.phase === "long_break");
   const showMini = mobile && timer != null && route !== "focus";
 
-  const parent = parentRoute(route, mobile);
+  const parent = parentRoute(route, mobile, sub);
   const shell = useMemo(
     () => ({
       layout,
-      onBack: parent ? () => navigate(parent, null, { replace: true }) : undefined,
+      onBack: parent ? () => navigate(parent.route, parent.sub, { replace: true }) : undefined,
       openNotifications: () => {
         setBellOpen(true);
         markSeen();

@@ -1,0 +1,14 @@
+/* The playhead tooltip from the replay chart in design/components/ScreenHistory/preview.html */
+.playheadTip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+.playheadTip[data-edge="start"] {
+  transform: translateX(-12px);
+}
+.playheadTip[data-edge="end"] {
+  transform: translateX(calc(-100% + 12px));
+}

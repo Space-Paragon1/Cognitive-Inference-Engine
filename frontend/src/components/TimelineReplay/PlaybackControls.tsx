@@ -20,8 +20,12 @@ function spoken(seconds: number) {
  * and 1, 2, 5, 0 set the speed. Attach to the replay card's onKeyDown.
  */
 export function handlePlaybackKey(e: KeyboardEvent, p: PlaybackControlsProps) {
+  // Handled once: the controls' own handler runs first and the card's sees defaultPrevented.
+  if (e.defaultPrevented) return;
   const target = e.target as HTMLElement;
   const inRange = target instanceof HTMLInputElement && target.type === "range";
+  // Leave typing and menus alone (the session picker, the log filters).
+  if (target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement || (target instanceof HTMLInputElement && !inRange)) return;
   if (e.key === " " && !(target instanceof HTMLButtonElement)) {
     e.preventDefault();
     p.onPlayPause();
@@ -32,6 +36,7 @@ export function handlePlaybackKey(e: KeyboardEvent, p: PlaybackControlsProps) {
     e.preventDefault();
     p.onJump(e.key === "Home" ? "start" : "end");
   } else if (e.key in SPEED_KEYS && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
     p.onSpeed(SPEED_KEYS[e.key]);
   }
 }

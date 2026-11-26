@@ -235,26 +235,47 @@ function daily(): DailyStats[] {
   });
 }
 
-function timeline(since?: number, until?: number): TimelineEntry[] {
+/* Like the engine: an "inference_tick" row (source "engine") every 2 s inside each
+   session, plus a few raw source events; newest first, at most `limit` rows. */
+function timeline(since?: number, until?: number, source?: string | null, limit = 200): TimelineEntry[] {
   const out: TimelineEntry[] = [];
   const end = until ?? now();
   const start = since ?? end - 3600;
-  const sources = ["browser", "ide", "desktop"];
-  const events: Record<string, string[]> = {
-    browser: ["tab_switch", "scroll", "page_focus"],
-    ide: ["compile_error", "keystroke_burst", "file_save"],
-    desktop: ["window_change", "idle_start", "idle_end"],
-  };
-  let k = 0;
-  for (let t = start; t < end && out.length < 600; t += 6) {
-    const src = sources[k % 3];
-    const ev = events[src][(k >> 1) % 3];
-    const load = Math.max(0.05, Math.min(0.97, 0.5 + Math.sin(k / 9) * 0.25 + Math.sin(k / 3) * 0.05));
-    const ctx: CognitiveContext = load > 0.86 ? "fatigue" : load > 0.72 ? "stuck" : load > 0.5 ? "deep_focus" : load > 0.35 ? "shallow_work" : "recovering";
-    out.push({ id: k, timestamp: t, source: src, event_type: ev, load_score: load, context: ctx, metadata_json: "{}" });
-    k++;
+  const events: [string, string, Record<string, unknown>][] = [
+    ["browser", "tab_switch", { to_url: "https://stackoverflow.com/questions/1" }],
+    ["ide", "compile_error", {}],
+    ["ide", "compile_error", {}],
+    ["browser", "navigation", { url: "https://docs.python.org/3/" }],
+    ["ide", "file_save", {}],
+    ["desktop", "window_change", {}],
+    ["browser", "tab_switch", { to_url: "https://www.youtube.com/watch" }],
+    ["desktop", "idle_start", {}],
+    ["desktop", "idle_end", {}],
+  ];
+  let id = 1;
+  for (const ss of sessions()) {
+    const a = Math.max(start, ss.start_ts);
+    const b = Math.min(end, ss.end_ts);
+    if (a > b) continue;
+    for (let t = ss.start_ts; t <= ss.end_ts; t += 2) {
+      const k = (t - ss.start_ts) / 2;
+      if (t < a || t > b) continue;
+      const load = Math.max(0.05, Math.min(0.97, ss.avg_load_score + Math.sin(k / 70) * 0.2 + Math.sin(k / 9) * 0.04));
+      const ctx: CognitiveContext = load > 0.86 ? "fatigue" : load > 0.74 ? "stuck" : load > 0.48 ? "deep_focus" : load > 0.34 ? "shallow_work" : "recovering";
+      const confidence = Math.min(0.92, 0.25 + k / 90);
+      if (!source || source === "engine") {
+        out.push({ id: id++, timestamp: t, source: "engine", event_type: "inference_tick", load_score: load, context: ctx, metadata_json: JSON.stringify({ confidence }) });
+      }
+      if (k > 0 && k % 23 === 0) {
+        const [src, ev, meta] = events[(k / 23) % events.length];
+        if (!source || source === src) out.push({ id: id++, timestamp: t + 0.5, source: src, event_type: ev, load_score: load, context: ctx, metadata_json: JSON.stringify(meta) });
+        if (ev === "compile_error" && (!source || source === src)) {
+          out.push({ id: id++, timestamp: t + 9, source: src, event_type: ev, load_score: load, context: ctx, metadata_json: "{}" });
+        }
+      }
+    }
   }
-  return out;
+  return out.sort((x, y) => y.timestamp - x.timestamp).slice(0, limit);
 }
 
 let devices: Device[] =
@@ -309,7 +330,14 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     }
     case "GET /timeline":
       if (scenario === "nodata" || scenario === "empty") return json([]);
-      return json(timeline(Number(url.searchParams.get("since")) || undefined, Number(url.searchParams.get("until")) || undefined));
+      return json(
+        timeline(
+          Number(url.searchParams.get("since")) || undefined,
+          Number(url.searchParams.get("until")) || undefined,
+          url.searchParams.get("source"),
+          Math.min(1000, Number(url.searchParams.get("limit")) || 200)
+        )
+      );
     case "GET /timeline/sessions": {
       const since = Number(url.searchParams.get("since")) || 0;
       const until = Number(url.searchParams.get("until")) || Infinity;

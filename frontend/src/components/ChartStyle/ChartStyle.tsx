@@ -79,14 +79,15 @@ export function gridProps(c: ChartColors) {
   return { stroke: c.grid, strokeWidth: 1, vertical: false } as const;
 }
 
-/** Dashed threshold line props with a right-edge label ("High 70%"). */
-export function thresholdProps(c: ChartColors, label: string) {
+/** Dashed threshold line props with a right-edge label ("High 70%"). The high and
+    fatigue lines sit close together, so label the lower one under its line. */
+export function thresholdProps(c: ChartColors, label: string, below = false) {
   return {
     stroke: c.threshold,
     strokeDasharray: "4 4",
     strokeWidth: 1,
     ifOverflow: "extendDomain" as const,
-    label: { value: label, position: "insideTopRight" as const, fill: c.inkSubtle, fontSize: 11, fontWeight: 500 },
+    label: { value: label, position: below ? ("insideBottomRight" as const) : ("insideTopRight" as const), fill: c.inkSubtle, fontSize: 11, fontWeight: 500 },
   };
 }
 

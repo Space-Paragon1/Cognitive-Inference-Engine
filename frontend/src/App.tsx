@@ -18,6 +18,7 @@ import { FocusScreen } from "./screens/Focus/FocusScreen";
 import { NowScreen } from "./screens/Now/NowScreen";
 import { Placeholder } from "./screens/Placeholder";
 import { TasksScreen } from "./screens/Tasks/TasksScreen";
+import { HistoryScreen } from "./screens/History/HistoryScreen";
 import type { Route } from "./types/ui";
 import styles from "./App.module.css";
 
@@ -62,7 +63,7 @@ function SignedIn() {
   const { logout } = useAuth();
   const authFailed = useLive((s) => s.authFailed);
 
-  useAndroidBack(route, mobile);
+  useAndroidBack(route, sub, mobile);
 
   // More is the phone's overflow tab; wider layouts have everything in the sidebar.
   useEffect(() => {
@@ -81,13 +82,14 @@ function SignedIn() {
   }, [authFailed, logout]);
 
   return (
-    <AppShell route={route}>
-      <Screen key={route} route={route} sub={sub} />
+    <AppShell route={route} sub={sub}>
+      {/* On phones each History level (list, session, event log) is its own page. */}
+      <Screen key={mobile && route === "history" ? `${route}/${sub ?? ""}` : route} route={route} sub={sub} />
     </AppShell>
   );
 }
 
-function Screen({ route }: { route: Route; sub: string | null }) {
+function Screen({ route, sub }: { route: Route; sub: string | null }) {
   switch (route) {
     case "now":
       return <NowScreen />;
@@ -96,7 +98,7 @@ function Screen({ route }: { route: Route; sub: string | null }) {
     case "tasks":
       return <TasksScreen />;
     case "history":
-      return <Placeholder title="History" />;
+      return <HistoryScreen sub={sub} />;
     case "insights":
       return <Placeholder title="Insights" />;
     case "settings":
@@ -107,16 +109,16 @@ function Screen({ route }: { route: Route; sub: string | null }) {
 }
 
 /** Android back: close a sheet, then pop a sub-page, then go to Now; from Now, exit. */
-function useAndroidBack(route: Route, mobile: boolean) {
-  const ref = useRef({ route, mobile });
-  ref.current = { route, mobile };
+function useAndroidBack(route: Route, sub: string | null, mobile: boolean) {
+  const ref = useRef({ route, sub, mobile });
+  ref.current = { route, sub, mobile };
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const handle = CapApp.addListener("backButton", () => {
       if (runBack()) return;
-      const { route: r, mobile: m } = ref.current;
-      const parent = parentRoute(r, m);
-      if (parent) navigate(parent, null, { replace: true });
+      const { route: r, sub: s, mobile: m } = ref.current;
+      const parent = parentRoute(r, m, s);
+      if (parent) navigate(parent.route, parent.sub, { replace: true });
       else if (r !== "now") navigate("now", null, { replace: true });
       else CapApp.exitApp();
     });

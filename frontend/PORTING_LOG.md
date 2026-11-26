@@ -52,7 +52,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Now
 - [x] Focus
 - [x] Tasks
-- [ ] History
+- [x] History
 - [ ] Insights
 - [ ] Settings
 - [ ] More
@@ -122,6 +122,22 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Directive reasons** are written in `src/lib/directives.ts` from voice.md's table, filled with live numbers and task titles ("Next Pomodoro is 15 min because your load is high (78%)").
 - **Skip link** ("Skip to content") added at the top of the shell; after each navigation, focus moves to the new page's `<h1>`.
 
+- **Now (desktop)** follows the ScreenNow preview: hero, quick actions and Today in the 8 column; directives and Up next in the 4 column. With no data yet the title is "Welcome", the top bar shows a "No sources" chip, the hero becomes the source cards with pairing, and Today shows "–" values with "No sessions yet today".
+- **Up next → Start** starts a Pomodoro and opens Focus. Quick actions are buttons; Do Not Disturb is a Toggle row.
+- **Focus**: with no Pomodoro running, the Pomodoro card shows the setup (length scale and why line) with Start. Focus mode can be linked to the Pomodoro ("Same length as the Pomodoro"). Turning tab blocking on or off restarts focus mode with the time left, since the API takes `block_tabs` only at start. Today's sessions has no Type column: sessions don't record whether they were a Pomodoro or focus mode.
+- **Break**: "I'm back early" and "Skip break" both start the next focus phase (the engine has no separate end-break call). While on a break, Focus hides the sidebar and tab bar so the break screen takes the whole canvas.
+- **Tasks**: one banner per order rule, including a "steady" line for the normal range. Low confidence (under 50%) and a stale connection pause reordering, with a line saying so. "My order" is the engine's insertion order, and the choice is kept in `clr_task_order`. Removing a task asks first in a sheet, with Undo in a toast. "Done today" is kept on this device (`clr_done_YYYY-MM-DD`).
+- **Dev mock engine** (`src/dev/mockEngine.ts`, loaded only when `VITE_MOCK=1` in dev): patches `fetch` and `WebSocket` so every screen and state can be checked without the engine. Scenarios: `?mock=live|high|fatigue|stuck|low|lowconf|nodata|empty|reconnecting|offline|error`, `?mockauth=out`, and `window.clrMock.finishPhase()`.
+- **History layout** follows handoff.md's spans (Live chart 8 · Sessions 4 | Replay 12 | Event log 12) rather than the preview's arrangement (replay 8 beside stats and live chart). The session's four numbers sit in a 280px column inside the replay card, and stack under the chart below 1280px.
+- **History on phones** is three pages under the Insights tab: the list (Week | History switch, live chart, sessions), `#/history/<start>` (replay, numbers, Event log row, Export in the top bar) and `#/history/<start>/log` (chips, list, Export CSV). Choosing a log row opens the replay at that moment. The More tab's History link goes to the same list, so the Insights tab lights up for History.
+- **Replay data** comes from `GET /timeline` in pages of 1000 (the API's limit, newest first) over the session's window. Only `inference_tick` rows feed the chart. Long sessions are averaged to at most 360 points for drawing; stepping still moves one 2-second tick. The playhead is remembered per session for the visit, and the speed in `clr_replay_speed`.
+- **Event log rows** are the raw source events the timeline holds, with repeats within 60 s folded ("Compile error (×3 in 40 s)"), plus what the engine's ticks show: the session start and end, context changes that hold for 6 s, crossing the high and fatigue lines (and easing back), and the peak. Browser rows show the site name only, never the page. The log runs oldest first so it can follow the playhead; the row under the playhead is highlighted and kept in view while playing.
+- **Low confidence in charts**: stretches under 50% confidence draw dashed at full strength (unplayed replay is dashed at 50%). The live chart's soft fill uses the current context.
+- **Export CSV** exports the log rows shown (after filters). It uses the share sheet when the platform can share files, else a download.
+- **Threshold labels**: "High" sits under its line and "Fatigue" above, so the two never overlap on narrow charts.
+- **Scrubber track** edge uses `--line-strong` instead of `--line` so the track meets 3:1 against the card (it was near invisible in dark mode).
+- **Replay offline**: sessions and every timeline opened this visit stay in memory, so replay keeps working offline; the History banner says so.
+
 ## Needs backend
 
 - **Pomodoro pause, resume and skip.** The API has only `POST /actions/pomodoro/start` and `/stop`. The Timer shows Pause/Resume and Skip as the design asks. Until the engine has endpoints, pause is held locally in the Focus screen (`// TODO(backend)` in `ControlPanel`), and Skip stops the current phase.
@@ -130,3 +146,6 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Do Not Disturb state.** There is `POST /actions/dnd` but no way to read the current value, so the app remembers the last value set on this device (`clr_dnd` in localStorage, `// TODO(backend)` in `src/live/PrefsState.tsx`).
 - **Extending a focus session.** "Add 10 min" restarts focus mode with the time left plus 10 minutes (`// TODO(backend)` in `src/live/TimerState.tsx`); an extend endpoint would keep the original start time.
 - **Completing a task.** The API can only delete a task, so "complete" deletes it and Undo adds it back with the same id. Completed tasks aren't kept anywhere, so nothing can report them later.
+- **Raw events in the timeline.** The engine writes only its own `inference_tick` rows to the timeline; source events (tab switches, compile errors, idle) are used for inference and dropped. The event log shows whatever non-tick rows exist (so it fills in as soon as the engine stores them) and, until then, the engine-derived rows (context changes, threshold crossings, start, peak, end).
+- **Session type.** Sessions don't say whether they were a Pomodoro or focus mode, so Today's sessions has no Type column.
+- **Blocked sites.** There is no endpoint to list or edit the blocked-sites list, so "Edit" on the Distracting tabs blocked directive and the Settings list are not wired.

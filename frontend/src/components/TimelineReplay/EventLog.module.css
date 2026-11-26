@@ -1,0 +1,158 @@
+/* Ported from .clr-table, .clr-list and the event-log card in design/components/ScreenHistory/preview.html */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.scroller {
+  position: relative;
+  max-height: 440px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-subtle);
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.table td:first-child,
+.table th:first-child {
+  padding-left: 0;
+}
+.table tr:last-child td {
+  border-bottom: 0;
+}
+.table tbody tr {
+  cursor: pointer;
+}
+.table tbody tr:hover td {
+  background: var(--surface-hover);
+}
+.table tr[aria-current="true"] td {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+.table td.event {
+  white-space: normal;
+  min-width: 200px;
+}
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+.strong {
+  font-variant-numeric: tabular-nums;
+}
+.seek {
+  min-height: 32px;
+  padding: 0 var(--space-1);
+  margin-left: calc(-1 * var(--space-1));
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.none {
+  margin: 0;
+  padding: var(--space-6) 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-subtle);
+}
+.skeleton {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* Phone list */
+.mobile {
+  display: grid;
+  gap: var(--space-4);
+}
+.chipScroll {
+  margin: 0 calc(-1 * var(--space-4));
+  padding: 0 var(--space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chipScroll::-webkit-scrollbar {
+  display: none;
+}
+.chipScroll .chips {
+  flex-wrap: nowrap;
+  width: max-content;
+}
+.listCard {
+  padding: var(--space-1) var(--space-4);
+}
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.list > li {
+  border-bottom: 1px solid var(--line);
+}
+.list > li:last-child {
+  border-bottom: 0;
+}
+.item {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: var(--space-3) 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.item small {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.item b {
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.itemFoot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}

@@ -7,15 +7,16 @@ export const ROUTES: Route[] = ["now", "focus", "tasks", "history", "insights", 
 
 export interface Location {
   route: Route;
-  /** Optional sub-section, e.g. "sources" in #/settings/sources. */
+  /** Optional sub-path, e.g. "sources" in #/settings/sources or "1732560000/log" in #/history/1732560000/log. */
   sub: string | null;
 }
 
 const EVENT = "clr:route";
 
 function parse(hash: string): Location {
-  const [head, sub] = hash.replace(/^#\/?/, "").split("/");
+  const [head, ...rest] = hash.replace(/^#\/?/, "").split("/");
   const route = (ROUTES as string[]).includes(head) ? (head as Route) : "now";
+  const sub = rest.filter(Boolean).join("/");
   return { route, sub: sub || null };
 }
 
@@ -52,14 +53,21 @@ export function useRoute() {
   return { ...loc, navigate: go };
 }
 
-/** Where a sub-page goes back to on mobile (More holds History and Settings). */
-export function parentRoute(route: Route, mobile: boolean): Route | null {
-  if (mobile && (route === "history" || route === "settings")) return "more";
+/** Where a page goes back to on mobile. History sits under Insights (Week | History),
+    so only its session and event-log pages have a parent; Settings sits under More. */
+export function parentRoute(route: Route, mobile: boolean, sub: string | null = null): Location | null {
+  if (!mobile) return null;
+  if (route === "settings") return sub ? { route: "settings", sub: null } : { route: "more", sub: null };
+  if (route === "history" && sub) {
+    const [session, page] = sub.split("/");
+    return page ? { route: "history", sub: session } : { route: "history", sub: null };
+  }
   return null;
 }
 
 /** The tab that lights up for a route on mobile. */
 export function mobileTab(route: Route): Exclude<Route, "history" | "settings"> {
-  if (route === "history" || route === "settings") return "more";
+  if (route === "history") return "insights";
+  if (route === "settings") return "more";
   return route;
 }
