@@ -20,7 +20,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] Slider
 - [x] ContextPill
 - [x] DifficultyChip
-- [ ] Skeleton
+- [x] Skeleton
 - [ ] Banner
 - [ ] Toast
 - [ ] EmptyState

@@ -1,0 +1,68 @@
+/* Ported from .clr-skel in design/components/bundle.css */
+.skel {
+  display: block;
+  background: var(--skeleton);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  flex: none;
+}
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--skeleton-shine), transparent);
+  animation: shine 1.6s linear infinite;
+}
+@keyframes shine {
+  to {
+    transform: translateX(100%);
+  }
+}
+.xs {
+  border-radius: var(--radius-xs);
+}
+.sm {
+  border-radius: var(--radius-sm);
+}
+.md {
+  border-radius: var(--radius-md);
+}
+.lg {
+  border-radius: var(--radius-lg);
+}
+.full {
+  border-radius: var(--radius-full);
+}
+/* A ring for the gauge: the track drawn as a thick border. */
+.gauge {
+  background: transparent;
+  border: 12px solid var(--skeleton);
+  border-radius: 50%;
+}
+.gauge::after {
+  display: none;
+}
+.region {
+  position: relative;
+}
+.lines {
+  display: grid;
+  gap: 10px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3) 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel::after {
+    animation: none;
+    display: none;
+  }
+}
