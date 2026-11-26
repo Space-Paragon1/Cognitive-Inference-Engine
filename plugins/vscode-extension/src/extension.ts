@@ -31,8 +31,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const engineUrl = currentEngineUrl();
   const getToken = async () => context.secrets.get(TOKEN_KEY);
 
-  const onUnauthorized = () => {
-    statusBar?.refresh();
+  const warnUnauthorized = () => {
     if (warnedUnauthorized) return;
     warnedUnauthorized = true;
     void vscode.window
@@ -45,6 +44,11 @@ export function activate(context: vscode.ExtensionContext): void {
       });
   };
 
+  const onUnauthorized = () => {
+    statusBar?.refresh();
+    warnUnauthorized();
+  };
+
   client = new TelemetryClient(engineUrl, getToken, onUnauthorized, 5000);
 
   if (!cfg.get<boolean>("telemetryEnabled", true)) {
@@ -52,8 +56,9 @@ export function activate(context: vscode.ExtensionContext): void {
   }
 
   // ── Status bar ─────────────────────────────────────────────────────────
-  statusBar = new StatusBarController(engineUrl, getToken);
-  statusBar.start(5000);
+  // The status bar learns about a refused token itself, so it only needs the warning.
+  statusBar = new StatusBarController(engineUrl, getToken, warnUnauthorized);
+  statusBar.start();
   context.subscriptions.push({ dispose: () => statusBar?.dispose() });
 
   // ── Connect / disconnect ───────────────────────────────────────────────
@@ -62,7 +67,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const url = currentEngineUrl();
       const code = await vscode.window.showInputBox({
         title: "Connect to Cognitive Load Router",
-        prompt: `Open the dashboard → Settings → Connect a device, then enter the code. Engine: ${url}`,
+        prompt: `Enter the code shown in the CLR app under Settings → Connected sources. Engine: ${url}`,
         placeHolder: "XXXX-XXXX",
         ignoreFocusOut: true,
       });

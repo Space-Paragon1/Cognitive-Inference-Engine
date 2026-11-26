@@ -71,7 +71,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 ### 7. Small surfaces
 - [x] ExtensionPopup (live/focus off, focus on, not paired)
 - [x] BlockedOverlay (shadow root, 3 passes per session, pass bar, End focus mode, Esc inert)
-- [ ] VSCodeStatusBar
+- [x] VSCodeStatusBar
 
 ### 8. Final QA
 - [ ] Clean `npm run build`
@@ -202,6 +202,9 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **A pass covers one site** (the hostname without `www.`) for 5 minutes, and a focus session allows 3 in all. The engine has no session id, so the background worker recognises a session by its start time (now minus `elapsed_minutes`); a start more than 90 s from the stored one is a new session and resets the count. Restarting focus (for example "Add 10 min" in the app) therefore counts as a new session.
 - **"Back to work"** closes the tab, or goes back when it's the window's only tab, or opens the dashboard if there's nowhere to go back to. "Back to work now" on the pass bar ends the pass and does the same.
 - **Which sites are blocked** stays the existing allowlist heuristic in `content.js` (study sites, localhost, the dashboard and the engine stay open).
+- **VS Code status bar data.** Live load comes from the engine WebSocket (`/state/ws`, which accepts the editor's device token) when VS Code's runtime has a global `WebSocket`, with the app's reconnect backoff (1, 2, 4, 8, 16, 30 s); older VS Code builds without one poll `GET /state` every 2 s instead. Either way the item renders at most every 2 s. No new dependency was added.
+- **VS Code states beyond the table**: "$(circle-large-outline) Warming up" with no number when the engine has no reading yet, "$(plug) Connect CLR" when the editor isn't paired, and "CLR offline" only after the engine has been unreachable for 5 s, so a blip keeps the last reading. A low-confidence reading gets "≈" before the number, like the app's load pill. A break shows "$(watch) 4:12 break".
+- **VS Code pairing prompt** now points to Settings → Connected sources, where the app shows pairing codes.
 
 ## Needs backend
 
@@ -218,6 +221,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - **Weekly reflection.** The design calls for an AI-written reflection plus feedback ("Not helpful"). Both need endpoints; the card is written from rules and marked Preview, and the feedback only hides the card on this device (`// TODO(backend)` in `components/Analytics/WeeklyReflection.tsx`).
 - **Focus sessions and passes.** `GET /actions/focus` has no session id or start time, so the extension infers sessions from `elapsed_minutes` (see Decisions). A `session_id` and `started_at` would make the 3-pass limit exact, and recording passes on the engine would let the app show them.
 - **The blocked-sites list for the extension.** Blocking uses a fixed allowlist in `content.js` until the engine can serve the student's list (also needed by Settings, above).
+- **Pomodoro and directives for paired devices.** `GET /actions/pomodoro` and `GET /actions/directives` accept only a signed-in user's token. The VS Code item asks for both with its device token (`// TODO(backend)` in `plugins/vscode-extension/src/statusbar.ts`), so the "$(watch) 11:24" clock and the directive lines in its tooltip appear once those endpoints accept device tokens (as `/state` and `/actions/focus` already do).
 - **Daily stats time zone.** `GET /timeline/stats/daily` keys days by date; the app matches them to the student's local Monday-to-Sunday week. If the engine buckets days in UTC, sessions near midnight can land on the neighbouring day.
 - **Export my data.** No export endpoint; the app stitches one together from what it can read, and the timeline part is limited to the last 30 days (`src/api/privacy.ts`, `// TODO(backend)`).
 - **Delete my data and account.** No endpoint; `deleteMyData()` in `src/api/privacy.ts` is a stub that throws `NotAvailableError`, and the sheet says nothing was removed.
