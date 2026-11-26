@@ -30,7 +30,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] LoadGauge (hero, mini, pill; low confidence, no data, stale)
 - [x] Breakdown
 - [x] ConnectionStatus
-- [ ] StatTile → StatsCard (+ ContextBar)
+- [x] StatTile → StatsCard (+ ContextBar)
 - [ ] DirectiveCard → DirectivesFeed
 - [ ] TaskRow → TaskQueue
 - [ ] Timer
