@@ -28,11 +28,32 @@ interface TasksApi {
   complete: (id: string) => Task | undefined;
   /** Put a completed task back (Undo). */
   restore: (task: Task) => void;
+  /** Delete without marking done. */
+  remove: (id: string) => Task | undefined;
+  /** Tasks completed today on this device (the engine keeps no history). */
+  doneToday: Task[];
   retry: () => void;
   reload: () => void;
 }
 
 const TasksContext = createContext<TasksApi | null>(null);
+
+// TODO(backend): the API only deletes tasks, so "Done today" is kept on this device.
+const doneKey = () => `clr_done_${new Date().toISOString().slice(0, 10)}`;
+function readDone(): Task[] {
+  try {
+    return JSON.parse(localStorage.getItem(doneKey()) ?? "[]") as Task[];
+  } catch {
+    return [];
+  }
+}
+function writeDone(tasks: Task[]) {
+  try {
+    localStorage.setItem(doneKey(), JSON.stringify(tasks));
+  } catch {
+    /* storage blocked */
+  }
+}
 const POLL_MS = 5000;
 
 function newId() {
@@ -60,6 +81,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   const [loadError, setLoadError] = useState(false);
   const [ops, setOps] = useState<Op[]>([]);
   const [saveError, setSaveError] = useState(false);
+  const [doneToday, setDoneToday] = useState<Task[]>(readDone);
   const opsRef = useRef<Op[]>([]);
   const flushing = useRef(false);
   opsRef.current = ops;
@@ -135,7 +157,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     [push]
   );
 
-  const complete = useCallback(
+  const remove = useCallback(
     (id: string) => {
       const task = tasksRef.current.find((t) => t.id === id);
       if (task) push({ kind: "remove", id });
@@ -144,9 +166,33 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     [push]
   );
 
+  const complete = useCallback(
+    (id: string) => {
+      const task = remove(id);
+      if (task)
+        setDoneToday((d) => {
+          const next = [task, ...d.filter((x) => x.id !== id)];
+          writeDone(next);
+          return next;
+        });
+      return task;
+    },
+    [remove]
+  );
+
   // The engine keeps insertion order, so a restored task goes back on the end;
   // the screen's order rule puts it where it belongs.
-  const restore = useCallback((task: Task) => push({ kind: "add", task }), [push]);
+  const restore = useCallback(
+    (task: Task) => {
+      push({ kind: "add", task });
+      setDoneToday((d) => {
+        const next = d.filter((x) => x.id !== task.id);
+        writeDone(next);
+        return next;
+      });
+    },
+    [push]
+  );
 
   const api = useMemo<TasksApi>(
     () => ({
@@ -159,10 +205,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       add,
       complete,
       restore,
+      remove,
+      doneToday,
       retry: flush,
       reload,
     }),
-    [tasks, recommendedMinutes, loading, loadError, ops.length, saveError, add, complete, restore, flush, reload]
+    [tasks, recommendedMinutes, loading, loadError, ops.length, saveError, add, complete, restore, remove, doneToday, flush, reload]
   );
   return <TasksContext.Provider value={api}>{children}</TasksContext.Provider>;
 }

@@ -10,6 +10,8 @@
 .item {
   position: relative;
   border-radius: var(--radius-md);
+  /* Rows reflow below 460px of their own width (handoff.md). */
+  container-type: inline-size;
 }
 /* Revealed behind a row while it is swiped right. */
 .swipeBg {

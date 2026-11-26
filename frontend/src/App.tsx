@@ -17,6 +17,7 @@ import { TimerProvider } from "./live/TimerState";
 import { FocusScreen } from "./screens/Focus/FocusScreen";
 import { NowScreen } from "./screens/Now/NowScreen";
 import { Placeholder } from "./screens/Placeholder";
+import { TasksScreen } from "./screens/Tasks/TasksScreen";
 import type { Route } from "./types/ui";
 import styles from "./App.module.css";
 
@@ -93,7 +94,7 @@ function Screen({ route }: { route: Route; sub: string | null }) {
     case "focus":
       return <FocusScreen />;
     case "tasks":
-      return <Placeholder title="Tasks" />;
+      return <TasksScreen />;
     case "history":
       return <Placeholder title="History" />;
     case "insights":

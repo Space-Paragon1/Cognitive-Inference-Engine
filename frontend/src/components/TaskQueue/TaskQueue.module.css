@@ -1,0 +1,43 @@
+/* Ported from .clr-tasks in design/components/bundle.css */
+.body,
+.bare {
+  display: grid;
+  gap: 14px;
+}
+.bareHead {
+  display: flex;
+  justify-content: flex-end;
+}
+.tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.done summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch-target);
+  cursor: pointer;
+  list-style: none;
+  font: var(--text-body-sm);
+  color: var(--ink-muted);
+}
+.done summary::-webkit-details-marker {
+  display: none;
+}
+.chev {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.done[open] .chev {
+  transform: rotate(90deg);
+}
+.sheetText {
+  margin: 0;
+  color: var(--ink-muted);
+}
