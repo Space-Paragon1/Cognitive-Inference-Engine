@@ -28,7 +28,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 
 ### 3. Live state and data
 - [x] LoadGauge (hero, mini, pill; low confidence, no data, stale)
-- [ ] Breakdown
+- [x] Breakdown
 - [ ] ConnectionStatus
 - [ ] StatTile → StatsCard (+ ContextBar)
 - [ ] DirectiveCard → DirectivesFeed

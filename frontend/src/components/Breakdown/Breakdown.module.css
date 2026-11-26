@@ -1,0 +1,85 @@
+/* Ported from .clr-breakdown in design/components/bundle.css */
+.breakdown {
+  display: grid;
+  gap: 14px;
+}
+.compact {
+  gap: 10px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.overline {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.rough {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--caution-soft);
+  color: var(--caution);
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px var(--space-3);
+  align-items: baseline;
+}
+.name {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.name i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--bar);
+  flex: none;
+}
+.val {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--bar);
+}
+.desc {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.compact .desc {
+  display: none;
+}
+.uncertain .bar span {
+  opacity: 0.6;
+}
