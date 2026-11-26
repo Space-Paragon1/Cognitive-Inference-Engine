@@ -1,0 +1,41 @@
+/* Ported from .clr-banner in design/components/bundle.css */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--c-soft);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 20px;
+  animation: fade var(--dur-base) var(--ease-standard);
+}
+.banner:not([data-ctx]):not([data-tone]) {
+  --c: var(--accent);
+  --c-soft: var(--accent-soft);
+}
+.banner[data-tone="neutral"] {
+  border: 1px solid var(--line);
+}
+.icon {
+  color: var(--c);
+}
+.text {
+  flex: 1;
+  min-width: 0;
+}
+.title {
+  font-weight: 600;
+}
+.body {
+  color: var(--ink-muted);
+}
+.action {
+  color: var(--ink);
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}

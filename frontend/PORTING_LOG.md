@@ -21,7 +21,7 @@ Branch: `redesign/design-system` (from `main`, not pushed).
 - [x] ContextPill
 - [x] DifficultyChip
 - [x] Skeleton
-- [ ] Banner
+- [x] Banner
 - [ ] Toast
 - [ ] EmptyState
 - [ ] BottomSheet
