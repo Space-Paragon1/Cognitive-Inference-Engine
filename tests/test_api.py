@@ -6,8 +6,6 @@ Fixtures are provided by tests/conftest.py.
 
 from __future__ import annotations
 
-import pytest
-
 
 class TestHealth:
     async def test_health_ok(self, client):
@@ -196,8 +194,10 @@ class TestLMSTelemetry:
     async def test_lms_batch_ingest(self, client):
         r = await client.post("/telemetry/batch", json=[
             {"source": "lms", "type": "QUIZ_START", "data": {"lms": "canvas", "course": "CS 101"}},
-            {"source": "lms", "type": "LMS_SCROLL", "data": {"lms": "canvas", "course": "CS 101", "deltaY": 500}},
-            {"source": "lms", "type": "COURSE_NAVIGATE", "data": {"lms": "canvas", "course": "CS 101"}},
+            {"source": "lms", "type": "LMS_SCROLL",
+             "data": {"lms": "canvas", "course": "CS 101", "deltaY": 500}},
+            {"source": "lms", "type": "COURSE_NAVIGATE",
+             "data": {"lms": "canvas", "course": "CS 101"}},
         ])
         assert r.status_code == 202
         body = r.json()
@@ -207,8 +207,10 @@ class TestLMSTelemetry:
     async def test_lms_mixed_batch(self, client):
         """Mix of LMS + browser events in one batch."""
         r = await client.post("/telemetry/batch", json=[
-            {"source": "lms", "type": "ASSIGNMENT_VIEW", "data": {"lms": "canvas", "course": "CS 101"}},
-            {"source": "browser", "type": "TAB_SWITCH", "data": {"fromUrl": "https://canvas.edu", "toUrl": "https://stackoverflow.com"}},
+            {"source": "lms", "type": "ASSIGNMENT_VIEW",
+             "data": {"lms": "canvas", "course": "CS 101"}},
+            {"source": "browser", "type": "TAB_SWITCH",
+             "data": {"fromUrl": "https://canvas.edu", "toUrl": "https://stackoverflow.com"}},
         ])
         assert r.status_code == 202
         assert r.json()["accepted"] == 2

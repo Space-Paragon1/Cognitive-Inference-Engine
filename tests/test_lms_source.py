@@ -1,6 +1,5 @@
 """Tests for the LMS telemetry source parser."""
 
-import pytest
 
 from engine.telemetry.sources.lms import parse_lms_event
 
@@ -96,7 +95,9 @@ def test_timestamp_preserved():
 
 
 def test_grade_view_becomes_window_change():
-    result = parse_lms_event(_payload("GRADE_VIEW", {"lms": "canvas", "course": "CS 101", "title": "Grade summary"}))
+    result = parse_lms_event(
+        _payload("GRADE_VIEW", {"lms": "canvas", "course": "CS 101", "title": "Grade summary"})
+    )
     assert result is not None
     assert result.event_type == "window_change"
     assert result.metadata["app"] == "canvas:grades"

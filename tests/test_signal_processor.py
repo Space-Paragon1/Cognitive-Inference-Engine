@@ -2,8 +2,6 @@
 
 import time
 
-import pytest
-
 from engine.inference.signal_processor import SignalProcessor, TelemetryEvent
 
 

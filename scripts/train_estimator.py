@@ -23,11 +23,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import numpy as np
 
-from engine.inference.context_classifier import ContextClassifier
 from engine.inference.load_estimator import LoadEstimator
 from engine.inference.ml_estimator import FEATURE_COLS, _normalise
-from engine.inference.signal_processor import SignalFeatures, SignalProcessor, TelemetryEvent
-
+from engine.inference.signal_processor import SignalFeatures
 
 # ---------------------------------------------------------------------------
 # Synthetic data generation
@@ -114,7 +112,6 @@ def generate_dataset(n_samples: int) -> tuple[np.ndarray, np.ndarray]:
     Returns X (n_samples × n_features) and y (n_samples,) using the
     v1 rule-based estimator as the label oracle.
     """
-    estimator = LoadEstimator(history_size=1)  # no smoothing across samples
     per_scenario = n_samples // len(SCENARIOS)
 
     X_rows, y_rows = [], []
@@ -123,7 +120,7 @@ def generate_dataset(n_samples: int) -> tuple[np.ndarray, np.ndarray]:
         count = per_scenario
         for i in range(count):
             feat = _make_features(scenario, i, count)
-            label_est = LoadEstimator(history_size=1)
+            label_est = LoadEstimator(history_size=1)  # no smoothing across samples
             label = label_est.estimate(feat).score
             X_rows.append(_normalise(feat).flatten())
             y_rows.append(label)
@@ -139,11 +136,11 @@ def generate_dataset(n_samples: int) -> tuple[np.ndarray, np.ndarray]:
 
 def train(n_samples: int, output_path: Path) -> None:
     try:
-        from sklearn.ensemble import GradientBoostingRegressor
-        from sklearn.model_selection import cross_val_score, train_test_split
-        from sklearn.preprocessing import StandardScaler
-        from sklearn.pipeline import Pipeline
         import joblib
+        from sklearn.ensemble import GradientBoostingRegressor
+        from sklearn.model_selection import train_test_split
+        from sklearn.pipeline import Pipeline
+        from sklearn.preprocessing import StandardScaler
     except ImportError:
         print("scikit-learn and joblib are required for training.")
         print("Install: pip install scikit-learn joblib")

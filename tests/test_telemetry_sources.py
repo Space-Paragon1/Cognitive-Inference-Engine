@@ -2,11 +2,9 @@
 
 import time
 
-import pytest
-
-from engine.telemetry.sources.browser import parse_browser_event, _is_academic_url
-from engine.telemetry.sources.ide import parse_ide_event
+from engine.telemetry.sources.browser import _is_academic_url, parse_browser_event
 from engine.telemetry.sources.desktop import parse_desktop_event
+from engine.telemetry.sources.ide import parse_ide_event
 
 
 class TestBrowserParser:

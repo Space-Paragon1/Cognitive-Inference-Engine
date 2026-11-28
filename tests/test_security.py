@@ -38,8 +38,12 @@ class TestLoginRateLimit:
         app, ac = env
         make_user_token(app, "resets@example.com", password="rightpass1")
         for _ in range(9):
-            await ac.post("/auth/login", json={"email": "resets@example.com", "password": "nope12345"})
-        r = await ac.post("/auth/login", json={"email": "resets@example.com", "password": "rightpass1"})
+            await ac.post(
+                "/auth/login", json={"email": "resets@example.com", "password": "nope12345"}
+            )
+        r = await ac.post(
+            "/auth/login", json={"email": "resets@example.com", "password": "rightpass1"}
+        )
         assert r.status_code == 200
         for _ in range(9):
             r = await ac.post(
@@ -66,7 +70,9 @@ class TestResetTokens:
         make_user_token(app, "reset2@example.com")
         users_db = app.state.users_db
         raw = users_db.create_reset_token(users_db.get_by_email("reset2@example.com").id)
-        r = await ac.post("/auth/reset-password", json={"token": raw, "new_password": "brandnew123"})
+        r = await ac.post(
+            "/auth/reset-password", json={"token": raw, "new_password": "brandnew123"}
+        )
         assert r.status_code == 200
         r = await ac.post("/auth/reset-password", json={"token": raw, "new_password": "again12345"})
         assert r.status_code == 400   # single use

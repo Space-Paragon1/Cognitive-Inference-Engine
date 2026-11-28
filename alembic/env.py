@@ -1,7 +1,5 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
-
 from alembic import context
 
 # Alembic config object
@@ -11,8 +9,8 @@ if alembic_cfg.config_file_name is not None:
     fileConfig(alembic_cfg.config_file_name)
 
 # Import our metadata so Alembic can autogenerate migrations
-from engine.db.connection import metadata as target_metadata  # noqa: E402
 from engine.db.connection import get_engine  # noqa: E402
+from engine.db.connection import metadata as target_metadata  # noqa: E402
 
 
 def _get_url() -> str:

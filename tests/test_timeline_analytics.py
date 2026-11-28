@@ -6,12 +6,10 @@ Uses an in-memory SQLite (`:memory:`) database so no filesystem access is needed
 
 from __future__ import annotations
 
-import time
-
 import pytest
 from sqlalchemy import create_engine
 
-from engine.db.connection import init_db, metadata
+from engine.db.connection import metadata
 from engine.telemetry.timeline import CognitiveTimeline, TimelineEntry
 
 # ── Fixtures ────────────────────────────────────────────────────────────────

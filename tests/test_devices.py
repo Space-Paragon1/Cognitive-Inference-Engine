@@ -128,7 +128,8 @@ class TestDeviceTokenScope:
 
     async def test_whoami(self, env):
         ac, user = env
-        dev = {"Authorization": f"Bearer {(await _pair(ac, user, name='VS Code', kind='ide'))['device_token']}"}
+        paired = await _pair(ac, user, name='VS Code', kind='ide')
+        dev = {"Authorization": f"Bearer {paired['device_token']}"}
         body = (await ac.get("/devices/whoami", headers=dev)).json()
         assert body["user_email"] == "devices@example.com"
         assert body["device"]["name"] == "VS Code"

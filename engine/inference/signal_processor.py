@@ -77,7 +77,8 @@ class SignalProcessor:
         if event.timestamp > now:
             event.timestamp = now
 
-        if self._last_event_ts is None or event.timestamp - self._last_event_ts > self.session_gap_s:
+        last = self._last_event_ts
+        if last is None or event.timestamp - last > self.session_gap_s:
             self._session_start = event.timestamp
         elif event.timestamp < self._session_start:
             # A late-arriving event from earlier in the same sitting.

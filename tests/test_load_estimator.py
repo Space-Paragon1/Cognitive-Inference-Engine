@@ -1,6 +1,5 @@
 """Tests for LoadEstimator and ContextClassifier."""
 
-import pytest
 
 from engine.inference.context_classifier import CognitiveContext, ContextClassifier
 from engine.inference.load_estimator import LoadEstimator
@@ -50,17 +49,15 @@ class TestLoadEstimator:
         assert 0.0 <= result.score <= 1.0
 
     def test_smoothing_reduces_jump(self):
+        spike = _features(tab_switch_rate=9.0, compile_error_rate=4.0, task_switch_entropy=0.9)
         est = LoadEstimator(history_size=5)
-        # Seed with low scores
+        # Seed with low scores, then spike
         for _ in range(5):
-            low = est.estimate(_features())
-        # Now spike
-        high = est.estimate(_features(
-            tab_switch_rate=9.0, compile_error_rate=4.0, task_switch_entropy=0.9
-        ))
-        # Smoothed score should be lower than raw spike
-        raw_spike = 0.45 * 0.9 + 0.40 * 0.8  # rough upper bound of raw
-        assert high.score < raw_spike or high.score <= 1.0  # sanity
+            est.estimate(_features())
+        smoothed = est.estimate(spike)
+        # The same spike with no history behind it
+        raw = LoadEstimator(history_size=1).estimate(spike)
+        assert smoothed.score < raw.score
 
     def test_breakdown_components_nonnegative(self):
         est = LoadEstimator()
