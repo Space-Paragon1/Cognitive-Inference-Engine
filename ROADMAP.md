@@ -49,14 +49,14 @@ This file is the plan from where the project stands to a public launch on the we
 
 Every later change is checked automatically.
 
-Status: all built and passing locally on `roadmap/phase-1-quality-gates`. The boxes get ticked once it is committed and the first CI run on GitHub is green.
+Done on `roadmap/phase-1-quality-gates`; the first CI run on GitHub passed all three jobs.
 
-- [ ] Lint clean across the engine, tests and scripts (`ruff check engine/ tests/ scripts/ alembic/ start.py`)
-- [ ] Commit Capacitor's generated plugin registration and the VS Code packaging setup
-- [ ] CI on every push and pull request: engine tests and lint (`.github/workflows/ci.yml`)
-- [ ] CI: app type check, ESLint with no warnings allowed, and production build
-- [ ] App unit tests (Vitest) for the logic in `src/lib`, run in CI (65 tests)
-- [ ] CI: VS Code extension compiles and packages; browser extension and LMS connector scripts parse; the extension's copy of the design system is current
+- [x] Lint clean across the engine, tests and scripts (`ruff check engine/ tests/ scripts/ alembic/ start.py`)
+- [x] Commit Capacitor's generated plugin registration and the VS Code packaging setup
+- [x] CI on every push and pull request: engine tests and lint (`.github/workflows/ci.yml`)
+- [x] CI: app type check, ESLint with no warnings allowed, and production build
+- [x] App unit tests (Vitest) for the logic in `src/lib`, run in CI (65 tests)
+- [x] CI: VS Code extension compiles and packages; browser extension and LMS connector scripts parse; the extension's copy of the design system is current
 
 ## Phase 2: Web app live
 
