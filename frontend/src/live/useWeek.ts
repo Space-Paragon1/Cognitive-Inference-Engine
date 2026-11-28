@@ -2,7 +2,7 @@
    the week's sessions (for the best-hours grid). Weeks run Monday to Sunday. Each
    week is kept in memory for the visit, so going back and forth is instant and the
    numbers stay up offline. */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getDailyStats, getSessions } from "../api/client";
 import type { DailyStats, SessionSummary } from "../types";
 import { addDays, weekStart } from "../lib/insights";
@@ -19,8 +19,9 @@ const cache = new Map<number, WeekData>();
 onAccountReset(() => cache.clear());
 
 export function useWeek(offset: number) {
-  const start = weekStart(offset);
-  const key = start.getTime();
+  const key = weekStart(offset).getTime();
+  // The same Date object until the week changes, so screens can depend on it.
+  const start = useMemo(() => new Date(key), [key]);
   const [data, setData] = useState<WeekData | null>(cache.get(key) ?? null);
   const [loading, setLoading] = useState(!cache.has(key));
   const [error, setError] = useState(false);

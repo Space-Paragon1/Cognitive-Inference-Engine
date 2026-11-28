@@ -138,6 +138,7 @@ function DesktopSettings({ sub, banner }: { sub: string | null; banner: ReactNod
   useEffect(() => {
     if (isSection(sub)) window.setTimeout(() => scrollTo(sub, false), 50);
     // Only on arrival: later section picks update the link themselves.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Mark the section in view.

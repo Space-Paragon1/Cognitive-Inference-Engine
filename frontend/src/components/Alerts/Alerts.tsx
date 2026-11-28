@@ -140,9 +140,10 @@ export function Alerts() {
   });
 
   /* Pomodoro phase changes. The timer ending is never muted by Do Not Disturb. */
+  const { onPhaseChange } = timer;
   useEffect(
     () =>
-      timer.onPhaseChange((ch) => {
+      onPhaseChange((ch) => {
         const { toast, timer, prefs, route, mobile } = now.current;
         if (!prefs.alerts.breaks) return;
         const brk = ch.to === "short_break" || ch.to === "long_break";
@@ -191,7 +192,7 @@ export function Alerts() {
           else if (route !== "focus") toast.show({ key: "phase", tone: "accent", title: "Break is over", body: `Your next ${focusMinutes}-minute focus session has started.` });
         }
       }),
-    [timer.onPhaseChange]
+    [onPhaseChange]
   );
 
   const close = () => setPrompt(null);

@@ -82,7 +82,7 @@ export function InsightsScreen() {
     const grid = heatGrid(week.data.sessions, week.start);
     const bestHours = k.best ? bestWindow(grid.minutes[k.best.index]) : null;
     return { days, k, grid, bestHours, reflection: reflection(days, grid, thresholds.high) };
-  }, [week.data, startKey, offset, thresholds.high]);
+  }, [week.data, week.start, offset, thresholds.high]);
 
   const prev = () => setOffset((o) => o - 1);
   const next = () => setOffset((o) => Math.min(0, o + 1));

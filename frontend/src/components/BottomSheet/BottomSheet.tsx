@@ -38,6 +38,9 @@ export function BottomSheet({ open, title, children, actions, onClose, dismissib
       trigger.current?.focus?.();
     }, EXIT_MS);
     return () => window.clearTimeout(t);
+    // Runs when `open` changes only. Re-running when `mounted` flips would record the
+    // sheet's own field as the element to return focus to.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // Focus the first field (or the first control) once the panel is in the DOM.
