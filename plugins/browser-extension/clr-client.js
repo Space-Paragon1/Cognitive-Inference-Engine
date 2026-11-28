@@ -8,9 +8,11 @@
  * extensions cannot share files). Keep the two in sync.
  */
 
+// The hosted engine and web app. Someone running the engine on their own computer
+// sets the address in Settings instead (http://127.0.0.1:8765).
 const CLR_DEFAULTS = {
-  engineUrl: "http://127.0.0.1:8765",
-  dashboardUrl: "http://localhost:5173",
+  engineUrl: "https://cognitive-inference-engine-production.up.railway.app",
+  dashboardUrl: "https://pretty-grace-production-e75e9439.up.railway.app",
 };
 
 async function clrGetConfig() {

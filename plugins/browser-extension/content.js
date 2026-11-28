@@ -37,7 +37,9 @@ window.addEventListener("scroll", () => {
 
 // ── Theme: copy the app's choice so the popup and overlay can follow it ─────
 
-const DEFAULT_DASHBOARD = "http://localhost:5173";
+// Same as CLR_DEFAULTS in clr-client.js (CI checks they match).
+const DEFAULT_DASHBOARD = "https://pretty-grace-production-e75e9439.up.railway.app";
+const DEFAULT_ENGINE = "https://cognitive-inference-engine-production.up.railway.app";
 
 function syncAppTheme(dashboardUrl) {
   let origin;
@@ -126,7 +128,7 @@ function themeFor() {
 
 function siteIsAllowed() {
   if (ALLOWED_SITES.some((d) => location.hostname.includes(d))) return true;
-  for (const url of [store.dashboardUrl || DEFAULT_DASHBOARD, store.engineUrl]) {
+  for (const url of [store.dashboardUrl || DEFAULT_DASHBOARD, store.engineUrl || DEFAULT_ENGINE]) {
     try {
       if (url && new URL(url).hostname === location.hostname) return true;
     } catch (_) {}

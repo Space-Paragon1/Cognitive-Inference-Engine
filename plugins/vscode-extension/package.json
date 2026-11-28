@@ -9,7 +9,7 @@
     "url": "https://github.com/Space-Paragon1/Cognitive-Inference-Engine.git",
     "directory": "plugins/vscode-extension"
   },
-  "version": "0.3.0",
+  "version": "0.3.1",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -44,13 +44,13 @@
       "properties": {
         "clr.engineUrl": {
           "type": "string",
-          "default": "http://127.0.0.1:8765",
-          "description": "URL of the CLR engine API (local, or your hosted engine, e.g. on Railway). Run 'CLR: Connect to Engine' after changing it."
+          "default": "https://cognitive-inference-engine-production.up.railway.app",
+          "description": "Address of the CLR engine. The default is the hosted engine; use http://127.0.0.1:8765 for one running on this computer. Run 'CLR: Connect to Engine' after changing it."
         },
         "clr.dashboardUrl": {
           "type": "string",
-          "default": "http://localhost:5173",
-          "description": "URL of the CLR React dashboard"
+          "default": "https://pretty-grace-production-e75e9439.up.railway.app",
+          "description": "Address of the CLR web app, opened by 'CLR: Open Dashboard'."
         },
         "clr.telemetryEnabled": {
           "type": "boolean",

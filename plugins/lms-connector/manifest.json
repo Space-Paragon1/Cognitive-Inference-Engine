@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CLR LMS Connector",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Sends Canvas / Blackboard / Moodle interactions to your Cognitive Load Router engine.",
   "permissions": [
     "storage",
@@ -9,6 +9,7 @@
     "alarms"
   ],
   "host_permissions": [
+    "https://cognitive-inference-engine-production.up.railway.app/*",
     "http://127.0.0.1/*",
     "http://localhost/*",
     "*://*.instructure.com/*",

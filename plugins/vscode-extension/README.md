@@ -4,9 +4,10 @@ Sends coding activity to your Cognitive Load Router engine and shows your curren
 
 ## Connect
 
-1. Open Settings, search for `clr.engineUrl` and set it to your engine's address (for example your Railway URL). The default, `http://127.0.0.1:8765`, is an engine running on this computer.
-2. Run **CLR: Connect to Engine** from the Command Palette.
-3. Enter the code shown in the CLR app under Settings → Connected sources.
+1. Run **CLR: Connect to Engine** from the Command Palette.
+2. Enter the code shown in the CLR app under Settings → Connected sources.
+
+The extension uses the hosted engine. To use an engine running on this computer instead, set `clr.engineUrl` to `http://127.0.0.1:8765` in Settings first.
 
 The status bar item shows your load once the engine has a few seconds of activity.
 

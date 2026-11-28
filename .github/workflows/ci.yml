@@ -137,9 +137,13 @@ jobs:
       - name: Browser extension and LMS connector scripts parse
         run: |
           for f in plugins/browser-extension/*.js plugins/browser-extension/popup/*.js \
-                   plugins/browser-extension/scripts/*.mjs plugins/lms-connector/*.js; do
+                   plugins/browser-extension/scripts/*.mjs plugins/lms-connector/*.js \
+                   plugins/scripts/*.mjs; do
             node --check "$f"
           done
+
+      - name: Extensions share the same default addresses
+        run: node plugins/scripts/check-defaults.mjs
 
       - name: Manifests are valid JSON
         run: |

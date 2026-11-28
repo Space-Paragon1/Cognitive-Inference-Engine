@@ -406,7 +406,7 @@ function showSettings() {
         if (!/^https?:$/.test(new URL(url).protocol)) throw new Error();
       } catch (_) {
         $("engineField").classList.add("error");
-        $("engineHelp").textContent = "Use a full address, like http://127.0.0.1:8765.";
+        $("engineHelp").textContent = "Use a full address that starts with https:// or http://.";
         $("engineUrl").setAttribute("aria-invalid", "true");
         return;
       }

@@ -19,10 +19,14 @@ let lastKeystrokeTime = 0;
 let activeFile = "";
 let warnedUnauthorized = false;
 
+// Keep in step with the defaults in package.json.
+const DEFAULT_ENGINE_URL = "https://cognitive-inference-engine-production.up.railway.app";
+const DEFAULT_DASHBOARD_URL = "https://pretty-grace-production-e75e9439.up.railway.app";
+
 function currentEngineUrl(): string {
   return vscode.workspace
     .getConfiguration("clr")
-    .get<string>("engineUrl", "http://127.0.0.1:8765")
+    .get<string>("engineUrl", DEFAULT_ENGINE_URL)
     .replace(/\/+$/, "");
 }
 
@@ -242,7 +246,10 @@ export function activate(context: vscode.ExtensionContext): void {
   // ── Open dashboard command ─────────────────────────────────────────────
   context.subscriptions.push(
     vscode.commands.registerCommand("clr.openDashboard", () => {
-      const url = cfg.get<string>("dashboardUrl", "http://localhost:5173");
+      // Read when used, so a changed setting applies without a reload.
+      const url = vscode.workspace
+        .getConfiguration("clr")
+        .get<string>("dashboardUrl", DEFAULT_DASHBOARD_URL);
       vscode.env.openExternal(vscode.Uri.parse(url));
     })
   );
