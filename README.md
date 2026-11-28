@@ -217,6 +217,42 @@ python scripts/train_estimator.py
 
 ---
 
+## Deployment
+
+Both services run on Railway from this repository, next to a Postgres database.
+
+### Engine
+
+Built from the root `Dockerfile` with the root `railway.json`. It runs the database migrations, then the API.
+
+| Variable | Value |
+|---|---|
+| `CLR_DATABASE_URL` | `${{Postgres.DATABASE_URL}}`, a reference to the Postgres service |
+| `CLR_JWT_SECRET` | A long random string (`python3 -c "import secrets; print(secrets.token_hex(32))"`) |
+| `CLR_ALLOWED_ORIGINS` | Comma-separated addresses allowed to call the API: the web app's address, `https://localhost` for the Android app, and any local development addresses |
+| `APP_URL` | The web app's address. Password-reset emails link here. |
+| `SMTP_USER`, `SMTP_PASSWORD` (and optionally `SMTP_HOST`, `SMTP_PORT`) | The mail account that sends password-reset emails |
+
+### Web app
+
+Built from `frontend/Dockerfile`: Vite builds the app, and Caddy serves the files with long caching for hashed assets, security headers and a `/health` check. CI builds and checks the same image on every push.
+
+To create the service in Railway:
+
+1. In the project, choose **New → GitHub Repo** and pick this repository.
+2. In the new service's **Settings**:
+   - **Source → Root Directory**: `/frontend`
+   - **Config-as-code → Railway Config File**: `/frontend/railway.json`
+   - **Networking → Generate Domain**
+3. Optional: a `VITE_API_URL` variable points the app at a different engine. It defaults to the production engine.
+4. On the **engine** service, add the web app's address to `CLR_ALLOWED_ORIGINS` and set `APP_URL` to it.
+
+Each service redeploys only when its own files change (`watchPatterns` in each `railway.json`).
+
+The web app installs from the browser (manifest and icons in `frontend/public`, made by `npm run icons` from `design/assets/Logos/clr-mark.svg`) and opens offline: `frontend/sw/sw.js` saves the app's files, and the build fills in the list and version. The Android and iOS apps don't register it.
+
+---
+
 ## Troubleshooting
 
 ### `npm run preview` — API calls return 404

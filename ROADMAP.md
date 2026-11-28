@@ -60,11 +60,14 @@ Done on `roadmap/phase-1-quality-gates`; the first CI run on GitHub passed all t
 
 ## Phase 2: Web app live
 
-The web app is the same code as the Android app. It runs locally today but isn't hosted anywhere.
+The web app is the same code as the Android app.
 
-- [ ] Host the built web app. Recommended: a second Railway service from this repo, so the engine and the app live in one place. **You:** add the service in Railway.
-- [ ] Production engine address built in; engine CORS allows the web app's address
-- [ ] Installable web app: manifest, icons, theme colour, offline app shell
+Status: on `roadmap/phase-2-web`. The container, the install files and the offline shell are built and tested locally; hosting waits on the Railway service.
+
+- [ ] Host the built web app: a second Railway service from this repo (`frontend/Dockerfile`, Caddy serving the build, `frontend/railway.json`), with CI building and checking the same container. **You:** add the service in Railway (steps in the README's Deployment section).
+- [ ] Production engine address built in; engine CORS allows the web app's address and reset emails link to it. **You:** two variables on the engine service.
+- [ ] Installable web app: manifest, icons from the design system's mark, theme colour that follows the app's theme, offline app shell (service worker)
+- [ ] Engine and web app redeploy only when their own files change (Railway watch paths)
 - [ ] Extensions default to the hosted engine and web app, so students don't type addresses
 - [ ] Custom domain with HTTPS for the app and the engine. **You:** buy the domain and add its DNS records.
 
@@ -101,7 +104,7 @@ Google Play and the App Store require account deletion and a privacy policy befo
 
 ## Phase 5: Android on Google Play
 
-- [ ] App icon and splash screen from the design system (the app still has Capacitor's default icon)
+- [ ] Replace Capacitor's leftover icon and splash images: the PNG icons older Android versions use, and the splash screens. (Android 8 and later already show the CLR mark through the adaptive icon.) `frontend/scripts/icons.mjs` can generate them from the mark.
 - [ ] Release signing; CI builds a signed App Bundle. **You:** create and safely keep the upload key.
 - [ ] Break notifications while the app is closed, checked on a real phone
 - [ ] Store listing: screenshots, description, Data safety form, content rating. **You:** Play Console account.
