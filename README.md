@@ -107,14 +107,14 @@ Open the URL, create an account on the Sign In page, and you are in.
 2. Enable **Developer mode**
 3. Click **Load unpacked** → select `plugins/browser-extension/`
 
-### 4. Install the VSCode extension (dev mode)
+### 4. Install the VSCode extension
 
 ```bash
 cd plugins/vscode-extension
 npm install
-npm run compile
+npm run package
 ```
-Then press **F5** in VSCode to launch the Extension Development Host.
+This writes `clr-vscode.vsix`. In VS Code, open the Extensions view, choose **… → Install from VSIX**, then run **CLR: Connect to Engine**. To work on the extension itself, run `npm run compile` and press **F5** to launch the Extension Development Host.
 
 ### 5. Build the Android app
 
@@ -153,10 +153,12 @@ The reset link is valid for **1 hour**.
 
 ## Development Commands
 
+CI (`.github/workflows/ci.yml`) runs the engine lint and tests, the app's type check, lint, unit tests and build, and packages the VS Code extension on every push to `main` or a `roadmap/**` branch and on every pull request. The plan for the rest of the project is in [ROADMAP.md](ROADMAP.md).
+
 ### Backend
 
 ```bash
-# Run all tests (160 tests)
+# Run all tests
 pytest
 
 # Verbose output, stop on first failure
@@ -165,11 +167,11 @@ pytest -v -x
 # Run a specific test file
 pytest tests/test_auth.py -v
 
-# Lint — check for issues
-ruff check engine/
+# Lint — check for issues (the same paths CI checks)
+ruff check engine/ tests/ scripts/ alembic/ start.py
 
 # Lint — auto-fix safe issues (unused imports, import ordering)
-ruff check engine/ --fix
+ruff check engine/ tests/ scripts/ --fix
 
 # Start engine
 python -m engine.main
@@ -182,6 +184,14 @@ cd frontend
 
 # Development server with hot reload (port 5173)
 npm run dev
+
+# Development server against a built-in mock engine (no backend needed)
+VITE_MOCK=1 npm run dev
+
+# Type check, lint (no warnings allowed) and unit tests, as CI runs them
+npm run typecheck
+npm run lint
+npm test
 
 # Type-check + build production bundle
 npm run build
