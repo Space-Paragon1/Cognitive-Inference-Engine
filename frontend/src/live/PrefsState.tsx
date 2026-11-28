@@ -44,6 +44,8 @@ const DND_KEY = "clr_dnd";
 const ALERTS_KEY = "clr_alerts";
 export const VIBRATE_KEY = "clr_vibrate";
 const DEFAULT_ALERTS: AlertPrefs = { breaks: true, context: true, overload: true };
+/** --bg in tokens.css, also set in index.html before the first paint. */
+const THEME_COLOR: Record<Theme, string> = { dark: "#0c0e1a", light: "#f5f4f0" };
 
 function read(key: string): string | null {
   try {
@@ -101,6 +103,8 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
 
   const apply = useCallback((t: Theme) => {
     document.documentElement.setAttribute("data-theme", t);
+    // The browser's toolbar and the installed app's title bar match the page (--bg).
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLOR[t]);
     setThemeState(t);
   }, []);
 

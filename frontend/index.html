@@ -4,9 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0c0e1a" />
+    <meta name="description" content="Cognitive Load Router schedules your attention like a resource: live cognitive load, focus sessions, a load-aware task queue and timely breaks." />
     <title>Cognitive Load Router</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="CLR" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <script>
-      /* Theme before first paint: saved choice, then the OS preference, then dark. */
+      /* Theme before first paint: saved choice, then the OS preference, then dark.
+         The browser's toolbar colour (theme-color) matches the page background. */
       (function () {
         var theme = "dark";
         try {
@@ -20,6 +29,8 @@
           /* Storage blocked: keep dark. */
         }
         document.documentElement.setAttribute("data-theme", theme);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", theme === "light" ? "#f5f4f0" : "#0c0e1a");
       })();
     </script>
   </head>
