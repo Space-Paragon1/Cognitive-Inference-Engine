@@ -2,7 +2,17 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "Dockerfile"
+    "dockerfilePath": "Dockerfile",
+    "watchPatterns": [
+      "/engine/**",
+      "/alembic/**",
+      "/alembic.ini",
+      "/requirements.txt",
+      "/pyproject.toml",
+      "/data/load_estimator.joblib",
+      "/Dockerfile",
+      "/railway.json"
+    ]
   },
   "deploy": {
     "healthcheckPath": "/health",

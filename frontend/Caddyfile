@@ -1,0 +1,37 @@
+{
+	# Railway terminates HTTPS in front of the container.
+	auto_https off
+	admin off
+}
+
+:{$PORT:8080} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	# Vite puts a content hash in every file under /assets, so they never change.
+	header /assets/* Cache-Control "public, max-age=31536000, immutable"
+
+	# Always ask for these again, so a new release reaches students straight away.
+	@fresh path / /index.html /sw.js /manifest.webmanifest
+	header @fresh Cache-Control "no-cache"
+
+	# Railway's health check.
+	handle /health {
+		respond "ok" 200
+	}
+
+	handle {
+		root * /srv
+		# The app routes with #/ links, so any other path is the app itself.
+		try_files {path} /index.html
+		file_server
+	}
+}
