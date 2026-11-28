@@ -27,6 +27,7 @@ frontend/android/local.properties
 # VSCode extension
 plugins/vscode-extension/node_modules/
 plugins/vscode-extension/out/
+plugins/vscode-extension/*.vsix
 
 # Editor
 .vscode/settings.json

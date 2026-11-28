@@ -2,6 +2,13 @@
   "name": "cognitive-load-router",
   "displayName": "Cognitive Load Router",
   "description": "IDE telemetry plugin for the Cognitive Load Router",
+  "publisher": "clr",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Space-Paragon1/Cognitive-Inference-Engine.git",
+    "directory": "plugins/vscode-extension"
+  },
   "version": "0.3.0",
   "engines": {
     "vscode": "^1.85.0"
@@ -56,11 +63,13 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "vscode:prepublish": "npm run compile"
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package --out clr-vscode.vsix"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.2",
     "typescript": "^5.3.0"
   }
 }
