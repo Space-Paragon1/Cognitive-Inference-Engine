@@ -1,5 +1,6 @@
 # The CLR web app: built with Vite, served as static files by Caddy.
-# Railway builds this from the frontend/ folder (see railway.json here).
+# Railway builds this with the service's Root Directory set to /frontend
+# (settings in the README's Deployment section).
 
 FROM node:22-alpine AS build
 WORKDIR /app

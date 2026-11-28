@@ -107,6 +107,8 @@ Open the URL, create an account on the Sign In page, and you are in.
 2. Enable **Developer mode**
 3. Click **Load unpacked** → select `plugins/browser-extension/`
 
+It connects to the hosted engine. To use an engine on this computer, set the address in its popup's settings.
+
 ### 4. Install the VSCode extension
 
 ```bash
@@ -219,11 +221,26 @@ python scripts/train_estimator.py
 
 ## Deployment
 
-Both services run on Railway from this repository, next to a Postgres database.
+Both services run on Railway from this repository, next to a Postgres database. Railway is retiring config files (`railway.json`): new services can't use them, and from 1 December 2026 it stops reading them. So each service's settings live in its **Settings** tab in the Railway dashboard, and the tables below are the record of what they should be.
+
+Live addresses:
+
+- Engine: https://cognitive-inference-engine-production.up.railway.app
+- Web app: https://pretty-grace-production-e75e9439.up.railway.app
+
+The browser extension, LMS connector and VS Code extension use these by default (`node plugins/scripts/check-defaults.mjs`, run in CI, checks they agree).
 
 ### Engine
 
-Built from the root `Dockerfile` with the root `railway.json`. It runs the database migrations, then the API.
+Built from the root `Dockerfile`. It runs the database migrations, then the API.
+
+| Setting | Value |
+|---|---|
+| Source → Root Directory | empty (the repository root) |
+| Build → Watch Paths | `/engine/**`, `/alembic/**`, `/alembic.ini`, `/requirements.txt`, `/pyproject.toml`, `/data/load_estimator.joblib`, `/Dockerfile` |
+| Deploy → Healthcheck Path | `/health` |
+| Deploy → Restart Policy | On Failure, 3 retries |
+| Wait for CI | On |
 
 | Variable | Value |
 |---|---|
@@ -233,21 +250,23 @@ Built from the root `Dockerfile` with the root `railway.json`. It runs the datab
 | `APP_URL` | The web app's address. Password-reset emails link here. |
 | `SMTP_USER`, `SMTP_PASSWORD` (and optionally `SMTP_HOST`, `SMTP_PORT`) | The mail account that sends password-reset emails |
 
+Until those settings are in the dashboard, the root `railway.json` holds them; remove it once they are.
+
 ### Web app
 
 Built from `frontend/Dockerfile`: Vite builds the app, and Caddy serves the files with long caching for hashed assets, security headers and a `/health` check. CI builds and checks the same image on every push.
 
-To create the service in Railway:
+To create the service, choose **New → GitHub Repo** in the Railway project and pick this repository. Then:
 
-1. In the project, choose **New → GitHub Repo** and pick this repository.
-2. In the new service's **Settings**:
-   - **Source → Root Directory**: `/frontend`
-   - **Config-as-code → Railway Config File**: `/frontend/railway.json`
-   - **Networking → Generate Domain**
-3. Optional: a `VITE_API_URL` variable points the app at a different engine. It defaults to the production engine.
-4. On the **engine** service, add the web app's address to `CLR_ALLOWED_ORIGINS` and set `APP_URL` to it.
+| Setting | Value |
+|---|---|
+| Source → Root Directory | `/frontend` |
+| Build → Watch Paths | `/frontend/**` and `!/frontend/android/**` |
+| Deploy → Healthcheck Path | `/health` |
+| Networking → Public Networking | **Generate Domain** |
+| Wait for CI | On |
 
-Each service redeploys only when its own files change (`watchPatterns` in each `railway.json`).
+Railway sets `PORT` and Caddy listens on it. An optional `VITE_API_URL` variable builds the app against a different engine; it defaults to the production engine. After the domain exists, add it to the engine's `CLR_ALLOWED_ORIGINS` and set the engine's `APP_URL` to it.
 
 The web app installs from the browser (manifest and icons in `frontend/public`, made by `npm run icons` from `design/assets/Logos/clr-mark.svg`) and opens offline: `frontend/sw/sw.js` saves the app's files, and the build fills in the list and version. The Android and iOS apps don't register it.
 

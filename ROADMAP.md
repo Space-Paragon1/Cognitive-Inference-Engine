@@ -62,13 +62,15 @@ Done on `roadmap/phase-1-quality-gates`; the first CI run on GitHub passed all t
 
 The web app is the same code as the Android app.
 
-Status: on `roadmap/phase-2-web`. The container, the install files and the offline shell are built and tested locally; hosting waits on the Railway service.
+Status: the web app is live at https://pretty-grace-production-e75e9439.up.railway.app, and the extensions point at it and at the engine. Left: the engine's two variables (then sign-in from the web app is checked live), the Railway dashboard settings, and the domain.
 
-- [ ] Host the built web app: a second Railway service from this repo (`frontend/Dockerfile`, Caddy serving the build, `frontend/railway.json`), with CI building and checking the same container. **You:** add the service in Railway (steps in the README's Deployment section).
-- [ ] Production engine address built in; engine CORS allows the web app's address and reset emails link to it. **You:** two variables on the engine service.
-- [ ] Installable web app: manifest, icons from the design system's mark, theme colour that follows the app's theme, offline app shell (service worker)
-- [ ] Engine and web app redeploy only when their own files change (Railway watch paths)
-- [ ] Extensions default to the hosted engine and web app, so students don't type addresses
+- [x] Host the built web app: a second Railway service from this repo (`frontend/Dockerfile`, Caddy serving the build), with CI building and checking the same container
+- [ ] Production engine address built in; engine CORS allows the web app's address and reset emails link to it. The address is built in; **You:** add the web app's address to `CLR_ALLOWED_ORIGINS` and set `APP_URL` on the engine service.
+- [x] Installable web app: manifest, icons from the design system's mark, theme colour that follows the app's theme, offline app shell (service worker)
+- [x] Extensions default to the hosted engine and web app, so students don't type addresses. CI checks that the extensions' addresses agree.
+- [ ] **By 1 December 2026:** the engine's Railway settings (watch paths, health check, restart policy) entered in its dashboard, then the root `railway.json` removed. Railway stops reading config files that day; the web app never could use one, so `frontend/railway.json` is gone and the README's Deployment section lists every setting. **You:** enter the engine's settings from that table.
+- [ ] Engine and web app redeploy only when their own files change. The engine does today through `railway.json`. **You:** the Watch Paths from the README's Deployment section, on both services.
+- [ ] "Wait for CI" on for both services, so Railway deploys only commits that passed CI. **You:** one switch per service.
 - [ ] Custom domain with HTTPS for the app and the engine. **You:** buy the domain and add its DNS records.
 
 ## Phase 3: Finish the engine API
